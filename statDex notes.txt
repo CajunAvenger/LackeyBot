@@ -1,0 +1,91 @@
+/* statDex
+ statDex contains play and win numbers for cards and players (statDex.cards and statDex.players)
+ on its own it's for checking winrates and playrates primarily
+ 
+ match reports and decklists are saved in tourneyArchives ("gp_19_11.json", "league_20_01.json")
+ referencing these can allow for more advanced stats like a card's winrate with or against another card, or players vs each other.
+ tourneyArchives store their match and player data ([tournament].matches and [tournament].players
+ 
+ when cross-referencing it's important to know that match numbers are saved on 1-index instead of 0-index
+ meaning to pull a match you need [tournament].matches[matchNumber - 1]
+ maybe this should be changed
+*/
+
+cards: {
+	"Sinister Heir":{									//card name
+		"mainCount":4,									//# in all mainboards
+		"sideCount":0,									//# in all sideboards
+		"setCount":1,									//# of playsets
+		"decks":["/gp_19_11/Hoop_Thrower.json"],		//array of decklists using this card
+		"matchWins":0,									//match wins of those decklists
+		"matchLoss":3,									//match losses of those decklists
+		"matchDraw":0,									//match draws of those decklists
+		"matches":{										//object of all tournaments the card appears in
+			"gp_19_11":[3,6,10]								//array of matches in each tournament the card appeared in
+		},													//these can be cross-referenced with [tournament].matches
+		"cmc":2,
+		"colors":["Black"],
+		"set":["101"]
+	}
+},
+players: {
+	"197714567537754113":{								//player id
+		"wins":18,										//lifetime wins
+		"losses":27,									//lifetime losses
+		"matches":{										//object of all tournaments participated in
+			"gp_19_11":[3,6,10],							//array of matches in those tournaments
+			"gp_19_12":[4,6,12,17],
+			"gp_20_01":[3,6,11,16],
+			"gp_20_03":[5,10,13,18],
+			"league_19_12":[4,8,9,13,16,18,21,26,29,33,72,73],
+			"league_20_01":[1,6,23,25,33,34,36,42],
+			"league_20_03":[6,8,12,16,20,24,25,32,35,36]
+		}
+	}
+}
+
+tournament example
+gp_19_11
+matches: [												//array of matches. match names are 1-indexed so use [tournament].matches[matchNo - 1]
+	{"players":[										//array of players, first should be the winner
+		{
+			"id":"228286499953704961",					//player id
+			"username":"CyberChronometer",				//player username at the time
+			"wins":"2",									//wins in match
+			"losses":"0",								//losses in match
+			"victor":1,									//did they win?
+			"run":1,									//player's run
+			"list":"CyberChronometer"					//player's decklist name => gp_19_11/CyberChronometer.json
+		},
+		{
+			"id":"197714567537754113",
+			"username":"Hoop_Thrower",
+			"wins":"0",
+			"losses":"2",
+			"victor":0,
+			"run":1,
+			"list":"Hoop_Thrower"
+		}
+	],
+	"winner":"228286499953704961"}						//winner id here or null if a tie. more reliable than players[0].id
+],
+players: {
+	"197714567537754113":{								//player id
+		"username":"Hoop_Thrower",						//player username at the time
+		"matches":[										//matches played in each run
+			[3,6,10]									//gps are just a single, leagues can have more
+		],
+		"lists":[""],									//array of decklists, gp will always be == username, should change this to not be empty tho
+		"opponents":[									//array of played opponents for each run
+			[												//"first" run
+				["228286499953704961",1],				//opponent id and their run
+				["107957368997834752",1],
+				["180885469037461504",1]
+			]
+		],
+		"wins":0,										//wins for the tournament
+		"losses":3,										//losses for the tournament
+		"draws":0,										//draws for the tournament
+		"monthScore":0									//for leagues, the score at the end of the month
+	}
+}

@@ -1,0 +1,154 @@
+{
+	"draftFaceUp": [
+		"Doctrine Director",
+		"Her Majesty’s Armory",
+		"Highrock Griffin",
+		"Recruiter General",
+		"Royal Lieutenant",
+		"Westerly Ascended",
+		"Glit-Cove Spymaster",
+		"Her Majesty's Will",
+		"Shared Bounty",
+		"Tideseer Captain",
+		"Vibrant Watcher",
+		"Wellweather Christener",
+		"Ghost Crew",
+		"Greed’s Goaded",
+		"Master Manipulator",
+		"Sewer Vermin",
+		"Smuggler Captain",
+		"Wellweather Distracter",
+		"Archipelago Tyrant",
+		"Careless Buccaneer",
+		"Moonracer Cannoneer",
+		"Personal Armsmith",
+		"Queen's Acquisitioner",
+		"Unquenchable Flame",
+		"Ahba Island Storyteller",
+		"Evergrove Wanderer",
+		"Halyard Lookout",
+		"il-Verde Watchkeep",
+		"Porta Bay Parrot",
+		"Wonder Weaver",
+		"Merchant Sloop",
+		"Queen's Revenge",
+		"Trusty Scabbard",
+		
+		"Banish the Impure",
+		"Eternity Witch",
+		"Gana-Mali Elite",
+		"Mentor of Generations",
+		"Prairie Companions",
+		"Savannah Warden",
+		"Temple Tender",
+		"Cliffshard Serpent",
+		"Crovoan Storyteller",
+		"Dreamstrider",
+		"Leyline Guide",
+		"Reduce to Myth",
+		"Rhythmic Mystic",
+		"Snaking Network",
+		"Foul Cure",
+		"Gifter of Lineages",
+		"Grave Defiler",
+		"Obligate",
+		"Offering Quetzal",
+		"Temple Raider",
+		"Blaze Devastator",
+		"Cache Breaker",
+		"Firesong Dancer",
+		"Lay to Ruin",
+		"Magma Veil Aggressor",
+		"Prey Stalker",
+		"Pyre Intimidator",
+		"Recollection Ritualist",
+		"Call to the Wilds",
+		"Elusive Chimera",
+		"Feral Challenger",
+		"Runed Elk",
+		"Sage of All",
+		"Stag Swarm",
+		"Vibrant Vigor",
+		"Alpha Packleader",
+		"Atzol Sandskitter",
+		"Constant Discharge",
+		"Crovoan Mentalist",
+		"Exemplar of Indulgence",
+		"Fateweave Mystic",
+		"Gana-Mali Forces",
+		"Mariette's Obtainers",
+		"Mystic Quetzal",
+		"Stampeding Baloth",
+		"War-Call Rallier",
+		"Tome of Ideals",
+		"Hasty Encampment",
+		"New Frontier"
+	],
+	"turnFaceDown": [
+		"Glit-Cove Spymaster"
+	],
+	"makeNote": [
+		"Halyard Lookout"
+	],
+	"draftAdditional": [
+		"Moonracer Cannoneer",
+		"Evergrove Wanderer"
+	],
+	"asDraftLand": [
+		"Wonder Weaver"
+	],
+	"asDraftCreature": [
+		"Doctrine Director",
+		"Recruiter General",
+		"Westerly Ascended"
+	],
+	"asDraftCard": [
+		"Smuggler Captain",
+		"Porta Bay Parrot"
+	],
+	"removeAsDraft": [
+		"Her Majesty's Will"
+	],
+	"noteNextCard": [
+		"Tideseer Captain",
+		"Vibrant Watcher",
+		"Ahba Island Storyteller",
+		"Queen's Revenge"
+	],
+	"draftRandom": {
+		"Careless Buccaneer": 1
+	},
+	"controlDraft": [
+		"il-Verde Watchkeep"
+	],
+	"notePassingPlayer":[
+		"Shared Bounty",
+		"Unquenchable Flame"
+	],
+	"noteCreatureTypes": [
+		"Doctrine Director",
+	],
+	"revealRoundCreature": [
+		"Her Majesty's Armory",
+		"Highrock Griffin",
+		"Recruiter General",
+		"Wellweather Christener",
+		"Ghost Crew",
+		"Personal Armsmith",
+		"Trusty Scabbard"
+	],
+	"noteRoundCards":[
+		"Greed’s Goaded"
+	],
+	"notePackCreature": [
+		"Master Manipulator",
+		"Sewer Vermin"
+	],
+	"noteNotes": [
+		"Archipelago Tyrant"
+	],
+	"afterDraft": [
+		"Queen's Acquisitioner"
+	],
+	"isRoyalLieutenant": "Royal Lieutenant",
+}

@@ -1,0 +1,60 @@
+{
+"HI12":{
+	"longname":"High Noon",
+	"Design":"Cajun",
+	"psLink":"835/5475","psSuffix":".jpg","psSet":"high-noon1",
+	"Link":"https://drive.google.com/uc?export=download&id=112LZAC1--fFoW8lsZdS2PdZs8w64_IAb",
+	"releaseNo":"2",
+	"releaseDate":"2018-05-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":"MPS_HI12",
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true},{"filters":["r=c","e:MPS_HI12"],"chances":[0.99306,0.00694]}]
+},
+"MON":{
+	"longname":"Monsters of Chikyu",
+	"Design": "Cajun","psSet":"monsters-of-chikyu",
+	"psLink":"835/5502","psSuffix":".full.jpg",
+	"releaseNo":"5",
+	"releaseDate":"2020-06-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=l"],"chances":[1],"chanceFunction":"else","replace":0,"replaceChance":1,"foil":false},{"filters":["r=c","r=u","r=r","r=m","r=l"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]},
+"NVA":{
+	"longname":"Novea",
+	"Design":"Cajun",
+	"psLink":"835/5476","psSuffix":".jpg","psSet":"novea",
+	"Link":"https://drive.google.com/uc?export=download&id=0B9aVhi1KwykvVDZJSzRWQXljWnc",
+	"releaseNo":"1",
+	"releaseDate":"2018-02-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+},
+"SPK":{
+	"longname":"Sparks of a Multiverse",
+	"psLink":"835/5472","psSuffix":".jpg","psSet":"sparks",
+	"Design":"Cajun",
+	"Link":"https://drive.google.com/uc?export=download&id=0B9aVhi1KwykvVDZJSzRWQXljWnc",
+	"releaseNo":"4",
+	"releaseDate":"2019-11-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":null
+},
+"VTM":{
+	"longname":"Villains: The Musical",
+	"Design":"Cajun",
+	"psLink":"835/5478","psSuffix":".jpg","psSet":"villains-the-musical",
+	"Link":"https://drive.google.com/open?id=1hLslyvpfRIXRu4i1rE9U38oIJ6M3Fwkm",
+	"releaseNo":"3",
+	"releaseDate":"2019-02-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=b"],"chances":[1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+}
+}

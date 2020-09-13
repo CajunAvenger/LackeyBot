@@ -1,0 +1,23 @@
+{
+    "live": {
+		"token": "LIVE LOGIN TOKEN",
+		"stats": "CHANNEL FOR STATS LOG",
+		"draft": "CHANNEL FOR DRAFT LOG",
+		"comp": "CHANNEL FOR COMPETITIVE EVENTS",
+		"TO": "TOURNAMENT ORGANIZER DISCORD ID"
+	},
+    "test": {
+		"token": "TEST LOGIN TOKEN",
+		"stats": "CHANNEL FOR STATS LOG",
+		"draft": "CHANNEL FOR DRAFT LOG",
+		"comp": "CHANNEL FOR COMPETITIVE EVENTS",
+		"TO": "TOURNAMENT ORGANIZER DISCORD ID"
+	},
+	"dropbox": "DROPBOX LOGIN TOKEN",
+	"admin": {
+		"ADMIN USER ID": [0,1,2],
+		"TO USER ID": [1],
+		"DRAFT MODERATOR ID": [3],
+		"BOT MODERATOR ID": [3],
+		}
+}

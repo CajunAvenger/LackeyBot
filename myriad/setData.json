@@ -1,0 +1,68 @@
+{
+	"101":{
+		"longname":"Storytime",
+		"Design":"Pipsqueak",
+		"Link":"https://drive.google.com/open?id=15I6nAMIbU0vsDgCfzztWrLiICzNBeoem",
+		"releaseNo":"1",
+		"releaseDate":"2019-02-01",
+		"Draft":1,
+		"basics":0,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=r","r=m","r=l"],"chances":[0.875,0.0625,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"DOA":{
+		"longname":"Discoveries of Akieva",
+		"Design":"Pipsqueak",
+		"Link":"https://drive.google.com/open?id=1QIIT6dbSZtJusRj10m7sh-waR8zW3z-_",
+		"releaseNo":"2",
+		"releaseDate":"2019-11-01",
+		"Draft":1,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"ILD":{
+		"longname":"Ildathach",
+		"Design":"Cyberchronometer",
+		"Link":"",
+		"releaseNo":"3",
+		"releaseDate":"2019-02-01",
+		"Draft":1,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"HIL":{
+		"longname":"Highlander Core Set",
+		"Design":"Myriad Design Team",
+		"Link":"https://hub-of-innovation.herokuapp.com/card?q=e%3Ahil",
+		"releaseNo":"4",
+		"releaseDate":"2019-02-01",
+		"Draft":0,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[]
+	},
+	"RWR":{
+		"longname":"Rail War",
+		"Design":"CyberChronometer",
+		"Link":"https://drive.google.com/open?id=18cxiPjY9YGn0TELjyeOM3bPt2LrVJ6vb",
+		"releaseNo":"5",
+		"releaseDate":"2019-05-01",
+		"Draft":1,
+		"basics":0,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"TMA":{
+		"longname":"Temporal Magic",
+		"Design":"Cyberchronometer & Pipsqueak",
+		"Link":"https://https://hub-of-innovation.herokuapp.com/card?q=e%3Atma",
+		"releaseNo":"6",
+		"releaseDate":"2019-02-01",
+		"Draft":0,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[]
+	}
+}

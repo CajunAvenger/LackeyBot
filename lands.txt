@@ -1,0 +1,22 @@
+{
+	"checkland":{"names":["Lush Oasis","Spiraling Canyon","Fungal Mire","Frostfire Geysers","Gloomcover Steppe","Heart of the Glade","Flourishing Crevasse","Lavatorn Fields","Flooded Morass","Pool of Light"]},
+	"scryland":{"names":["Frozen Wilds Pass","Glory Bridge Pass","Grimrot Pass","Sky's Reach Pass","Ravenwood Pass","Sunset Grove Pass","Hanatun Pass","Stonework Gate Pass","Chillroad Pass","Winterheath Pass"]},
+	"desertshock":{"names":["Weathered Oasis","Scorched Canyon","Sunset Sands","Mountain Spring","Lonely Dunes","Sunlit Cactus","Clay Mesa","Hostile Dunes","Arid Ruins","Canyon Falls"]},
+	"mirrorland":{"names":["Spired Canopy","Sunny Dunes","Grisly Marsh","Sunkern Cavern","Haunting Estate","Gleaming Veldt","Lush Outcrop","Dire Dive","Ghastly Castle","Crafted Coast"]},
+	"shockfetch":{"names":["Mysterious Cataract","Sunlit Highland","Grim Bastion","Magmatic Torrent","Barren Desolation","Amber Hills","Timber Range","Shardstone Rift","Flooded Depths","Ocean Monastery"]},
+	"cycleland":{"names":["Waterway Dam","Courtroom Halls","Empty Courtyard","Torchlit Shipyard","Ornate Interior","Expansive Sprawl","Rugged Outcropping","Back Alley","Weathered Slums","Lakeside Market"]},
+	"handland":{"names":["Distant Domains","Valiant's Stronghold","Hidden Hovel","Mystic Spire","Hallowed Dungeon","Fortified Village","Game Trail","Foreboding Ruins","Choked Estuary","Port Town"]},
+	"drawdual":{"names":["Forgotten Alcove","Sweeping Mesa","Undergrowth Forest","Coastal Cliffs","Silent Mire","Windy Valley","Overgrown Jungle","Ashen Slab","Fetid Sinkhole","Murky Isle"]},
+	"karoo":{"names":["Unexplored Ruins","Endless Deserts","Lonely Morass","Crystal Coasts","Boundless Sinks","Suntouched Temple","Distant Highlands","Scorched Sanctum","Shaded Cove","Sprawling Coast"]},
+	"monofetch":{"names":["Vast Savannah","Gleaming River","Murky Peat","Sunwashed Spires","Tropical Grove"]},
+	"tormentland":{"names":["Frozen Hinterlands","Hazy Coppice","Spires of Caulte","Sunlit Fissure","Towering Boughs","Shrouded Rooftops","Weathered Fortress","Deadwood Grove","Dawnlit Battlefield","Lush Outskirts"]},
+
+	"paindual":{"names":["Shifting Glade","Forgotten Steppe","Nomad's Township","Crystal Cavern","Arctic Mine","Resplendent Substratum","Rampant Summit","Crumbling Precipice","Murmuring Falls","Sedate Tundra"]},
+	"plaguedual":{"names":["Shifting Glade","Forgotten Steppe","Nomad's Township","Crystal Cavern","Arctic Mine","Resplendent Substratum","Rampant Summit","Crumbling Precipice","Murmuring Falls","Sedate Tundra"]},
+	"plagueland":{"names":["Shifting Glade","Forgotten Steppe","Nomad's Township","Crystal Cavern","Arctic Mine","Resplendent Substratum","Rampant Summit","Crumbling Precipice","Murmuring Falls","Sedate Tundra"]},
+
+	"investigatedual":{"names":["Hidden Hollow","Backstage Rooms","Seedy Bar","Heist Headquarters","Legitimate Establishment","Overgrown Refuge","Forgotten Shrine","Grisly Slums","Unlit Alley","Cleared Vault"]},
+	"cluedual":{"names":["Hidden Hollow","Backstage Rooms","Seedy Bar","Heist Headquarters","Legitimate Establishment","Overgrown Refuge","Forgotten Shrine","Grisly Slums","Unlit Alley","Cleared Vault"]},
+	"investigateland"names":["Hidden Hollow","Backstage Rooms","Seedy Bar","Heist Headquarters","Legitimate Establishment","Overgrown Refuge","Forgotten Shrine","Grisly Slums","Unlit Alley","Cleared Vault"]},
+	"clueland":{"names":["Hidden Hollow","Backstage Rooms","Seedy Bar","Heist Headquarters","Legitimate Establishment","Overgrown Refuge","Forgotten Shrine","Grisly Slums","Unlit Alley","Cleared Vault"]}
+}

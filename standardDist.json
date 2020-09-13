@@ -1,0 +1,33 @@
+[
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=c" ], "chances": [ 1 ] },
+  { "filters": [ "r=u" ], "chances": [ 1 ] },
+  { "filters": [ "r=u" ], "chances": [ 1 ] },
+  { "filters": [ "r=u" ], "chances": [ 1 ] },
+  { "filters": [ "r=r", "r=m" ], "chances": [ 0.875, 0.125 ] },
+  {
+    "filters": [ "r=l" ],
+    "chances": [ 1 ],
+    "chanceFunction": "else",
+    "replace": 0,
+    "replaceChance": 1,
+    "foil": false
+  },
+  {
+    "filters": [ "r=c", "r=u", "r=r", "r=m", "r=l" ],
+    "chances": [ 0.6875, 0.1875, 0.0547, 0.0078, 0.0625 ],
+    "chanceFunction": "else",
+    "replace": 0,
+    "replaceChance": 0.3334,
+    "foil": true
+  }
+]

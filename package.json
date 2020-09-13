@@ -1,0 +1,44 @@
+{
+  "name": "lackeybot",
+  "version": "6.12.1",
+  "description": "Discord bot for MSEM.",
+  "main": "lackeybot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node lackeybot"
+  },
+  "keywords": [
+    "lackeybot",
+    "heroku"
+  ],
+  "author": "cajun",
+  "license": "ISC",
+  "dependencies": {
+    "bufferutil": "^4.0.1",
+    "caman": "^4.1.2",
+    "canvas": "^2.6.1",
+    "discord.js": "^11.5.1",
+    "download-file": "^0.1.5",
+    "dropbox": "^4.0.17",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "extend": "^3.0.2",
+    "fs": "0.0.1-security",
+    "he": "^1.2.0",
+    "http": "0.0.0",
+    "isomorphic-fetch": "^2.2.1",
+    "mongodb": "^3.5.9",
+    "npm": "^6.14.6",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.8",
+    "save": "^2.4.0",
+    "utf-8-validate": "^5.0.2"
+  },
+  "engines": {
+    "node": "8.9.4",
+    "npm": "5.6.0"
+  },
+  "devDependencies": {
+    "ws": "^3.3.2"
+  }
+}

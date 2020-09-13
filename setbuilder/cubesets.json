@@ -1,0 +1,54 @@
+{
+"ACR": {
+	"longname" : "Arcanum: Reforged",
+	"Design": "HerziQuerzi"
+	},
+"DHL": {
+	"longname": "Descent from the Highlands",
+	"Design": "FifthDragon"
+	},
+"GHQ": {
+	"longname": "Glacia: Hail to the Queen",
+	"Design": "CanterburyEgg"
+	},
+"HVF": {
+	"longname": "Harvest Festival",
+	"Design": ""
+	},
+"IHS": {
+	"longname": "Iron Horse",
+	"Design": "HerziQuerzi"
+	},
+"KAH": {
+	"longname": "Kahembo",
+	"Design": "CanterburyEgg"
+	},
+"LND": {
+	"longname": "Legends Never Die",
+	"Design": "Pipsqueak"
+	},
+"MUZ": {
+	"longname": "Magic: Umezawas",
+	"Design": "Cyber"
+	},
+"SRN": {
+	"longname": "Skyrim: Nine Divines Edition",
+	"Design": "Honchkrow David"
+	},
+"TEM": {
+	"longname": "TemporalMTG",
+	"Design": "Temporal"
+	},
+"UNR": {
+	"longname": "The Unraveling",
+	"Design": "justnobody"
+	},
+"VOL": {
+	"longname": "Volaria",
+	"Design": "WindyDelcarlo"
+	},
+"VTM": {
+	"longname": "Villains the Musical",
+	"Design": "Cajun"
+	}
+}
