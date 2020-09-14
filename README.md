@@ -2,18 +2,20 @@
 LackeyBot is a Discord bot that handles Magic card fetching as well as a host of general purpose commands as well. LackeyBot's primary prefix is $, for example `$remind 1 hour check the mail`. The ! prefix is used for canon Magic commands, and the ? prefix is used for devDex, the uploadable cards database.
 
 ## Card Calling
-LackeyBot's main function is acting as a card fetching bot. By default, this calls MSEM cards in [[square brackets]] with $commands, canon Magic cards in <<angle brackets>> with !commands, and user uploaded cards in {{curly brackets}}
+LackeyBot's main function is acting as a card fetching bot. By default, this calls MSEM cards in `[[square brackets]]` with $commands, canon Magic cards in `<<angle brackets>>` with !commands, and user uploaded cards in `{{curly brackets}}`.
+
 These databases can be changed per server, leaving LackeyBot also fetching cards for Myriad, Cajun Standard, and public Planesculptors sets.
+
 Additionally, you can add $img/!img/?img to your command to show the image instead of the card text, or $rul/!rul/?rul to include any rulings LackeyBot has on it.
 
-When LackeyBot posts the fetched card, it will add a few reactions. X deletes the post, the magnifying glass toggles the card image, the ruler shows any rulings for the card, and the $, !, and ? switch it as though the card had been called in [[square brackets]], <<angle brackets>>, or {{curly brackets}} respectively, for when you use the wrong ones.
+When LackeyBot posts the fetched card, it will add a few reactions. X deletes the post, the magnifying glass toggles the card image, the ruler shows any rulings for the card, and the $, !, and ? switch it as though the card had been called in `[[square brackets]]`, `<<angle brackets>>`, or `{{curly brackets}}` respectively, for when you use the wrong ones.
 ![Reaction image](https://cdn.discordapp.com/attachments/443557716842250240/754859046389022790/unknown.png)
 
 ### Other LackeyBot Magic commands:
 Command | Description
 ------- | -----------
-<<Card Name>> | Returns the card text of Card Name, or the closest thing LackeyBot's fuzzy search finds
-<<Card Name_SET|(Scryfall query) | Optional filters. _SET prioritizes cards that are in that set, useful for pulling particular reprints. Scryfall queries after a pipe filter out all cards that don't match the query.
+`<<Card Name>>` | Returns the card text of Card Name, or the closest thing LackeyBot's fuzzy search finds
+`<<Card Name_SET|(Scryfall query)` | Optional filters. _SET prioritizes cards that are in that set, useful for pulling particular reprints. Scryfall queries after a pipe filter out all cards that don't match the query.
 !codes | Returns an embed of all set codes for the database
 !stat SET | Returns some stats for the given set code
 !open SET | Opens a pack of the given set code in an embed only the command-sender can interact with
@@ -27,7 +29,11 @@ Command | Description
 !rul | Returns the rulings of the last card, or posts the rulings with the card image when used with a card fetch 
 
 ## Reminders
-LackeyBot's reminder command lets you set any number of reminders for (most) any length of time, and accepts fractional times. When confirming a reminder, LackeyBot will react with a star, and anyone who reacts with the star will also be pinged when the reminder fires. After the reminder fires, LackeyBot will add more reactions allowing you to snooze the reminder for an hour, a day, a week, or a repeat duration without needing to redo the command.
+LackeyBot's reminder command lets you set any number of reminders for (most) any length of time, and accepts fractional times.
+
+When confirming a reminder, LackeyBot will react with a star, and anyone who reacts with the star will also be pinged when the reminder fires.
+
+After the reminder fires, LackeyBot will add more reactions allowing you to snooze the reminder for an hour, a day, a week, or a repeat duration without needing to redo the command.
 Command | Description
 ------- | -----------
 $remind # (time) (message) | Sets a reminder for # time from now. Accepts seconds, s, minutes, min, m, hours, h, hr, day, d, week, wk, w, month, year, yr, and decade. A blank message will also be accepted
@@ -73,7 +79,7 @@ $minesweeper | Generates a minesweeper game. Can generate bigger/smaller boards 
 $shuffle # | Returns a shuffled list of numbers 1 through #
 $prompt | Gives a random design prompt from Chartate101
 $namegen | Generates a random name. Supports up to `$namegen 15`
-!hm (easy|medium|hard) | Generates a Magic card hangman game
+!hm (easy/medium/hard) | Generates a Magic card hangman game
 $bigemoji (emoji) | Posts a big version of the given custom emoji
 $avatar (userID) | Posts users avatar, or the given user's avatar
 $userinfo | Posts info about the user
@@ -96,35 +102,60 @@ $x | Doubt reaction
 
 lackeybot.js is the primary script. Anything not listed below is likely in there.
 
+
 arcana.js sets up the different databases, setting them up as arcana.msem, arcana.magic, arcana.myriad, etc
+
 fuzzy.js sets up the fuzzy searching (and scryfall searching) scripts
+
 magic.js sets up the global Magic scripts
+
 packgen.js sets up the pack generator scripts
+
 psScrap.js sets up the scripts for Planesculptors searching
 
+
 bob.js is the Lackey plugin builder
+
 cannon.js is the Magic database builder
+
 crunch.js is the Comp Rules database builder
+
 freshen.js is the SMS database updater
+
 myriadfix.js is the scripts for patching Myriad files
+
 preview.js is the database builder for sets being previewed
+
 quotedex.js is the quoteDex database and scripts
+
 rick.js is the Cockatrice plugin builder
+
 stitch.js is the main MSEM database updator
->msemupdate.js is the secondary one that I should really add into stitch at some point
+
+msemupdate.js is the secondary one that I should really add into stitch at some point
+
 untap.js is the Untap database builder
 
+
 extractor.js is the Set Skeleton extractor
+
 process.js processes decklists for statDex
+
 toolbox.js is utility scripts
+
 web.js has some testing website code
 
 ---
 Under Construction
 ---
 Arcana Module
+
 matchDex Module
+
 Draft Module
+
 Reminder Module
+
 Roles Module
+
 JustForFun Module
