@@ -17,7 +17,7 @@ function italPseudo(someText) { //italicizes pseudo abilities but not modals, an
 		return someText;
 	return someText.replace(pseudoMatch[1], "*"+pseudoMatch[1]+"*")
 }
-function writeCard(cardName,database,setDatabase,shortFlag, extra) { //turns card data into card string
+function writeCard(cardName,database,setDatabase,shortFlag, extra, version) { //turns card data into card string
 	let showCard = "";
 	let thisCard = cardName; //can be name or card object
 	if(typeof thisCard == 'string') //if is name, finds it in the database
@@ -36,16 +36,19 @@ function writeCard(cardName,database,setDatabase,shortFlag, extra) { //turns car
 	if(thisCard.shape == "command") {
 		return thisCard.rulesText;
 	}
-	if(thisCard.hasOwnProperty('manyFaces')) {
-		for(let face in thisCard.manyFaces) {
-			let thisFace = thisCard.manyFaces[face];
+	if(thisCard.hasOwnProperty('faces')) {
+		for(let face in thisCard.faces) {
+			let thisFace = thisCard.faces[face];
 			showCard += "**" + thisFace.cardName + "**    " + thisFace.manaCost + "\n";
 			if(thisCard.hasOwnProperty('notes') && thisCard.notes.includes("italic"))
 				showCard = showCard.replace(/\*\*/g,"***")
-			let identMatch = thisCard.manaCost.match(/(W|U|B|R|G)/);
+			let identMatch = thisFace.manaCost.match(/(W|U|B|R|G)/);
 			if(identMatch == null && thisFace.color != "" && thisFace.color != "{} ")
 				showCard += thisFace.color;
-			showCard += thisFace.typeLine + "     " + thisFace.rarityLine + extra + "\n";
+			if(!version)
+				version = thisCard.prints[0];
+			let rarityLine = writeRarityLine(version, thisCard.versions[version].rarity, database)[0];
+			showCard += thisFace.typeLine + "     " + rarityLine + extra + "\n";
 			showCard += italPseudo(thisFace.rulesText) + thisFace.flavorText.replace(/\*\*\n$/,"\n");
 			let cardPT = ""
 			if(thisFace.power !== "" || thisFace.toughness !== "") {
@@ -120,6 +123,37 @@ function writeCard(cardName,database,setDatabase,shortFlag, extra) { //turns car
 	if(thisCard.hasOwnProperty('prints') && thisCard.prints.length > 0)
 		showCard += findReprints(thisCard, database)
 	return showCard;
+}
+function writeRarityLine(set, rarity, database){
+	if(database.name == "msem") {
+		if(set == "MPS_MSE")
+			return ["*MSEM Champion*", "MSP_MSE MSP"];
+		if(set == "MPS_HI12")
+			return ["*Daisite Outlaw*", "MSP_HI12 MSP"];
+		if(set == "MPS_MIS")
+			return ["*Mious Divinities*", "MSP_MIS MSP"];
+		if(set == "MPS_OPO")
+			return ["*Ophorio Sagas*", "MSP_OPO MSP"];
+		if(set == "MPS_OPO")
+			return ["*Ophorio Sagas*", "MSP_OPO MSP"];
+	}else if(database.name == "magic") {
+		if(set == "ZNE")
+			return ["*Zendikar Rising Expeditions*", "ZNE M"];
+		if(set == "EXP")
+			return ["*Zendikar Expeditions*", "EXP MSP"];
+		if(set == "MPS")
+			return ["*Kaladesh Invention*", "MPS MSP"];
+		if(set == "MP2")
+			return ["*Amonkhet Invocation*", "MP2 MSP"];
+	}
+	let rareArray = ["basic land", "common", "uncommon", "rare", "mythic rare", "mythic", "bonus", "special", "masterpiece"];
+	let RArray = ["L", "C", "U", "R", "M", "M", "Bonus", "S", "Masterpiece"];
+	let RArray2 = ["L", "C", "U", "R", "M", "M", "B", "S", "MSP"];
+	let line = "*" + set + " ";
+	let index = rareArray.indexOf(rarity);
+	if(index == -1)
+		return [line + rarity.charAt(0).toUpperCase() + "*", line + rarity.charAt(0).toUpperCase() + "*"];
+	return [line + RArray[index] + "*", line + RArray2[index] + "*"];
 }
 function findReprints(thisCard, database) { //finds other versions
 	let printArray = [];

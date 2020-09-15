@@ -87,7 +87,7 @@ const packgen = require('./packgen.js');		//scripts for generating packs
 var psScrape = require('./psScrape.js');		//scripts for searching PS
 let quote = require('./quotedex.js')			//testing scripts for $q command
 
-const Client = new Discord.Client();
+const Client = new Discord.Client({ disableMentions: 'everyone', partials:['MESSAGE', 'REACTION'] });
 
 
 /*website test
@@ -116,7 +116,7 @@ setInterval(() => {
 setInterval(() => { //this will try to log the stats every 10 minutes
   try{
 	  logStats();
-	  Client.channels.get(login.stats).send("count: " + countingCards + "\nbribes: " + bribes + "\nexplosions: " + explosions + "\ndrafts: " + draftStarts + "\npacks: " + crackedPacks);
+	  Client.channels.cache.get(login.stats).send("count: " + countingCards + "\nbribes: " + bribes + "\nexplosions: " + explosions + "\ndrafts: " + draftStarts + "\npacks: " + crackedPacks);
   }catch(e){console.log(e);}
 }, 600000);
 setInterval(() => { //this will reset the self-destruct switch and current game every hour
@@ -125,7 +125,7 @@ setInterval(() => { //this will reset the self-destruct switch and current game 
 	if(playtime == 0){
 		let mun = Math.floor(Math.random()*extras.games.length);
 		let newGame = extras.games[mun];
-		Client.user.setPresence( { game: {name: newGame, type: 0 }});
+		Client.user.setPresence( { activity: {name: newGame}});
 	}
   if(playtime == 1)
 	  playtime = 0;
@@ -285,7 +285,7 @@ function buildPSEmbed(nameArray, page, searchString, closestCanon, textFlag, img
 	if(pages > 2)
 		footerText += ", " + nameArray[2];
 	if(textFlag) {
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setTitle("Planesculptors search results for: " + searchString)
 			.setFooter(footerText)
 		return [[embedText, nullEmbed], pages];
@@ -295,7 +295,7 @@ function buildPSEmbed(nameArray, page, searchString, closestCanon, textFlag, img
 		closestCanon = searchCards(arcana.magic, searchString);
 	if(closestCanon != mod_magic.writeCardError)
 		footerText += `\nLooking for ${closestCanon}? React with ${old_excEmote} to switch.`;
-	var exampleEmbed = new Discord.RichEmbed()
+	var exampleEmbed = new Discord.MessageEmbed()
 		.setColor('#00ff00')
 		.setTitle("Planesculptors search results for: " + searchString)
 		.setFooter(footerText)
@@ -402,7 +402,7 @@ function buildCardFetchEmbed(outputArray, arcanaData, mainArcanaName, strings, m
 	}*/
 	if(textPages.length > 1)
 		searchStrings += ", Page " + parseInt(page+1) + "/" + textPages.length;
-	let embedded = new Discord.RichEmbed()
+	let embedded = new Discord.MessageEmbed()
 		.setFooter(footerText)
 	return [content, searchStrings, textPages.length]
 }
@@ -593,7 +593,7 @@ function buildSearchEmbed(searchString, library, page, imgFlag, textFlag) { //bu
 		let nohits = ['LackeyBot detected 0 hits.','This may be because you used a key LackeyBot doesn\'t support or a difference in databases. If this is an error, please tell Cajun.'];
 		if(valids[2] == true)
 			nohits = ['LackeyBot timed out.','Your search terms were too much for the little guy. Please use the Scryfall link instead.'];
-		var embedded = new Discord.RichEmbed()
+		var embedded = new Discord.MessageEmbed()
 			.setDescription("["+site+"]("+searchLink+" '"+searchString+"')")
 			.addField(nohits[0], nohits[1])
 		return [embedded, hits];
@@ -612,13 +612,13 @@ function buildSearchEmbed(searchString, library, page, imgFlag, textFlag) { //bu
 		embedText += hits + " hits found: " + searchLink;
 		if(page != -1)
 			embedText += "\n" + library.writeCard(valids[0][page], true);
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setFooter('Page ' + bumpedPage + '/' + hits + ". 🔍 for image, ❌ to collapse, 💬 for plaintext.")
 			.setDescription("["+site+"]("+searchLink.replace(/[<>]/g,"")+" '"+searchString+"')")
 		return [[embedText, nullEmbed]]
 	}
 	//build the embed
-	var embedded = new Discord.RichEmbed()
+	var embedded = new Discord.MessageEmbed()
 		.setFooter('Page ' + bumpedPage + '/' + hits + ". 🔍 for image, ❌ to collapse, 💬 for plaintext.")
 	if(page != -1) {
 		if(imgFlag) {
@@ -810,7 +810,7 @@ function bribeLackeyBot(cardName,msg){ //card-specific bribes for the custom dat
 		bribes++;
 		fullCard += "\n• ";
 		fullCard += ruling.replace(/_/g, "•");
-		Client.channels.get(config.rulingsChannel).send(thisCard.fullName);
+		Client.channels.cache.get(config.rulingsChannel).send(thisCard.fullName);
 	}
 	return fullCard;
 };
@@ -1020,8 +1020,8 @@ function logReminders() { //updates reminderlist.json
 	fs.writeFile('reminderBase'+num+'.json', words, (err) => {
 		if(err)
 			throw err;
-		Client.channels.get("750873235079430204").send("reminder log", {
-			file: 'reminderBase'+num+'.json'
+		Client.channels.cache.get("750873235079430204").send("reminder log", {
+			files:[{attachment:'reminderBase'+num+'.json'}]
 		})
 		.then(mess => fs.unlink('reminderBase'+num+'.json', (err) => {if (err) throw err;}))
 		.catch(e => console.log(e))
@@ -1080,15 +1080,15 @@ function logRole(guildID) { //updates roles.json
 function speech(msg) { //handles the LackeyBot AI
 	let channelMatch = msg.content.match(/channel: ?<?#?([0-9]+)/i);
 	let messageMatch = msg.content.match(/message: ?([\s\S]+)/i);
-	Client.channels.get(channelMatch[1]).send(messageMatch[1]);
+	Client.channels.cache.get(channelMatch[1]).send(messageMatch[1]);
 }
 function deleteMsg(channel,message) { //deletes a given LackeyBot post
-	Client.channels.get(channel).fetchMessage(message)
+	Client.channels.cache.get(channel).messages.fetch(message)
 		.then(message => message.delete())
 		.catch(console.error)
 }
 function editMsg(channel,message,newwords) { //edits a given LackeyBot post
-	Client.channels.get(channel).fetchMessage(message)
+	Client.channels.cache.get(channel).messages.fetch(message)
 		.then(msg => msg.edit(newwords))
 		.catch(console.error);
 }
@@ -1105,7 +1105,7 @@ function reactMsg(msg) { //reacts to a given post
 			emote = emote.match(/([0-9]+)>/);
 			emote = emote[1];
 		}
-		Client.channels.get(channel).fetchMessage(message)
+		Client.channels.cache.get(channel).messages.fetch(message)
 			.then(message => message.react(emote))
 			.catch(console.error);
 	}
@@ -1128,7 +1128,7 @@ function checkRank(msg) { //checks the rank of a poster
 		if(!rank.includes(0) && !rank.includes(3) && allRoles.guilds[guildID].banned.includes(user)) { //admins can't be banned
 			rank.push(9); //9 for banned
 		}
-		let modRole = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name === allRoles.guilds[guildID].modRole)
+		let modRole = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name === allRoles.guilds[guildID].modRole)
 		if(modRole && msg.member.roles.has(modRole.id))
 			rank.push(4);
 	}
@@ -1178,10 +1178,10 @@ loadArcanaSettings();
 async function startUpFunctions() { //all the start up functions for nicer async
 	let mun = Math.floor(Math.random()*extras.games.length); //sets a random game
 	let newGame = extras.games[mun];
-	Client.user.setPresence( { game: {name: newGame, type: 0, state:"Eating" }});
+	Client.user.setPresence( { activity: {name: newGame}});
 	//check versions
 	try {
-		let vc = await Client.channels.get(config.versionControlChannel).fetchMessage(config.versionControlPost)
+		let vc = await Client.channels.cache.get(config.versionControlChannel).messages.fetch(config.versionControlPost)
 		vc = vc.content;
 		yeet(vc);
 		versionCheck.remind = parseInt(vc.match(/remind: (\d+)/)[1]);
@@ -1192,12 +1192,12 @@ async function startUpFunctions() { //all the start up functions for nicer async
 		versionCheck.draft = parseInt(vc.match(/draft: (\d+)/)[1]);
 	}catch(e){
 		console.log(e);
-		Client.users.get(cajun).send("Version control has failed.");
+		Client.users.cache.get(cajun).send("Version control has failed.");
 	}
 	dropboxDownload('stats/stats.json','https://www.dropbox.com/s/nug4q26u6ft44mp/stats.json?dl=0',reloadStats);
 	dropboxDownload('roles.json','https://www.dropbox.com/s/94ltqp66mmo1ko0/roles.json?dl=0',reloadRoles);
 	//dropboxDownload('reminderBase.json','https://www.dropbox.com/s/p69q3kvmfu2lvj2/reminderBase.json?dl=0',reloadRemind);
-	Client.channels.get("750873235079430204").fetchMessages({limit:1}) //reminderfix
+	Client.channels.cache.get("750873235079430204").messages.fetch({limit:1}) //reminderfix
 		.then(function(messages) {
 			let msgarray = messages.array();
 			if(msgarray[0]) {
@@ -1218,7 +1218,7 @@ async function startUpFunctions() { //all the start up functions for nicer async
 	dropboxDownload('msem/gpbase.json','https://www.dropbox.com/s/t9hdhad8ol1c7cu/gpbase.json?dl=0',reloadGPBase)
 	dropboxDownload('draft/draft.json','https://www.dropbox.com/s/i91wp73lshtorir/draft.json?dl=0',reloadDraft);
 	try{
-		Client.channels.get(config.signinChannel).send(botname+" has connected.");
+		Client.channels.cache.get(config.signinChannel).send(botname+" has connected.");
 	}catch(e){
 		console.log("HQ server disconnected. " + botname + " has connected.");
 	}
@@ -1226,7 +1226,7 @@ async function startUpFunctions() { //all the start up functions for nicer async
 function downloadReminders(attachURL) { //downloads reminderBase after Dropbox betrayed us
 	download(attachURL, {directory:"./", filename:"reminderBase.json"}, function(err) {
 		if(err) {
-			Client.users.get(cajun).send("reminderBase failed to reload.");
+			Client.users.cache.get(cajun).send("reminderBase failed to reload.");
 		}else{
 			reloadRemind();
 		}
@@ -1265,7 +1265,7 @@ function reloadRemind() { //loads reminderBase after downloading
 			if(downloadLoop.reminderBase < 5){
 					dropboxDownload('reminderBase.json','https://www.dropbox.com/s/p69q3kvmfu2lvj2/reminderBase.json?dl=0',reloadRemind);
 			}else{
-				Client.users.get(cajun).send("reminderBase failed to reload.");
+				Client.users.cache.get(cajun).send("reminderBase failed to reload.");
 			}
 		}
 	},500*(2*downloadLoop.reminderBase));
@@ -1322,7 +1322,7 @@ function reloadDevDex() { //loads matchdex after downloading
 		if(downloadLoop.devDex < 5){
 			dropboxDownload('dev/devDex.json','https://www.dropbox.com/s/hzcb14qeovfin3e/devDex.json?dl=0',reloadDevDex)
 		}else{
-			Client.users.get(cajun).send("devDex failed to reload.");
+			Client.users.cache.get(cajun).send("devDex failed to reload.");
 		}
 	}
 }
@@ -1345,7 +1345,7 @@ async function reloadStats() { //loads stats after downloading
 	*/
 	stats = {cardCount:0, bribes:0, drafts:0, packs:0, reminderSet:0, reminderDone:0, explosions:0}
 	try {
-		let sp = await Client.channels.get(config.versionControlChannel).fetchMessage("747541293219184700")
+		let sp = await Client.channels.cache.get(config.versionControlChannel).messages.fetch("747541293219184700")
 		sp = sp.content;
 		stats.cardCount = parseInt(sp.match(/cards: (\d+)/)[1]);
 		stats.bribes = parseInt(sp.match(/bribes: (\d+)/)[1]);
@@ -1356,7 +1356,7 @@ async function reloadStats() { //loads stats after downloading
 		stats.explosions = parseInt(sp.match(/explode: (\d+)/)[1]);
 	}catch(e){
 		console.log(e)
-		Client.users.get(cajun).send("Stats version control has failed.");
+		Client.users.cache.get(cajun).send("Stats version control has failed.");
 	}
 	countingCards = stats.cardCount;
 	explosions = stats.explosions;
@@ -1547,7 +1547,7 @@ function reloadData() { //loads all the other .jsons on startup
 
 //server/user stuff
 function pullRoles(guildID) { //grabs list of roles of a server
-	let theRoles = Client.guilds.find(val => val.id == guildID).roles.array();
+	let theRoles = Client.guilds.cache.find(val => val.id == guildID).roles.array();
 	for(let role in theRoles) {
 		if(!allRoles.guilds[guildID].roles.hasOwnProperty(theRoles[role].name))
 			console.log(theRoles[role].name)
@@ -1558,8 +1558,8 @@ function nameGuilds() { //grabs list of servers LB is on
 	for(let guild in theGuilds)
 		console.log(theGuilds[guild].name);
 }
-function buildUserEmbed(guildID, userID, callback, textFlag, avatarLink) { //plaintext $userinfo
-	let user = Client.guilds.find(val => val.id == guildID).members.find(val => val.id == userID);
+function buildUserEmbed(guildID, userID, textFlag, avatarLink) { //plaintext $userinfo
+	let user = Client.guilds.cache.find(val => val.id == guildID).members.cache.find(val => val.id == userID);
 	if(textFlag) {
 		let servDate = new Date(user.joinedTimestamp);
 		let servDateFull = `${servDate.getFullYear()}/${servDate.getMonth()+1}/${servDate.getDate()} ${servDate.getHours()}:${toolbox.fillLength(servDate.getMinutes(), 2, "0")}`;
@@ -1568,123 +1568,86 @@ function buildUserEmbed(guildID, userID, callback, textFlag, avatarLink) { //pla
 		let output = "__Name:__ " + "**" + user.user.username + "**#" + user.user.discriminator;
 		output += "\n__Nickname:__ " + (user.nickname != null ? user.nickname:user.user.username);
 		output += "\n__ID:__ " + user.id;
-		output += "\n__Roles:__ " + user.roles.size-1;
+		output += "\n__Roles:__ " + user.roles.cache.array().length-1;
 		output += "\n__Joined server:__ " + servDateFull;
 		output += "\n__Joined Discord:__ " + discDateFull;
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setFooter('$userinfoplain for plaintext.')
-			.setColor(user.roles.find(val => val.color != 0).color)
+			.setColor(user.roles.cache.find(val => val.color != 0).color)
 		if(avatarLink)
 			nullEmbed.setThumbnail(avatarLink);
-		let color = user.roles.find(val => val.color != 0)
+		let color = user.roles.cache.find(val => val.color != 0)
 		if(color)
 			userEmbed.setColor(color.color)
-		callback(output, nullEmbed)
-	}else if(!avatarLink){
-		let attachURL = `https://cdn.discordapp.com/avatars/${user.id}/${user.user.avatar}.gif`
-		download(attachURL, {directory:"./examples/", filename:"avatar.gif"}, function(err) {
-			if(err) {
-				callback("", lagUserEmbed(user, attachURL.replace(".gif", ".png")));
-			}else{
-				callback("", lagUserEmbed(user, attachURL));
-			}
-		});
+		return [output, nullEmbed]
 	}else{
-		callback("", lagUserEmbed(user, avatarLink));
+		let avatarLink = user.user.avatarURL({format: 'png', dynamic: true})
+		let servDate = new Date(user.joinedTimestamp);
+		let servDateFull = `${servDate.getFullYear()}/${servDate.getMonth()+1}/${servDate.getDate()} ${servDate.getHours()}:${toolbox.fillLength(servDate.getMinutes(), 2, "0")}`;
+		let discDate = new Date(user.user.createdTimestamp);
+		let discDateFull = `${discDate.getFullYear()}/${discDate.getMonth()+1}/${discDate.getDate()} ${discDate.getHours()}:${toolbox.fillLength(discDate.getMinutes(), 2, "0")}`;
+		let userEmbed = new Discord.MessageEmbed()
+			.addField('Name', "**" + user.user.username + "**#" + user.user.discriminator, true)
+			.addField('Nickname', (user.nickname != null ? user.nickname:user.user.username), true)
+			.addField('ID', user.id, true)
+			.addField('Roles', user.roles.cache.array().length-1, true)
+			.addField('Joined server', servDateFull, true)
+			.addField('Joined Discord', discDateFull, true)
+			.setThumbnail(avatarLink)
+			.setFooter('$userinfoplain for plaintext.')
+		let color = user.roles.cache.find(val => val.color != 0)
+		if(color)
+			userEmbed.setColor(color.color)
+		return userEmbed;
 	}
 }
-function lagUserEmbed(user, avatarLink) { //$userinfo callback after avatar is downloaded
-	let servDate = new Date(user.joinedTimestamp);
-	let servDateFull = `${servDate.getFullYear()}/${servDate.getMonth()+1}/${servDate.getDate()} ${servDate.getHours()}:${toolbox.fillLength(servDate.getMinutes(), 2, "0")}`;
-	let discDate = new Date(user.user.createdTimestamp);
-	let discDateFull = `${discDate.getFullYear()}/${discDate.getMonth()+1}/${discDate.getDate()} ${discDate.getHours()}:${toolbox.fillLength(discDate.getMinutes(), 2, "0")}`;
-	let userEmbed = new Discord.RichEmbed()
-		.addField('Name', "**" + user.user.username + "**#" + user.user.discriminator, true)
-		.addField('Nickname', (user.nickname != null ? user.nickname:user.user.username), true)
-		.addField('ID', user.id, true)
-		.addField('Roles', user.roles.size-1, true)
-		.addField('Joined server', servDateFull, true)
-		.addField('Joined Discord', discDateFull, true)
-		.setThumbnail(avatarLink)
-		.setFooter('$userinfoplain for plaintext.')
-	let color = user.roles.find(val => val.color != 0)
-	if(color)
-		userEmbed.setColor(color.color)
-	return userEmbed;
-}
-function buildServerEmbed(server, callback, textFlag, avatarLink) {
+function buildServerEmbed(server, textFlag, avatarLink) {
 	if(textFlag) {
 		let servDate = new Date(server.createdAt);
 		let servDateFull = `${servDate.getFullYear()}/${servDate.getMonth()+1}/${servDate.getDate()} ${servDate.getHours()}:${toolbox.fillLength(servDate.getMinutes(), 2, "0")}`;
-		let user = server.members.find(val => val.id == server.ownerID).user;
+		let user = server.members.cache.find(val => val.id == server.ownerID).user;
 		let output = "**" + server.name + "**";
 		output += "\n__ID:__ " + server.id;
 		output += "\n__Owner:__ " + "**" + user.username + "**#" + user.discriminator;
 		output += "\n__Members:__ " + server.memberCount;
-		output += "\n__Text channels:__ " + server.channels.filter(val => val.type == "text").size;
-		output += "\n__Voice channels:__ " + server.channels.filter(val => val.type == "voice").size;
+		output += "\n__Text channels:__ " + server.channels.cache.filter(val => val.type == "text").array().length;
+		output += "\n__Voice channels:__ " + server.channels.cache.filter(val => val.type == "voice").array().length;
 		output += "\n__Created:__ " + servDateFull;
 		output += "\n__Region:__ " + server.region;
-		output += "\n__Roles:__ " + server.roles.size;
-		output += "\n__Emojis:__ " + server.emojis.size;
-		let nullEmbed = new Discord.RichEmbed()
+		output += "\n__Roles:__ " + server.roles.cache.array().length;
+		output += "\n__Emojis:__ " + server.emojis.cache.array().length;
+		let nullEmbed = new Discord.MessageEmbed()
 			.setFooter('$serverinfoplain for plaintext.')
 		if(avatarLink)
 			nullEmbed.setThumbnail(avatarLink);
-		callback(output, nullEmbed)
-	}else if(!avatarLink){
-		let attachURL = `https://cdn.discordapp.com/icons/${server.id}/${server.icon}.gif`
-		download(attachURL, {directory:"./examples/", filename:"avatar.gif"}, function(err) {
-			if(err) {
-				callback("", lagServerEmbed(server, attachURL.replace(".gif", ".png")));
-			}else{
-				callback("", lagServerEmbed(server, attachURL));
-			}
-		});
+		return [output, nullEmbed];
 	}else{
-		callback("", lagServerEmbed(user, avatarLink));
+		let avatarLink = server.iconURL({format: 'png', dynamic: true})
+		let servDate = new Date(server.createdAt);
+		let servDateFull = `${servDate.getFullYear()}/${servDate.getMonth()+1}/${servDate.getDate()} ${servDate.getHours()}:${toolbox.fillLength(servDate.getMinutes(), 2, "0")}`;
+		let user = server.members.cache.find(val => val.id == server.ownerID).user;
+		let emoteLine = "";
+		let serverEmbed = new Discord.MessageEmbed()
+			.setTitle(server.name)
+			.addField('ID', server.id, true)
+			.addField('Owner', "**" + user.username + "**#" + user.discriminator, true)
+			.addField('Members', server.memberCount, true)
+			.addField('Text channels', server.channels.cache.filter(val => val.type == "text").array().length, true)
+			.addField('Voice channels', server.channels.cache.filter(val => val.type == "voice").array().length, true)
+			.addField('Created', servDateFull, true)
+			.addField('Region', server.region, true)
+			.addField('Roles', server.roles.cache.array().length, true)
+			.addField('Emojis', server.emojis.cache.array().length, true)
+			.setThumbnail(avatarLink)
+			.setFooter('$serverinfoplain for plaintext.')
+		return serverEmbed;
 	}
-}
-function lagServerEmbed(server, avatarLink) { //plaintext $serverinfo
-	let servDate = new Date(server.createdAt);
-	let servDateFull = `${servDate.getFullYear()}/${servDate.getMonth()+1}/${servDate.getDate()} ${servDate.getHours()}:${toolbox.fillLength(servDate.getMinutes(), 2, "0")}`;
-	let user = server.members.find(val => val.id == server.ownerID).user;
-	let emotes = server.emojis.array();
-	let emoteLine = "";
-	let serverEmbed = new Discord.RichEmbed()
-		.setTitle(server.name)
-		.addField('ID', server.id, true)
-		.addField('Owner', "**" + user.username + "**#" + user.discriminator, true)
-		.addField('Members', server.memberCount, true)
-		.addField('Text channels', server.channels.filter(val => val.type == "text").size, true)
-		.addField('Voice channels', server.channels.filter(val => val.type == "voice").size, true)
-		.addField('Created', servDateFull, true)
-		.addField('Region', server.region, true)
-		.addField('Roles', server.roles.size, true)
-		.addField('Emojis', server.emojis.size, true)
-		.setThumbnail(avatarLink)
-		.setFooter('$serverinfoplain for plaintext.')
-	/*for(let emote in emotes) {
-		emoteTest = `<:${emotes[emote].name}:${emotes[emote].id}>`;
-		emoteTest = emoteTest.replace(/_ /g, "\\_ ")
-		if(emoteLine.length + emoteTest.length < 1027) {
-			emoteLine += emoteTest;
-		}else{
-			emoteLine = emoteLine.replace(/, $/, "")
-			serverEmbed.addField('All Emojis', emoteLine)
-			emoteLine = "";
-		}
-	}
-	emoteLine = emoteLine.replace(/, $/, "")
-	serverEmbed.addField('All Emojis', emoteLine)
-*/
-	return serverEmbed;
 }
 function postAvatar(msg, otherid) { //$serverinfo callback after avatar is downloaded
 	let id = msg.author.id;
 	let avid = msg.author.avatar;
 	if(otherid) {
-		let user = Client.users.get(otherid);
+		let user = Client.users.cache.get(otherid);
 		id = user.id;
 		avid = user.avatar;
 	}
@@ -1702,7 +1665,7 @@ function postEmote(msg, emoteSnag, bigFlag) { //$emote and $bigemote
 	if(bigCheck)
 		bigFlag = true;
 	emoteSnag = emoteSnag.match(/(^|:[^:]+:|<)([0-9]+)/)[2];
-	let emoteStuff = Client.emojis.array().find(val => val.id == emoteSnag);
+	let emoteStuff = Client.emojis.cache.array().find(val => val.id == emoteSnag);
 	
 	if(!bigFlag && emoteStuff) {
 		msg.channel.send(`<:${emoteStuff.name}:${emoteStuff.id}>`)
@@ -1753,7 +1716,7 @@ function generateHangman (diff) { //generate canon hangman
 	hangText += " _|_______";
 	hangText += "```";
 	hangText += "\nReact with 🇦 🇧 ... 🇿 to guess letters.";
-	let embedded = new Discord.RichEmbed()
+	let embedded = new Discord.MessageEmbed()
 		.setDescription(hangText)
 		.setFooter("Game in progress. React with 💬 to change to plaintext mode.")
 		.setColor('000001')
@@ -1830,7 +1793,7 @@ function updateHangman (hangMan, newLetter, guessedLetters, diff, textFlag) { //
 	if(textFlag) {
 		let embedText = "";
 		embedText += hangText;
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setDescription("Hangman is in plaintext mode.")
 			.setFooter("Game in progress.")
 		if(diff == "easy")
@@ -1849,7 +1812,7 @@ function updateHangman (hangMan, newLetter, guessedLetters, diff, textFlag) { //
 		}
 		return[embedText, nullEmbed];
 	}
-	let embedded = new Discord.RichEmbed()
+	let embedded = new Discord.MessageEmbed()
 		.setDescription(hangText)
 		.setFooter("Game in progress. React with 💬 to change to plaintext mode.")
 	if(diff == "easy")
@@ -2021,7 +1984,7 @@ function buildSetsEmbed (setsDatabase, page, textFlag) { //build $codes embed
 		for(let i=start;i<end;i++) {
 			output += "\n" + lines[i];
 		}
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setDescription('**' + desc + '**')
 			.setFooter('Page ' + parseInt(page+1) + '/' + pages)
 			return [[output, nullEmbed]];
@@ -2042,7 +2005,7 @@ function buildSetsEmbed (setsDatabase, page, textFlag) { //build $codes embed
 		if(third !== null)
 			inlines[2].push(lines[third])
 	}
-	let embedded = new Discord.RichEmbed()
+	let embedded = new Discord.MessageEmbed()
 		.setDescription('**' + desc + '**')
 		.setFooter('Page ' + parseInt(page+1) + '/' + pages)
 	if(inlines[0].length > 0 && inlines[0][0] != "")
@@ -2061,12 +2024,12 @@ function buildPackDocs(page, textFlag) { //build $packdocs embed
 		let fixedText = docs[page].page;
 		let header = docs[page].header;
 		output = "__" + header + "__\n" + fixedText;
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setTitle("packSlots Documentation")
 			.setFooter("Page " + parseInt(page+1) + "/" + docs.length)
 			return [[output, nullEmbed]];
 	}
-	var embedInfo  = new Discord.RichEmbed()
+	var embedInfo  = new Discord.MessageEmbed()
 		.setTitle("packSlots Documentation")
 		.addField(docs[page].header, docs[page].page)
 		.setFooter("Page " + parseInt(page+1) + "/" + docs.length)
@@ -2086,14 +2049,14 @@ function buildPatchEmbed(textFlag, thisPage) { //builds the embed for MSEM patch
 		let output = "";
 		for(let each in linksArray)
 			output += `${linksArray[each].name}:\n<${linksArray[each].link}>\n`;
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setFooter("MSEM Patch Info")
 		return [[output, nullEmbed]];
 	}
 	let output = ""; //"["+site+"]("+searchLink+"
 	for(let each in linksArray)
 		output += `[${linksArray[each].name}](<${linksArray[each].link})\n`;
-	let embedInfo = new Discord.RichEmbed()
+	let embedInfo = new Discord.MessageEmbed()
 		.setDescription(output)
 		.setFooter('MSEM Patch Info')
 	return [embedInfo]
@@ -2107,29 +2070,29 @@ function buildGeneralEmbed(array, header, page, perPage, textFlag) { //converts 
 		output += array[i] + "\n";
 	if(textFlag) {
 		output = "__" + header + "__\n" + output;
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setFooter("Page " + parseInt(page+1) + "/" + pages)
 			return [[output, nullEmbed]];
 	}
-	var embedInfo = new Discord.RichEmbed()
+	var embedInfo = new Discord.MessageEmbed()
 		.setFooter("Page " + parseInt(page+1) + "/" + pages)
 		.addField(header, output)
 
 	return [embedInfo, pages];
 }
 function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag) { //moves to the left or right page of a 1d embed
-	let emoteArray = msg.reactions.array();
+	let emoteArray = msg.reactions.cache.array();
 	let thisPage = parseInt(pageCheck[1])-1;
 	let lastPage = parseInt(pageCheck[2])-1;
 	let userIDs = [];
 	let saveArray = [];
 	let go = false;
 	for(let anEmote in emoteArray) {
-		if(emoteArray[anEmote].users.size != 1 || emoteArray[anEmote]._emoji.name == plainText) {
+		if(emoteArray[anEmote].users.cache.array().length != 1 || emoteArray[anEmote]._emoji.name == plainText) {
 			go = true;
-			for(let user in emoteArray[anEmote].users.array()) {
-				if(emoteArray[anEmote].users.array()[user].id != Client.user.id)
-					userIDs.push(emoteArray[anEmote].users.array()[user].id);
+			for(let user in emoteArray[anEmote].users.cache.array()) {
+				if(emoteArray[anEmote].users.cache.array()[user].id != Client.user.id)
+					userIDs.push(emoteArray[anEmote].users.cache.array()[user].id);
 			}
 			let emote = emoteArray[anEmote]._emoji.name;
 			if(emote == rightArrow || emote == leftArrow || update) {
@@ -2143,48 +2106,38 @@ function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag) { //moves t
 					if(thisPage < 0)
 						thisPage = lastPage;
 				}
-				/*var removeCallback = function() {
-					for(let anEmote in emoteArray) {
-						let emote = emoteArray[anEmote]._emoji.name;
-						for(let id in userIDs) {
-							if(!saveArray.includes(emote) && userIDs[id] != Client.user.id)
-								emoteArray[anEmote].remove(userIDs[id]);
-						}
-					}
-				};*/
 				for(let id in userIDs) {
 					if(!saveArray.includes(emote) && userIDs[id] != Client.user.id)
-						emoteArray[anEmote].remove(userIDs[id]);
+						emoteArray[anEmote].users.remove(userIDs[id]);
 				}
 			}
 		}
 	}
-		
-		let exampleEmbed = embedBuild(thisPage);
-		if(textFlag) {
-			let deadEmbed = exampleEmbed[1]
-			msg.edit(exampleEmbed[0],deadEmbed)
-			//	.then(removeCallback())
-			//	.catch(function(e){console.log(e)})
-		}else{
-			msg.edit("",exampleEmbed)
-			//	.then(removeCallback())
-			//	.catch(function(e){console.log(e)})
-		}
+	let exampleEmbed = embedBuild(thisPage);
+	if(textFlag) {
+		let deadEmbed = exampleEmbed[1]
+		msg.edit(exampleEmbed[0],deadEmbed)
+		//	.then(removeCallback())
+		//	.catch(function(e){console.log(e)})
+	}else{
+		msg.edit("",exampleEmbed)
+		//	.then(removeCallback())
+		//	.catch(function(e){console.log(e)})
+	}
 }
 function cullReacts (msg, legalIDs) { //removes reactions from everyone not in legalIDs
-	let emoteArray = msg.reactions.array();
+	let emoteArray = msg.reactions.cache.array();
 	let userIDs = [];
 	let removals = [];
 	for(let anEmote in emoteArray) {
-		for(let user in emoteArray[anEmote].users.array()) {
-			if(!legalIDs.includes(emoteArray[anEmote].users.array()[user].id))
-				userIDs.push(emoteArray[anEmote].users.array()[user].id);
+		for(let user in emoteArray[anEmote].users.cache.array()) {
+			if(!legalIDs.includes(emoteArray[anEmote].users.cache.array()[user].id))
+				userIDs.push(emoteArray[anEmote].users.cache.array()[user].id);
 		}
 		let emote = emoteArray[anEmote]._emoji.name;
 		for(let id in userIDs) {
 			if(userIDs[id] != "" && userIDs[id] != Client.user.id) {
-				emoteArray[anEmote].remove(userIDs[id]);
+				emoteArray[anEmote].users.remove(userIDs[id]);
 				removals.push(userIDs[id]);
 			}
 		}
@@ -2282,7 +2235,7 @@ function draftPick(user, pack, cardname) { //moves picked card from pack to pool
 	let index = draft1.packs[pack].cards.indexOf(cardname);
 	if(index > -1)
 		draft1.packs[pack].cards.splice(index, 1);
-	Client.users.get(user).send(cardname.replace(/_[A-Z0-9_]+/, "") + " successfully added to your cardpool.");
+	Client.users.cache.get(user).send(cardname.replace(/_[A-Z0-9_]+/, "") + " successfully added to your cardpool.");
 	if (draft1.packs[pack].cards == "") {
 		draft1.packs[pack].playerFor = null;
 		draft1.packsEmpty++;
@@ -2304,7 +2257,7 @@ function draftPick(user, pack, cardname) { //moves picked card from pack to pool
 	else
 	if (draft1.packs[nextPack].playerFor !== user)	{
 		draft1.players[user].currentPack = null;
-		Client.users.get(user).send("I'll let you know when your next pack is ready.");
+		Client.users.cache.get(user).send("I'll let you know when your next pack is ready.");
 		}
 	writeDraftData(draft1);
 	if(toggle != "")
@@ -2367,11 +2320,11 @@ function writePool(user) { //prints final pool
 			});
 		setTimeout(function(){
 			pullPing(user).send("Here is your cardpool.dek, rename it as you like and move it to LackeyCCG/plugins/msemagic/cardpools/", {
-					file: jsonname
+					files:[{attachment:jsonname}]
 				});
 		}, 3000);		
-		Client.channels.get(config.signinChannel).send("cardpool for " + pullUsername(user) + " logged", {
-				file: jsonname
+		Client.channels.cache.get(config.signinChannel).send("cardpool for " + pullUsername(user) + " logged", {
+				files:[{attachment:jsonname}]
 			});
 	}
 }
@@ -2384,7 +2337,7 @@ function writeDraftData (draftbase) { //updates draft.json
 			if (err) throw err;
 			});	
 	draft = draftbase;
-	/*Client.channels.get(login.draft).send("Draft log", {
+	/*Client.channels.cache.get(login.draft).send("Draft log", {
 		file: "draft/draft.json" //saves the draft log and posts it
 	});*/
 	dropboxUpload('/lackeybot stuff/draft.json',fulltext);
@@ -2404,14 +2357,14 @@ function showPack(user) { //shows current pack to given user
 		var pack = draft.players[user].currentPack;
 		if (pack !== null) {
 			pullPing(user).send("Your pack contains:")
-			//Client.users.get(user).send(draft.packs[pack].cards);
+			//Client.users.cache.get(user).send(draft.packs[pack].cards);
 			var output = "";
 			var newput = "";
 			for(var cardName in draft.packs[pack].cards) {
 				thisName = draft.packs[pack].cards[cardName];
 				newput = arcana.msem.writeCard(thisName);
 				if(output.length + newput.length > 1900) {
-					Client.users.get(user).send(output);
+					Client.users.cache.get(user).send(output);
 					output = String.fromCharCode(8203) + "\n" + newput;
 					newput = "";
 				}
@@ -2420,7 +2373,7 @@ function showPack(user) { //shows current pack to given user
 				}
 			}
 			pullPing(user).send(output);
-			pullPing(user).send ("`$pick CARDNAME` to pick a card. This uses LackeyBot's search engine, so partial matches work too!");
+			pullPing(user).send("`$pick CARDNAME` to pick a card. This uses LackeyBot's search engine, so partial matches work too!");
 		}
 	}
 	if(pack === null) {
@@ -2652,12 +2605,12 @@ function buildPackEmbed(library, packCards, expansion, user, page, textFlag) { /
 				embedText += "★ ";
 			embedText += database[unFoil(packCards[i])].fullName;
 		}
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setTitle(pullUsername(user) + " opened a pack of " + expansion)
 			.setFooter("Card " + parseInt(page+1) + "/" + pages)
 		return [[embedText, nullEmbed], packObj];
 	}
-	var exampleEmbed = new Discord.RichEmbed()
+	var exampleEmbed = new Discord.MessageEmbed()
 		.setColor('#00ff00')
 		.setThumbnail(printImages([unFoil(packCards[(page+1)%pages])], library, true))
 		.setTitle(pullUsername(user) + " opened a pack of " + expansion)
@@ -2702,13 +2655,13 @@ function buildPickEmbed(library, packCards, expansion, textFlag) { //build $p1p1
 		embedText += database[zeName].fullName;
 	}
 	if(textFlag) {
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setTitle("Pack 1, Pick 1: " + expansion)
 			.setColor(embedColor)
 			.setFooter("1/1")
 		return [[embedText, nullEmbed], packObj];
 	}
-	var exampleEmbed = new Discord.RichEmbed()
+	var exampleEmbed = new Discord.MessageEmbed()
 		.setTitle("Pack 1, Pick 1: " + expansion)
 		.setColor(embedColor)
 		.setFooter("1/1")
@@ -2916,7 +2869,7 @@ function draftRemove(user, pack, cardname) { //removes a card from the draft
 function fancification (deckString, user, deckName) { //fancy engine handler
 	giveFancyDeck(deckString, user, deckName, 1, ['msem']);
 	user.send("Here is your fancified decklist!", { //sends a user a HTML formatted decklist
-		file: "fancyDeck.txt"
+		files:[{attachment:"fancyDeck.txt"}]
 		});
 	if(deckName == undefined)
 		user.send("Don't forget to replace DECK NAME AND TITLE HERE with your deck's name.");
@@ -3348,7 +3301,7 @@ function dekBuilder (cardString, thisSet, user) { //generates a Lackey .dek file
 		});
 	setTimeout(function(){
 		pullPing(user).send("Here is your converted .dek file, rename it as you like and move it to LackeyCCG/plugins/msemagic/decks/", {
-				file: "convertedDeck.dek"
+				files:[{attachment:"convertedDeck.dek"}]
 			});
 	}, 3000);		
 }
@@ -3468,9 +3421,7 @@ function opoFix (cardString, user, filename) { //fixes decklists containing defu
 		if (err) throw err;
 		});
 	setTimeout(function(){
-		pullPing(user).send("Here is your corrected .dek file, rename it as you like and move it to LackeyCCG/plugins/msemagic/decks/", {
-				file: filename
-			});
+		pullPing(user).send("Here is your corrected .dek file, rename it as you like and move it to LackeyCCG/plugins/msemagic/decks/",{files:[{attachment: filename}]});
 	}, 3000);		
 }
 
@@ -3524,7 +3475,7 @@ function verifyDeck (path,contents) { //downloads an uploaded deck and checks if
 									downloadCount++
 									dropboxUpload(path, contents, function() {verifyDeck(path, contents)});
 								}else if(downloadCount >= 5){
-									Client.channels.get(config.signinChannel).send("<@190309440069697536> A deck has failed verification.");
+									Client.channels.cache.get(config.signinChannel).send("<@190309440069697536> A deck has failed verification.");
 									downloadCount = 0;
 									fs.unlink('./decks'+path, (err) => {if (err) throw err;});
 								}else{
@@ -3757,14 +3708,14 @@ function newAssignableRole(guildID, roleName, giveMessage, takeMessage, group) {
 	group = toTitleCase(group);
 	if(!allRoles.guilds[guildID].groups.includes(group))
 		group = allRoles.guilds[guildID].groups[0];
-	let roleID = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name == roleName);
+	let roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	if(roleID == null) {
 		roleName = roleName.toLowerCase();
-		roleID = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name == roleName);
+		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null) {
 		roleName = toTitleCase(roleName);
-		roleID = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name == roleName);
+		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null)
 		return "LackeyBot could not find this role.";
@@ -3784,14 +3735,14 @@ function newAssignableRole(guildID, roleName, giveMessage, takeMessage, group) {
 }
 function newCountableRole(guildID, roleName) { //adds a new countable role to LB
 	roleName = roleName.replace(/ $/, "")
-	let roleID = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name == roleName);
+	let roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	if(roleID == null) {
 		roleName = roleName.toLowerCase();
-		roleID = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name == roleName);
+		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null) {
 		roleName = toTitleCase(roleName);
-		roleID = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name == roleName);
+		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null)
 		return "LackeyBot could not find this role.";
@@ -3804,14 +3755,14 @@ function newCountableRole(guildID, roleName) { //adds a new countable role to LB
 function newGivenRole(guildID, roleName, giveMessage, takeMessage, group) { //adds a new give-only role to LB
 	roleName = roleName.replace(/ $/, "")
 	group = toTitleCase(group);
-	let roleID = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name == roleName);
+	let roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	if(roleID == null) {
 		roleName = roleName.toLowerCase();
-		roleID = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name == roleName);
+		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null) {
 		roleName = toTitleCase(roleName);
-		roleID = Client.guilds.find(val => val.id == guildID).roles.find(val => val.name == roleName);
+		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null)
 		return "LackeyBot could not find this role.";
@@ -3872,7 +3823,7 @@ function createNewRole(guildID, roleName, roleColor, hoist, mention, group, chan
 		output = `Created new role with name ${role.name}\n` + output;
 		channel.send(output);
 	};
-	Client.guilds.find(val => val.id == guildID).createRole(roleData)
+	Client.guilds.cache.find(val => val.id == guildID).roles.create({data:roleData, reason:"Created with LackeyBot"})
 		.then(role => callback(role))
 		.catch(e => console.log(e))
 }
@@ -3957,12 +3908,12 @@ function buildRoleEmbed(guildID, page, textFlag) { //builds a page of the roles 
 		for(let grouping in roleObj) {
 			embedText += "\n**" + roleObj[grouping].header + "**\n" + roleObj[grouping].string
 		}
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setTitle("There are " + rolestuff[1] + " self-assignable roles.")
 			.setFooter("Page " + parseInt(page+1) + "/" + pages + ". 💬 to restore embed.")
 		return [[embedText, nullEmbed], pages]
 	}
-	var exampleEmbed = new Discord.RichEmbed()
+	var exampleEmbed = new Discord.MessageEmbed()
 		.setColor('#0099ff')
 		.setTitle("There are " + rolestuff[1] + " self-assignable roles.")
 		.setDescription("Use $iam [role] to assign them (e.g. `$iam judge`). Using the command again or `$iamnot [role]` will remove it.")
@@ -3976,9 +3927,9 @@ function buildInRoleEmbed(guild, roleName, page, textFlag) { //build inrole embe
 	roleName = roleName.replace(/ $/, "")
 	let members;
 	if(allRoles.guilds[guild.id].roles.hasOwnProperty(roleName)) {
-		members = guild.roles.get(allRoles.guilds[guild.id].roles[roleName].id).members.array();
+		members = guild.roles.cache.get(allRoles.guilds[guild.id].roles[roleName].id).members.array();
 	}else{
-		members = guild.roles.get(allRoles.guilds[guild.id].countable[roleName].id).members.array();		
+		members = guild.roles.cache.get(allRoles.guilds[guild.id].countable[roleName].id).members.array();		
 	}
 	let memberArray = [];
 	for(let mem in members)
@@ -3991,7 +3942,7 @@ function buildInRoleEmbed(guild, roleName, page, textFlag) { //build inrole embe
 		for(let i = start; i<end; i++) {
 			embedText += "\n" + memberArray[i];
 		}
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setTitle("List of users in " + roleName + " role - " + members.length)
 			.setFooter("Page " + parseInt(page+1) + "/" + pages)
 
@@ -4009,7 +3960,7 @@ function adjustRoles(littleName, thisGuild, member, base, forceRemove){ //adds/r
 		let type = null;
 		let thisRole = roleCall[thisGuild][base][littleName];
 		if(member.roles.has(thisRole.id)){
-			member.removeRole(thisRole.id).catch(console.error);
+			member.roles.remove(thisRole.id).catch(console.error);
 			return thisRole.take;
 		}else if(forceRemove) {
 			return "";
@@ -4017,11 +3968,11 @@ function adjustRoles(littleName, thisGuild, member, base, forceRemove){ //adds/r
 			if(roleCall[thisGuild].exclusive.includes(thisRole.group)){
 				for(let role in roleCall[thisGuild][base]) {
 					if(roleCall[thisGuild][base][role].group == thisRole.group)
-						member.removeRole(roleCall[thisGuild][base][role].id).catch(console.error);
+						member.roles.remove(roleCall[thisGuild][base][role].id).catch(console.error);
 				}
 			}
 		}
-		member.addRole(thisRole.id).catch(console.error);
+		member.roles.add(thisRole.id).catch(console.error);
 		return thisRole.give;
 	}
 }
@@ -4095,7 +4046,7 @@ function mtgjsonBuilder (thisSet, user, skip, library) { //builds an mtgjson fil
 			console.log(thisSet + '.json written');
 			});
 		user.send(thisSet + " jsonified:", {
-		file: 'jsons/' + thisSet + '.json'
+			files: [{attachment:'jsons/' + thisSet + '.json'}]
 		});
 	}
 
@@ -4545,8 +4496,8 @@ function namelistBuilder(database) { //creates a list of names for the Name Expo
 	fs.writeFile('namelist.txt', nameString, (err) => {
 		if (err) throw err;
 		});
-	Client.channels.get(config.signinChannel).send("New Namelist", {
-		file: "namelist.txt"
+	Client.channels.cache.get(config.signinChannel).send("New Namelist", {
+		file: [{attachments:"namelist.txt"}]
 		});
 }
 
@@ -5043,14 +4994,14 @@ function remindScript (ent, refDate, intendDate) { //sends reminders
 					aReminder += "<@" + ent[ping].cc[user] + "> "
 				}
 			}
-			let remEmbed = new Discord.RichEmbed()
+			let remEmbed = new Discord.MessageEmbed()
 				.setDescription(`Need more time? React ${old_hourEmote} to add another hour, ${old_dayEmote} to add another day, ${old_weekEmote} to add another week, or ${old_repeatEmote} to do the same duration again.`)
 				.setFooter('Reminder snooze')
 			try{
 				if(initUser == "someone" || ent[ping].event) { //if the original user is gone, don't add the embed because it keys off them
-					Client.channels.get(ent[ping].channel).send(aReminder)
+					Client.channels.cache.get(ent[ping].channel).send(aReminder)
 				}else{
-					Client.channels.get(ent[ping].channel).send(aReminder, remEmbed)
+					Client.channels.cache.get(ent[ping].channel).send(aReminder, remEmbed)
 						.then(mess => reminderEmotes(mess))
 						.catch(e => console.log(e))
 				}
@@ -5094,13 +5045,82 @@ function remindAdder (channel, id, message, date, time, sendChannel, eventFlag) 
 			reminderBase[time][slot].event = true;
 		sortReminders();
 		logReminders();
-		let testEmbed = new Discord.RichEmbed()
+		let testEmbed = new Discord.MessageEmbed()
 			.setFooter(`Reminder slot ${time}[${slot}]`)
-		Client.channels.get(channel).send("Reminder set for " + date + " from now.", testEmbed)
+		Client.channels.cache.get(channel).send("Reminder set for " + date + " from now.", testEmbed)
 			.then(mess => mess.react(`${pingStar}`))
 			.catch(e => console.log(e))
 	}else{
-		Client.channels.get(channel).send("LackeyBot cannot set a reminder that far in the future.");
+		Client.channels.cache.get(channel).send("LackeyBot cannot set a reminder that far in the future.");
+	}
+}
+function remindEditor(time, slot, remindData){
+	if(!reminderBase.hasOwnProperty(time) || !reminderBase[time].hasOwnProperty(slot))
+		return "Invalid reminder slot data.";
+	let thisReminder = reminderBase[time][slot];
+	if(remindData.hasOwnProperty('channel'))
+		thisReminder.channel = remindData.channel;
+	if(remindData.hasOwnProperty('id'))
+		thisReminder.id = remindData.id;
+	if(remindData.hasOwnProperty('message'))
+		thisReminder.message = remindData.message;
+	if(remindData.hasOwnProperty('time')) {
+		//find date of original remind
+		let now = new Date();
+		let dateDiff = timeConversion(remindData.time - now.getTime(), 1)
+		yeet(dateDiff)
+		remindAdder(thisReminder.channel, thisReminder.id, thisReminder.message, dateDiff, remindData.time, thisReminder.channel, thisReminder.hasOwnProperty('event'))
+		delete reminderBase[time][slot];
+	}else{
+		logReminders();
+	}
+	return "Reminder updated";
+}
+function hookShift(currentTime, newTime){
+	let i = 0, delArray = [];
+	if(reminderBase.hasOwnProperty(newTime)) {
+		i = Object.keys(reminderBase[newTime]).length;
+	}else{
+		reminderBase[newTime] = {};
+	}
+	for(let remind in reminderBase[currentTime]){
+		let thisReminder = reminderBase[currentTime][remind];
+		//if(thisReminder.hasOwnProperty('event')) { //skip non hook reminds that managed to get in here
+			reminderBase[newTime][i] = thisReminder;
+			reminderBase[newTime][i].event = true;
+			i++;
+			delArray.push(remind);
+		//}
+	}
+	for(let remind in delArray)
+		delete reminderBase[currentTime][delArray[remind]];
+	if(Object.keys(reminderBase[currentTime]).length == 0)
+		delete reminderBase[currentTime];
+	sortReminders();
+	logReminders();
+}
+function parseReminderEdit(command){
+	let time, slot;
+	let remindData = {};
+	let slotMatch = command.match(/slot: ?(\d+)\[(\d+)\]/i);
+	if(slotMatch) {
+		time = slotMatch[1];
+		slot = slotMatch[2];
+		let chanMatch = command.match(/channel: ?<?#?(\d+)/i);
+		if(chanMatch)
+			remindData.channel = chanMatch[1];
+		let idMatch = command.match(/id: ?<?#?(\d+)/i);
+		if(idMatch)
+			remindData.id = idMatch[1];
+		let timeMatch = command.match(/time: ?(\d+)/i);
+		if(timeMatch)
+			remindData.time = timeMatch[1];
+		let messMatch = command.match(/message: ?([\s\S]*)/i);
+		if(messMatch)
+			remindData.message = messMatch[1];
+		return remindEditor(time, slot, remindData);
+	}else{
+		return "Reminder slot must be included.";
 	}
 }
 function sortReminders() { //sorts reminders by time
@@ -5146,29 +5166,29 @@ function timeConversion(milliseconds,precision) { //converts milliseconds to X y
 	}
 	return wordTime;
 }
-function setFuture (number, distance) { //creates a date object for (number) (distance) from now
+function setTimeDistance(number, distance, direction) { //creates a date object for (number) (distance) from now
 	let wholeNumber = Math.trunc(number);
 	let currenttime = new Date();
-	let pingYear = currenttime.getFullYear();
-	let pingMonth = currenttime.getMonth();
-	let pingDay = currenttime.getDate();
-	let pingHour = currenttime.getHours();
-	let pingMinute = currenttime.getMinutes();
-	
-	if(distance == "second")
+	let pingYear = 0;
+	let pingMonth = 0;
+	let pingDay = 0;
+	let pingHour = 0;
+	let pingMinute = 0;
+
+	if(distance == "second" || distance == "s")
 		pingMinute += Math.trunc(wholeNumber/60);
-	if(distance == "minute")
+	if(distance == "minute" || distance == "min" || distance == "m")
 		pingMinute += wholeNumber;
 	
-	if(distance == "hour") {
+	if(distance == "hour" || distance == "hr" || distance == "h") {
 		pingHour += wholeNumber;
 		pingMinute += Math.trunc((number - wholeNumber) * 60);
 	}
-	if(distance == "day") {
+	if(distance == "day" || distance == "dy" || distance == "d") {
 		pingDay += wholeNumber;
 		pingHour += Math.trunc((number - wholeNumber) * 24);
 	}
-	if(distance == "week") {
+	if(distance == "week" || distance == "wk" || distance == "w") {
 		pingDay += 7*wholeNumber;
 		pingHour += Math.trunc((number - wholeNumber) * 7);
 	}
@@ -5176,22 +5196,33 @@ function setFuture (number, distance) { //creates a date object for (number) (di
 		pingMonth += wholeNumber;
 		pingDay += Math.trunc((number - wholeNumber) * 30);
 	}
-	if(distance == "year") {
+	if(distance == "year" || distance == "yr" || distance == "y") {
 		pingYear += wholeNumber;
 		pingDay += Math.trunc((number - wholeNumber) * 365);
 	}
-	if(distance == "decade") {
+	if(distance == "decade" || distance == "d") {
 		pingYear += 10*wholeNumber;
 		pingYear += Math.trunc((number - wholeNumber) * 10);
 	}
-	if(number != 1)
-		distance += "s";
+	if(direction == "past") {
+		pingYear *= -1;
+		pingMonth *= -1;
+		pingDay *= -1;
+		pingHour *= -1;
+		pingMinute *= -1;
+	}
+	pingYear += currenttime.getFullYear();
+	pingMonth += currenttime.getMonth();
+	pingDay += currenttime.getDate();
+	pingHour += currenttime.getHours();
+	pingMinute += currenttime.getMinutes();
+
 	return new Date(pingYear, pingMonth, pingDay, pingHour, pingMinute, 0, 0);
 }
 function bombard(id, channel, date, message, time) { //send a message in many channels (broken)
 	setTimeout(function () {
 		try{
-			Client.channels.get(channel).send(date + " ago " + Client.users.get(id) + " set a reminder: " + message);
+			Client.channels.cache.get(channel).send(date + " ago " + Client.users.cache.get(id) + " set a reminder: " + message);
 		}catch(e){
 			console.log(e);
 		}
@@ -5226,7 +5257,7 @@ function resetTourney(tourney) { //archives tourney data and resets it
 		for(let thisPlayer in matchDex[tourney].players) {
 			//remove their tourney role
 			try{
-				Client.guilds.get('317373924096868353').members.get(thisPlayer).removeRole(trolearray[tourney]);
+				Client.guilds.cache.get('317373924096868353').members.cache.get(thisPlayer).roles.remove(trolearray[tourney]);
 			}catch(e){console.log(e)};
 			leagueArchive.players[thisPlayer] = {};
 			leagueArchive.players[thisPlayer].username = pullUsername(thisPlayer);
@@ -5616,7 +5647,7 @@ function auditMatches(tourney, id) { //ensures score is correct and alerts that 
 	if(matchDex[tourney].players[id].runs[matchDex[tourney].players[id].currentRun-1].matches.length >= matchDex[tourney].data.runLength) {
 		if(tourney == "league") //TODO League customization
 			fourWinPoster(tourney, id, matchDex[tourney].players[id].runs[matchDex[tourney].players[id].currentRun-1]);
-		return pullPing(id) + ", your run is now over. You may start a new run by submitting a deck through DMs.";
+		return `${pullPing(id)}, your run is now over. You may start a new run by submitting a deck through DMs.`;
 	}
 	return "";
 }
@@ -5781,7 +5812,7 @@ function fourWinPoster(tourney, id, runInfo) { //posts decks that go 4-1 or bett
 					fs.readFile(deck+'.txt', "utf8", function read(err, data) {
 						if(err) throw err;
 						let deckData = extractPlain(data);
-						let deckChannel = Client.channels.get('475851199812337695');
+						let deckChannel = Client.channels.cache.get('475851199812337695');
 						let deckMessage = "League: " + deck + " (" + runScore[0] + ")\n";
 						deckMessage += deckData;
 						deckChannel.send(deckMessage);
@@ -5975,7 +6006,7 @@ function newGPMatch (tourney, p1, p2, knockout) { //creates new gp match, auto-s
 	}
 	matchDex[tourney].players[p1].runs[0].matches.push(matchDex[tourney].matches.length);
 	matchDex[tourney].players[p2].runs[0].matches.push(matchDex[tourney].matches.length);
-	let ping = pullPing(newMatch.p1) + " vs. " + pullPing(newMatch.p2) + "\n";
+	let ping = `${pullPing(newMatch.p1)} vs. ${pullPing(newMatch.p2)}\n`;
 	ping = ping.replace(/<@!?343475440083664896>/,"Bye");
 	return ping;
 }
@@ -6018,10 +6049,10 @@ function pushTourney(tourney) { //move tournament to next round, change style if
 }
 function postTourney(tourney, message, author, channel) { //posts the gp matchups and sets a reminder to check them in three days
 	let gpChan = matchDex[tourney].data.channel;
-	Client.channels.get(gpChan).send(message)
+	Client.channels.cache.get(gpChan).send(message)
 		.then(thatMess => asyncSwapPins(thatMess, {author:Client.user.id}, 1))
 		.catch(e => console.log(e))
-	let pingTime = setFuture(3, "day");
+	let pingTime = setTimeDistance(3, "day");
 	remindAdder(channel, author, "Check the round " + matchDex[tourney].round + " gp matches.", "3 days", pingTime.getTime())
 }
 function findCurrentGP(tourney) { //determines which GP is currently running
@@ -6040,10 +6071,10 @@ function pingTourney(tourney) { //pings everyone with awaiting matches
 	for(let match in awaiting) {
 		let thisPlayer = pullPing(awaiting[match].p1);
 		if(thisPlayer.username != "PlayerUnknown")
-			pingParty += thisPlayer + " ";
+			pingParty += `${thisPlayer} `;
 		thisPlayer = pullPing(awaiting[match].p2);
 		if(thisPlayer.username != "PlayerUnknown")
-			pingParty += thisPlayer + " ";
+			pingParty += `${thisPlayer} `;
 	}
 	return pingParty;
 }
@@ -6732,12 +6763,12 @@ function buildCREmbed(testrul, textFlag) { //build !cr embeds
 		}
 	}
 	if(textFlag) {
-		let nullEmbed = new Discord.RichEmbed()
+		let nullEmbed = new Discord.MessageEmbed()
 			.setTitle(ruleData.title)
 			.setFooter(footer)
 		return [output, nullEmbed];
 	}else{ //embed
-		let embedData = new Discord.RichEmbed()
+		let embedData = new Discord.MessageEmbed()
 			.setTitle(ruleData.title)
 			.setDescription(output)
 			.setFooter(footer)
@@ -7177,7 +7208,7 @@ function rand(low, high) { //rand(x) or rand(x,y) gets a random number from 0-x 
 function channelTrawl(channel, lastID, count) { //gets old messages from channel
 	console.log(count + " Here I go trawling again!");
 	var firstID = "";
-	Client.channels.get(channel).fetchMessages({limit:100, before:lastID})
+	Client.channels.cache.get(channel).messages.fetch({limit:100, before:lastID})
 		.then(function(messages) {
 			let msgarray = messages.array();
 			if(msgarray[0]) {
@@ -7210,14 +7241,14 @@ function channelTrawl(channel, lastID, count) { //gets old messages from channel
 }
 function pullUsername(id) { //gets user's username, or PlayerUnknown if error
 	try{
-		return Client.users.get(id).username;
+		return Client.users.cache.get(id).username;
 	}catch(e){
 		return "PlayerUnknown";
 	}
 }
 function pullPing(id) { //gets user's ping, or PlayerUnknown if error
 	try{
-		return Client.users.get(id);
+		return Client.users.cache.get(id);
 	}catch(e){
 		let playerUnknown = {
 			username: "PlayerUnknown",
@@ -7279,7 +7310,7 @@ let blank = require('./standardDist.json')
 	logDev(bye);
 }
 async function asyncSwapPins(msg, matching, max, bank) { //pin swapper script
-	let pinnedPosts = await msg.channel.fetchPinnedMessages();
+	let pinnedPosts = await msg.channel.messages.fetchPinned();
 	pinnedPosts = pinnedPosts.array();
 	for(let post in pinnedPosts) {
 		if(postMatching(pinnedPosts[post], matching)) {
@@ -7319,6 +7350,7 @@ function addEventTags(timestamp){ //event reminders don't have snooze, this retr
 	logLater['reminder'] = true;
 	return "Reminders evented.";
 }
+
 var date = new Date();
 console.log(`${date.getDate()}/${(date.getMonth()<10)? "0"+date.getMonth() : date.getMonth()} ${(date.getHours()<10) ? "0"+date.getHours() : date.getHours()}:${(date.getMinutes()<10)? "0"+date.getMinutes() : date.getMinutes()} Loading database.`);
 try{//start the bot
@@ -7381,6 +7413,12 @@ Client.on("message", (msg) => {
 			if(admincheck.includes(0)) { //commands limited to bot admin
 				if(msg.content.match("!devdate"))
 					updateDevDex();
+				if(msg.content.match(/!remindEdit/i))
+					msg.channel.send(parseReminderEdit(msg.content));
+				if(msg.content.match(/!hookshift/i)){
+					let times = msg.content.match(/!hookshift (\d+) (\d+)/i)
+					hookShift(times[1], times[2]);
+				}
 				if(msg.content.match("!react")) //reacts to a post
 					reactMsg(msg);
 				/*if(msg.content.match("!setuptheroles")) {
@@ -7392,7 +7430,7 @@ Client.on("message", (msg) => {
 					let newstat = msg.content.toString();
 					let twostat = newstat.split("!");
 					status = twostat[2];
-					Client.user.setPresence( { game: {name: status, type: 0 }});
+					Client.user.setPresence( { activity: {name: status}});
 				}
 				if(msg.content.match(/!admin log roles/i))
 					logRole();
@@ -7505,9 +7543,9 @@ Client.on("message", (msg) => {
 				}
 				if(msg.content.match("!bad")) { //bad and shameful
 					if(msg.member.roles.has("494215662286274561")){
-						msg.member.removeRole("494215662286274561").catch(console.error);
+						msg.member.roles.remove("494215662286274561").catch(console.error);
 					}else{
-						msg.member.addRole("494215662286274561").catch(console.error);
+						msg.member.roles.add("494215662286274561").catch(console.error);
 					}
 				}
 				//temp ban
@@ -7540,13 +7578,13 @@ Client.on("message", (msg) => {
 				//Experimental commands
 				//playing with embeds
 				if(msg.content.match(/!embed1/i)) {
-					var exampleEmbed = new Discord.RichEmbed()
+					var exampleEmbed = new Discord.MessageEmbed()
 						.setColor('#0099ff')
 						.setTitle("And this is proper title text.")
 						.setAuthor("This is like a header.")
 						.setDescription("An embed. Neat.")
 						.addField("A mini header","with a mini description")
-						.addBlankField()
+						.addField('\u200b', '\u200b') //blankField
 						.addField("A mini header","after a break")
 						.addField("A headerless description","is not allowed.", true)
 						.addField("But you can have one","right next door",true)
@@ -7555,7 +7593,7 @@ Client.on("message", (msg) => {
 					msg.channel.send(exampleEmbed);
 				}
 				if(msg.content.match(/!embed2/i)) {
-					var exampleEmbed = new Discord.RichEmbed()
+					var exampleEmbed = new Discord.MessageEmbed()
 						.setColor('#0099ff')
 						.setTitle("And this is proper title text.")
 						.setAuthor("This is like a header.")
@@ -7580,7 +7618,7 @@ Client.on("message", (msg) => {
 
 				//creating channels test
 				if(msg.content.match("!chantest")) {
-					let chanArray = Client.guilds.get("190309853296590848").channels.get('637483964508143616').children.array();
+					let chanArray = Client.guilds.cache.get("190309853296590848").channels.cache.get('637483964508143616').children.array();
 					let addingChan = {name: "real test channel", position: 0};
 					let chanNameArray = [addingChan];
 					for(let i=0; i<chanArray.length; i++) {
@@ -7593,25 +7631,23 @@ Client.on("message", (msg) => {
 					let chanHold = chanNameArray.indexOf(addingChan);
 					let chanPos = chanNameArray[chanHold-1].position;
 					console.log(chanNameArray);
-					Client.guilds.get("190309853296590848").createChannel("real test channel", {type:"text", parent:"637483964508143616", permissionOverwrites:[{id: msg.guild.id, deny:["VIEW_CHANNEL"]},{id:Client.user.id, allow:["VIEW_CHANNEL","MANAGE_CHANNELS"]}], position: chanPos})
+					Client.guilds.cache.get("190309853296590848").createChannel("real test channel", {type:"text", parent:"637483964508143616", permissionOverwrites:[{id: msg.guild.id, deny:["VIEW_CHANNEL"]},{id:Client.user.id, allow:["VIEW_CHANNEL","MANAGE_CHANNELS"]}], position: chanPos})
 				}
 				//creating permissions test
 				if(msg.content.match("!permtest"))
 					msg.channel.overwritePermissions(bye, {VIEW_CHANNEL: true});
 				//creating roles test
 				if(msg.content.match("!roletest")){
-					msg.guild.createRole({
-						name: "test role"
-					})
-						.then(msg.member.addRole(msg.guild.roles.find(role => role.name == "test role")))
+					msg.guild.roles.create({data:{name: "test role"}, reason:"Created with LackeyBot"})
+						.then(msg.member.roles.add(msg.guild.roles.cache.find(role => role.name == "test role")))
 						.catch(console.error);
 				}
 				var roleColorTest = msg.content.match(/!rolecolor ([0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f])/i);
 				if(roleColorTest) {
-					msg.guild.createRole({
+					msg.guild.roles.create({data:{
 						name: roleColorTest[1],
 						color: roleColorTest[1]
-					})
+					}, reason:"Created with LackeyBot"})
 					console.log(msg.channel.send(roleColorTest[1] + " role created."));
 				}
 				
@@ -7663,8 +7699,8 @@ Client.on("message", (msg) => {
 				if(msg.content.match("!shutdown")) {
 					logStats();
 					writeDraftData(draft);
-					Client.users.get(msg.author.id).send("Draft log", {
-						file: "draft/draft.json" //saves the draft log and posts it
+					Client.users.cache.get(msg.author.id).send("Draft log", {
+						file: [{attachments:"draft/draft.json"}] //saves the draft log and posts it
 					});
 					msg.channel.send("LackeyBot has to go now. LackeyBot's people need LackeyBot.");
 					Client.destroy()
@@ -7796,8 +7832,8 @@ Client.on("message", (msg) => {
 				var transfercheck = msg.content.match(/!transfer ([0-9]+)/i)
 				if(transfercheck !== null) {
 					let draft1 = draft;
-					let newguy = Client.users.get(transfercheck[1])
-					Client.users.get(draft1.owner).send("Ownership of the draft has been transferred to " + newguy.username);
+					let newguy = Client.users.cache.get(transfercheck[1])
+					Client.users.cache.get(draft1.owner).send("Ownership of the draft has been transferred to " + newguy.username);
 					draft1.owner = transfercheck[1];
 					let output = "Ownership of the " + generateDraftName() + " draft has been transferred to you.";
 					if(draft1.status === "creating")
@@ -7857,7 +7893,7 @@ Client.on("message", (msg) => {
 					let output3 = "`$modrole Role Name` to assign a moderator role. They will be able to use the following commands:\n";
 					output3 += "`$giverole @User RoleName` to give that user that role.\n";
 					output3 += "`$silence @User` to have LackeyBot ignore their posts. Reversed with `$unsilence @User`.";
-					var exampleEmbed = new Discord.RichEmbed()
+					var exampleEmbed = new Discord.MessageEmbed()
 						.setColor('#00ff00')
 						.setFooter("`$rolehelp` to get this message.")
 						.addField("**Role Engine Help**", output)
@@ -7882,7 +7918,7 @@ Client.on("message", (msg) => {
 						}
 					}
 					if(msg.content.match(/^\$groupindex/i)) {
-						let embedded = new Discord.RichEmbed()
+						let embedded = new Discord.MessageEmbed()
 							.addField("Guild Group indexes:",writeIndexes(allRoles.guilds[msg.guild.id].groups))
 						msg.channel.send(embedded);
 					}
@@ -7985,7 +8021,7 @@ Client.on("message", (msg) => {
 				if(msg.guild && allRoles.guilds.hasOwnProperty(msg.guild.id)){
 					let giveMatch = msg.content.match(/^\$giverole <?@?!?([0-9]+)>? ([^\n]+)/i);
 					if(giveMatch){
-						let thatMember = Client.guilds.get(msg.guild.id).members.get(giveMatch[1]);
+						let thatMember = Client.guilds.cache.get(msg.guild.id).members.cache.get(giveMatch[1]);
 						let test = false;
 						console.log(giveMatch);
 						if(allRoles.guilds[msg.guild.id].roles.hasOwnProperty(giveMatch[2].toLowerCase())) {
@@ -8110,7 +8146,7 @@ Client.on("message", (msg) => {
 										bribes++;															//up the stats
 										msg.channel.send("Rulings for " + cardName + "\n• " + ruling);		//then send card name + ruling
 										if(library.name == "msem")
-											Client.channels.get(config.rulingsChannel).send(cardName);
+											Client.channels.cache.get(config.rulingsChannel).send(cardName);
 								}
 		}
 							}else{
@@ -8134,7 +8170,7 @@ Client.on("message", (msg) => {
 				draft1.owner = msg.author.id;
 				draft1.players.push(msg.author.id);
 				writeDraftData(draft1);
-				Client.users.get(draft1.owner).send("You have started a new draft! Use `$addpack SET` to add a pack and `$draftcodes` to see our set codes.\nFor additional help, use `$drafthelp` or contact Cajun or justnobody.\nOnce you have added some sets, use `$opendraft` to allow other users to join.");
+				Client.users.cache.get(draft1.owner).send("You have started a new draft! Use `$addpack SET` to add a pack and `$draftcodes` to see our set codes.\nFor additional help, use `$drafthelp` or contact Cajun or justnobody.\nOnce you have added some sets, use `$opendraft` to allow other users to join.");
 			}
 			//draft owner commands
 			if(msg.author.id === draft.owner || admincheck.includes(2)) {
@@ -8146,18 +8182,18 @@ Client.on("message", (msg) => {
 						addPack(packmatch[1]);
 					}
 					if(draft.status !== "creating")
-						Client.users.get(draft.owner).send("You can't add sets at this time.");
+						Client.users.cache.get(draft.owner).send("You can't add sets at this time.");
 				}
 				//reseting roundArray
 				if(msg.content.match(/\$resetdraft/i)) {
 					if(draft.status === "creating") {
 						let draft1 = draft
 						draft1.roundArray = ["0"];
-						Client.users.get(msg.author.id).send("The draft rounds have been reset");
+						Client.users.cache.get(msg.author.id).send("The draft rounds have been reset");
 						writeDraftData(draft1);
 					}
 					if(draft.status !== "creating")
-						Client.users.get(msg.author.id).send("The draft rounds cannot be reset at this time.");
+						Client.users.cache.get(msg.author.id).send("The draft rounds cannot be reset at this time.");
 				}
 				//removing players
 				var kickmatch = msg.content.match(/\$kickplayer ([0-9]+)/i)
@@ -8169,28 +8205,28 @@ Client.on("message", (msg) => {
 						if(index > -1) {
 							draft1.players.splice(index, 1);
 							writeDraftData(draft1);
-							Client.users.get(msg.author.id).send("Player removed from the draft. Note that the player may still rejoin at this time.");
+							Client.users.cache.get(msg.author.id).send("Player removed from the draft. Note that the player may still rejoin at this time.");
 						}
 						else
 						if(index = -1)
-							Client.users.get(msg.author.id).send("Player not found. Remember to use the user's ID and not name. This can be found by going to User Settings -> Appearance -> Developer Mode on, then right clicking their name and Copying ID.\nIf you still have trouble, DM Cajun.");
+							Client.users.cache.get(msg.author.id).send("Player not found. Remember to use the user's ID and not name. This can be found by going to User Settings -> Appearance -> Developer Mode on, then right clicking their name and Copying ID.\nIf you still have trouble, DM Cajun.");
 					}
 					if(draft.status === "progress") {
 						let index = draft.players.indexOf(kickmatch[1]);
 						if(index > -1) {
 							dropPlayer(kickmatch[1]);
-							Client.users.get(msg.author.id).send("Player removed from the draft.");
+							Client.users.cache.get(msg.author.id).send("Player removed from the draft.");
 						}
 						else
 						if(index = -1)
-							Client.users.get(msg.author.id).send("Player not found. Remember to use the user's ID and not name. This can be found by going to User Settings -> Appearance -> Developer Mode on, then right clicking their name and Copying ID.\nIf you still have trouble, DM Cajun.");
+							Client.users.cache.get(msg.author.id).send("Player not found. Remember to use the user's ID and not name. This can be found by going to User Settings -> Appearance -> Developer Mode on, then right clicking their name and Copying ID.\nIf you still have trouble, DM Cajun.");
 
 					}
 				}
 				//open the draft to other playing
 				if(msg.content.match(/\$opendraft/i) && draft.status === "creating") {
 					if(draft.roundArray[1] == null || draft.roundArray[1] == undefined) {
-						Client.users.get(msg.author.id).send("Add at least one pack with `$addpack` before opening the draft!");
+						Client.users.cache.get(msg.author.id).send("Add at least one pack with `$addpack` before opening the draft!");
 					}
 					else
 					if(draft.roundArray[1] != null || draft.roundArray[1] != undefined) {
@@ -8198,8 +8234,8 @@ Client.on("message", (msg) => {
 						let draft1 = draft
 						draft1.status = "open";
 						writeDraftData(draft1);
-						let owner = Client.users.get(draft.owner);
-						Client.channels.get("324638614611034112").send(owner.username + " has opened a " + generateDraftName() + " draft! Join now with `$joindraft`");
+						let owner = Client.users.cache.get(draft.owner);
+						Client.channels.cache.get("324638614611034112").send(owner.username + " has opened a " + generateDraftName() + " draft! Join now with `$joindraft`");
 						owner.send("You have opened the draft! Use `$startdraft` to start the draft once enough players have joined.");
 					}
 				}
@@ -8223,7 +8259,7 @@ Client.on("message", (msg) => {
 				if(draft.status === "")
 					msg.channel.send("There are no open drafts! Create a new one with `$newdraft`");
 				if(draft.status === "creating")
-					msg.channel.send(Client.users.get(draft.owner).username + " is currently creating a draft. LackeyBot will post in general-msem when it opens!");
+					msg.channel.send(Client.users.cache.get(draft.owner).username + " is currently creating a draft. LackeyBot will post in general-msem when it opens!");
 				if(draft.status === "open") {
 					output = "There is a " + generateDraftName() + " draft forming! Join with `$joindraft`\n";
 					playerNumber = draft.players.length;
@@ -8248,7 +8284,7 @@ Client.on("message", (msg) => {
 				if(draft.status === "")
 					msg.channel.send("There are no open drafts! Create a new one with `$newdraft`");
 				if(draft.status === "creating")
-					msg.channel.send(Client.users.get(draft.owner).username + " is currently creating a draft. LackeyBot will post in general-msem when it opens!");
+					msg.channel.send(Client.users.cache.get(draft.owner).username + " is currently creating a draft. LackeyBot will post in general-msem when it opens!");
 				if(draft.status === "open") {
 					msg.channel.send("Enjoy the draft!")
 					let draft1 = draft;
@@ -8282,7 +8318,7 @@ Client.on("message", (msg) => {
 				}
 				else
 				if(draft.packs[pack].cards.lastIndexOf(thisCard) < 0 ) {
-					Client.users.get(msg.author.id).send("Card not found. If this is an error, try copy-pasting the name, then contact Cajun.");
+					Client.users.cache.get(msg.author.id).send("Card not found. If this is an error, try copy-pasting the name, then contact Cajun.");
 				}
 			}
 			//the user picking command, for hunt and similar cards
@@ -8294,8 +8330,8 @@ Client.on("message", (msg) => {
 					if(player !== user && player !== user.passFrom && huntmatch[1] == i) {
 						let huntingCard = draft.players[msg.author.id].cardpool.length;
 						huntingCard = draft.players[msg.author.id].cardpool[huntingCard - 1];
-						let message = huntingCard + " is now hunting " + Client.users.get(player).username;
-						draft.players[msg.author.id].notes.push(huntingCard + " - " + Client.users.get(player).username)
+						let message = huntingCard + " is now hunting " + Client.users.cache.get(player).username;
+						draft.players[msg.author.id].notes.push(huntingCard + " - " + Client.users.cache.get(player).username)
 						draft.players[msg.author.id].flags[4] = 0; // turns hunting flag off
 					}
 				}
@@ -8406,7 +8442,7 @@ Client.on("message", (msg) => {
 				disarm = "disarmed";
 				explosions++;
 				bribes++;
-				Client.user.setPresence( { game: {name: "dead.", type: 0 }});
+				Client.user.setPresence( { activity: {name: "dead."}});
 			}
 			//mechanic rules
 			let mechstrings = ""
@@ -8480,7 +8516,7 @@ Client.on("message", (msg) => {
 				if(msg.content.match(/despacito/i))
 					newGame = "Despacito";
 				msg.channel.send("LackeyBot is now playing " + newGame);
-				Client.user.setPresence( { game: {name: newGame, type: 0 }});
+				Client.user.setPresence( { activity: {name: newGame}});
 				bribes++;
 				playtime = 1;
 			}
@@ -8524,20 +8560,20 @@ Client.on("message", (msg) => {
 			}
 			if(msg.content.match(/\$barbaric/i)){
 				bribes++;
-				msg.channel.send("", {
-					file: 'images/barbaric.jpg'
+				msg.channel.send({
+					files:[{attachment:'images/barbaric.jpg'}]
 					});
 			}
 			if(msg.content.match(/\$(doubt|x)/i)){
 				bribes++;
-				msg.channel.send("", {
-					file: 'images/doubt.png'
+				msg.channel.send({
+					files:[{attachment:'images/doubt.png'}]
 					});
 			}
 			if(msg.content.match(/\$(hyper|mega|ultra)(doubt|x)/i)){
 				bribes++;
-				msg.channel.send("", {
-					file: 'images/hyperdoubt.png'
+				msg.channel.send({
+					files:[{attachment:'images/hyperdoubt.png'}]
 					});
 			}
 			if(msg.content.match(/\$s?nap/i)){
@@ -8604,7 +8640,7 @@ Client.on("message", (msg) => {
 			let uploadcheck = msg.content.match(/\$submit (league|GP[A-Z]|PT[0-9]+|primordial [A-Z0-9]+) ?([^\n]+)/i);
 			if(uploadcheck !== null && listMatch !== null) {
 				if(botname != "TestBot")
-					Client.channels.get('634557558589227059').send("```\n"+msg.content.replace("$",'')+"```");
+					Client.channels.cache.get('634557558589227059').send("```\n"+msg.content.replace("$",'')+"```");
 				deckName = uploadcheck[2];
 				let tourneyname = uploadcheck[1].toLowerCase();
 				
@@ -8621,7 +8657,7 @@ Client.on("message", (msg) => {
 							let path = '/pie/' + toolbox.stripEmoji(msg.author.username) + '.txt';
 							dropboxUpload(path, deckContent[0])
 							msg.author.send(uploadcheck[1] + " decklist submitted!");
-							Client.guilds.get('317373924096868353').members.get(msg.author.id).addRole('588781514616209417');
+							Client.guilds.cache.get('317373924096868353').members.cache.get(msg.author.id).roles.add('588781514616209417');
 							if(matchDex.pie.round > 0) {
 								//deckContent[1] = "";
 								msg.author.send("Sorry, but deck submissions for the GP are closed!");
@@ -8646,9 +8682,9 @@ Client.on("message", (msg) => {
 							fourWinPoster("league", msg.author.id, matchDex.league.players[msg.author.id].runs[matchDex.league.players[msg.author.id].currentRun-1]);
 						msg.channel.send(addNewRun("league",msg.author.id,'/' + tourneyname + '/' + toolbox.stripEmoji(msg.author.username) + numberString +  '.txt',deckName));
 						logMatch();
-						Client.guilds.get('317373924096868353').members.get(msg.author.id).addRole('638181322325491744');
+						Client.guilds.cache.get('317373924096868353').members.cache.get(msg.author.id).roles.add('638181322325491744');
 					}else{
-						Client.guilds.get('317373924096868353').members.get(msg.author.id).addRole('588781514616209417');
+						Client.guilds.cache.get('317373924096868353').members.cache.get(msg.author.id).roles.add('588781514616209417');
 						if(matchDex.gp.round > 0) {
 							//deckContent[1] = "";
 							msg.author.send("Sorry, but deck submissions for the GP are closed!");
@@ -8921,9 +8957,7 @@ Client.on("message", (msg) => {
 			if(msg.guild) {
 				let uimatch = msg.content.match(/\$user ?info ?(plain)? ?([^\n]+)?/i)
 				if(uimatch){ //$userinfo
-					let uic = function(t, e) {
-						msg.channel.send(t, e)
-					}
+					bribes++
 					let userID = msg.author.id;
 					if(uimatch[2]) {
 						let filterName = function(name){
@@ -8932,27 +8966,19 @@ Client.on("message", (msg) => {
 							return "";
 						}
 						let nameTap = new RegExp(uimatch[2], 'i')
-						let temp = msg.guild.members.find(val => filterName(val.nickname).match(nameTap))
+						let temp = msg.guild.members.cache.find(val => filterName(val.nickname).match(nameTap))
 						if(!temp)
-							temp = msg.guild.members.find(val => filterName(val.user.username).match(nameTap))
+							temp = msg.guild.members.cache.find(val => filterName(val.user.username).match(nameTap))
 						if(temp)
 							userID = temp.id;
 					}
-					buildUserEmbed(msg.guild.id, userID, uic, uimatch[1])
+					msg.channel.send(buildUserEmbed(msg.guild.id, userID, uimatch[1]))
 				}
 				let simatch = msg.content.match(/\$server ?info ?(plain)? ?([^\n]+)?/i)
-				if(simatch){ //$userinfo
-					let sic = function(t, e) {
-						msg.channel.send(t, e)
-					}
+				if(simatch){ //$serverinfo
+					bribes++
 					let guildID = msg.guild;
-					/*if(simatch[2]) {
-						let nameTap = new RegExp(simatch[2], 'i')
-						let temp = Client.guilds.find(val => val.name.match(nameTap))
-						if(temp)
-							guildID = temp;
-					}*/
-					buildServerEmbed(guildID, sic, simatch[1])
+					msg.channel.send(buildServerEmbed(guildID, simatch[1]))
 				}
 			}
 			/*let ytMatch = msg.content.match(/\$yt ([^\n]+)/i)
@@ -9036,12 +9062,12 @@ Client.on("message", (msg) => {
 			//Suggestions
 			if(msg.content.match(/\$suggest ?\n?/i)){
 				let anonPost = msg.content.replace(/@/g, "@.");
-				Client.channels.get(config.mailChannel).send(anonPost);
+				Client.channels.cache.get(config.mailChannel).send(anonPost);
 				bribes++;
 			}
 			if(msg.content.match(/\$opofix/i)){
 				let attachURL = msg.attachments.array()[0].url;
-				let filename = msg.attachments.array()[0].filename;
+				let filename = msg.attachments.array()[0].name;
 				request(attachURL).pipe(fs.createWriteStream("./opofix.txt"))
 				msg.channel.send("LackeyBot is downloading your file, please wait a few moments.");
 				var content = "";
@@ -9065,7 +9091,7 @@ Client.on("message", (msg) => {
 			}
 			if(msg.content.match(/\$l3fix/i)) {
 				let attachURL = msg.attachments.array()[0].url;
-				let filename = msg.attachments.array()[0].filename;
+				let filename = msg.attachments.array()[0].name;
 				download(attachURL, {directory:"./fix/", filename: filename}, function(err) {
 					if(err) throw err;
 					setTimeout(function() {
@@ -9077,7 +9103,7 @@ Client.on("message", (msg) => {
 								if(err) throw err
 									setTimeout(function(){
 										msg.channel.send("Here is your corrected .dek file, rename it as you like and move it to LackeyCCG/plugins/msemagic/decks/", {
-												file: filename
+												files:[{attachment:filename}]
 											});
 									}, 3000);
 							});
@@ -9087,7 +9113,7 @@ Client.on("message", (msg) => {
 			}
 			if(msg.content.match(/\$plain/i)){
 				let attachURL = msg.attachments.array()[0].url;
-				let filename = msg.attachments.array()[0].filename;
+				let filename = msg.attachments.array()[0].name;
 				request(attachURL).pipe(fs.createWriteStream("./extract.txt"))
 				msg.channel.send("LackeyBot is downloading your file, please wait a few moments.");
 				var content = "";
@@ -9101,7 +9127,7 @@ Client.on("message", (msg) => {
 						fs.writeFile(filename, deckFile, (err) => {
 							if (err) throw err;
 							pullPing(msg.author.id).send("Here is your extracted plain text.", {
-								file: filename
+								files:[{attachment:filename}]
 							});
 						});
 						fixingList = null
@@ -9256,6 +9282,19 @@ Client.on("message", (msg) => {
 				bribes++;
 				msg.channel.send("https://rentry.co/faction-primer");
 			}
+			if(msg.content.match(/\$lackeybot/)) {
+				let links = "";
+				links += "[Invite LackeyBot to your server](https://discord.com/oauth2/authorize?client_id=341937757536387072&permissions=268823616&scope=bot)";
+				links += "\n[LackeyBot on github](https://github.com/CajunAvenger/LackeyBot)";
+				let embedded = new Discord.MessageEmbed()
+					.setTitle('LackeyBot Resources')
+					.setDescription(links)
+					.setFooter(collectToPlainMsg)
+				msg.channel.send(embedded)
+					.then(mess => mess.react(plainText))
+					.catch(e => console.log(e))
+				bribes++;
+			}
 			if(msg.content.match(/\$articles/)) {
 				let links = "";
 				links += "[In Defense of Dies to Removal](http://magicseteditor.boards.net/thread/456/defense-dies-removal)";
@@ -9263,7 +9302,7 @@ Client.on("message", (msg) => {
 				links += "\n[Strictly Better: Should You Care?](http://magicseteditor.boards.net/thread/498/strictly-care)";
 				links += "\n[MSE101: Layers](http://magicseteditor.boards.net/thread/516/mse-101-card-breaks-layers)";
 				links += "\n[Color Combinations Primer](https://rentry.co/faction-primer)";
-				let embedded = new Discord.RichEmbed()
+				let embedded = new Discord.MessageEmbed()
 					.setTitle('MSE Community Articles')
 					.setDescription(links)
 					.setFooter(collectToPlainMsg)
@@ -9275,10 +9314,10 @@ Client.on("message", (msg) => {
 			if(msg.content.match(/\$template ?pack/)) {
 				let links = "";
 				links += "[Basic M15 Pack](https://www.dropbox.com/s/tnuvawiqyvj107l/Magic%20Set%20Editor%202%20-%20M15%20Basic.zip?dl=0)\n";
-				links += "[Full M15 Pack](https://www.dropbox.com/s/i5wkopzin6udm8z/Magic%20Set%20Editor%202%20-%20M15%20Main.zip?dl=0)\n";
+				links += "[Full M15 Pack](https://www.dropbox.com/s/4aupl48rez983i6/Magic%20Set%20Editor%202%20-%20M15%20Main.zip?dl=0\n";
 				links += "[Full Magic Pack](https://www.dropbox.com/s/kz6gi2ruhtnhtgu/Magic%20Set%20Editor%20Full%20-%20Magic.zip?dl=0)\n";
 				links += "[Non-MTG Pack](https://www.dropbox.com/s/ibm2wtzayn6s6ty/Magic%20Set%20Editor%20Full%20-%20Other%20Styles.zip?dl=0)\n";
-				links += "[Font Pack](https://www.dropbox.com/s/u1vqnl0f3lplzh8/Font%20Pack.zip?dl=0)";				let embedded = new Discord.RichEmbed()
+				links += "[Font Pack](https://www.dropbox.com/s/u1vqnl0f3lplzh8/Font%20Pack.zip?dl=0)";				let embedded = new Discord.MessageEmbed()
 					.setTitle('Custom Magic Template Packs')
 					.setDescription(links)
 					.setFooter(collectToPlainMsg)
@@ -9289,12 +9328,12 @@ Client.on("message", (msg) => {
 			}else if(msg.content.match(/\$template/)) {
 				let links = "";
 				links += "[Cajun Style Templates](https://magicseteditor.boards.net/thread/77)";
-				links += "\n[2.1.1 Update](https://magicseteditor.boards.net/post/29474/thread)";
+				links += "[Now also on github](https://github.com/CajunAvenger/Cajun-Style-Templates)";				links += "\n[2.1.1 Update](https://magicseteditor.boards.net/post/29474/thread)";
 				links += "\n[Custom Indexing help](https://magicseteditor.boards.net/post/26481/thread)";
 				links += "\n[Mainframe Mana, Watermarks, and other custom images](https://magicseteditor.boards.net/post/26482/thread)";
 				links += "\n[Design Skeleton Generator help](https://magicseteditor.boards.net/post/26483/thread)";
 				links += "\n[Mainframe Levelers help](https://magicseteditor.boards.net/post/26485/thread)";
-				let embedded = new Discord.RichEmbed()
+				let embedded = new Discord.MessageEmbed()
 					.setTitle('MSE Template Links')
 					.setDescription(links)
 					.setFooter(collectToPlainMsg)
@@ -9389,30 +9428,40 @@ Client.on("message", (msg) => {
 					if(distance == "decade") {
 						msg.react("👀");
 					}
-					let pingTime = setFuture(number, distance);
+					let pingTime = setTimeDistance(number, distance);
 					remindAdder(thisChannel, thisID, thisMessage, number + " " + distance, pingTime.getTime(), sendChannel);
 				}
 			}else if(msg.content.match(/\$remind/)){
 				let hooks = {
-					M21: {
-						time: new Date('Fri, 3 July 2020 10:00:00 EST'),
-						match: ["M21","Core 21","Core 2021","Magic 2021"],
-						message: "`M21`, for the release of Magic 2021 on July 3"
-					},
-					Jumpstart: {
-						time: new Date('Fri, 17 July 2020 10:00:00 EST'),
-						match: ["jumpstart","JS","jump-start"],
-						message: "`Jumpstart`, for the release of Jumpstart on July 17"
-					},
-					DoubleMasters: {
-						time: new Date('Fri, 7 August 2020 10:00:00 EST'),
-						match: ["2XM","Double Master","Double Masters"],
-						message: "`Double Masters`, for the release of Double Masters on August 7"
-					},
 					ZRI: {
-						time: new Date(2020, 9, 5, 0, 0), //YYYY, M-1, D, H, m
+						time: new Date('Fri, 25 September 2020 10:00:00 EST'), //YYYY, M-1, D, H, m
 						match: ["ZRI","ZRS","Zendikar","Zendikar Rising","Zendikar Resurgent","Zendikar Resurgence"],
-						message: "`Zendikar`, for the release of Zendikar Rising on September 5"
+						message: "`Zendikar`, for the release of Zendikar Rising on September 25"
+					},
+					Kaldheim: {
+						time: new Date('Fri, 22 January 2021 10:00:00 EST'),
+						match: ["Kaldheim"],
+						message: "`Kaldheim`, for the release of Kaldheim in January 2021"
+					},
+					Strixhaven: {
+						time: new Date('Fri, 23 April 2021 10:00:00 EST'),
+						match: ["Strixhaven"],
+						message: "`Strixhaven`, for the release of Strixhaven in April 2021"
+					},
+					Realms: {
+						time: new Date('Fri, 9 July 2021 10:00:00 EST'),
+						match: ["DND", "D&D", "Forgotten Realms", "Forgotten", "Realms", "Realm"],
+						message: "`DND`, `Forgotten Realms`, or `Realms`, for the release of Adventures in the Forgotten Realms in July 2021"
+					},
+					Innistrad: {
+						time: new Date('Fri, 24 September 2021 10:00:00 EST'),
+						match: ["Innistrad: Werewolves", "Innistrad Werewolves", "Innistrad", "Werewolves", "Werewolf"],
+						message: "`Innistrad` or `Werewolves`, for the release of Innistrad: Werewolves in September 2021"
+					},
+					Vampires: {
+						time: new Date('Fri, 24 September 2021 10:01:00 EST'),
+						match: ["Innistrad: Vampires", "Innistrad Vampires", "Vampires", "Vampire"],
+						message: "`Innistrad: Vampires` or `Vampires`, for the release of Innistrad: Vampires in September 2021"
 					}
 				}
 				if(msg.content.match(/\$reminde?r? ?event/)) {
@@ -9757,7 +9806,7 @@ Client.on("message", (msg) => {
 				if(msg.content.match(/\$fblthp/i)){
 					if(msg.guild.id == "317373924096868353") {
 					bribes++;
-						msg.member.removeRole("372453779418775553").catch(console.error);
+						msg.member.roles.remove("372453779418775553").catch(console.error);
 						msg.channel.send(msg.author.username + " has left the arena. <:fblthp:372438950171770891>");
 					}else{
 						msg.channel.send("<:fblthp:372438950171770891>")
@@ -9766,7 +9815,7 @@ Client.on("message", (msg) => {
 				if(msg.content.match(/\$mklthd/i)){
 					bribes++;
 					if(msg.guild.id == "317373924096868353") {
-						msg.member.addRole("372453779418775553").catch(console.error);
+						msg.member.roles.add("372453779418775553").catch(console.error);
 						msg.channel.send(msg.author.username + " is looking for an opponent! <:mklthd:372438015374655500>");
 					}else{
 						msg.channel.send("<:mklthd:372438015374655500>")
@@ -9818,16 +9867,16 @@ Client.on("message", (msg) => {
 			if(msg.guild && fightGuilds.hasOwnProperty(msg.guild.id)) { //guilds with $fight commands
 				if(msg.content.match(/\$fi(ght|te)/i)){
 					if(msg.member.roles.has(fightGuilds[msg.guild.id])){
-						msg.member.removeRole(fightGuilds[msg.guild.id]).catch(console.error);
+						msg.member.roles.remove(fightGuilds[msg.guild.id]).catch(console.error);
 						msg.channel.send(msg.author.username + " has left the arena. <:fblthp:372438950171770891>");
 					}else{
-						msg.member.addRole(fightGuilds[msg.guild.id]).catch(console.error);
+						msg.member.roles.add(fightGuilds[msg.guild.id]).catch(console.error);
 						msg.channel.send(msg.author.username + " is looking for an opponent! <:mklthd:372438015374655500>");
 					}
 				}
 				if(msg.content.match(/\$unfi(ght|te)/i)){
 					bribes++;
-					msg.member.removeRole(fightGuilds[msg.guild.id]).catch(console.error);
+					msg.member.roles.remove(fightGuilds[msg.guild.id]).catch(console.error);
 					msg.channel.send(msg.author.username + " has left the arena. <:fblthp:372438950171770891>");
 				}
 			}
@@ -9844,7 +9893,7 @@ Client.on("message", (msg) => {
 					if(reportMatch[4] && admincheck.includes(1))
 						player1 = reportMatch[4];
 					bribes++;
-					msg.channel.send(Client.users.get(msg.author.id) + " " + updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match));
+					msg.channel.send(Client.users.cache.get(msg.author.id) + " " + updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match));
 				}
 				
 				var reportGPMatch = msg.content.match(/\$report *gp[a-z]? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
@@ -9875,7 +9924,7 @@ Client.on("message", (msg) => {
 					if(matchNo == 0) {
 						msg.channel.send("Please include the match number to edit past matches. LackeyBot gives that number after reporting, or can be found using $matches. The edit command is formatted `$report gp match N X-Y @Opponent`.")
 					}else{
-						msg.channel.send(Client.users.get(msg.author.id) + " " + updateGPMatch(gpName, player1, reportGPMatch[7], reportGPMatch[5], reportGPMatch[6], matchNo));
+						msg.channel.send(Client.users.cache.get(msg.author.id) + " " + updateGPMatch(gpName, player1, reportGPMatch[7], reportGPMatch[5], reportGPMatch[6], matchNo));
 						if(matchDex[gpName].awaitingMatches.length == 0)
 							msg.channel.send("<@!" + matchDex[gpName].data.TO + ">, All matches have been reported!");
 					}
@@ -9940,7 +9989,7 @@ Client.on("message", (msg) => {
 						if(reportMatch[4] && admincheck.includes(1))
 							player1 = reportMatch[4];
 						bribes++;
-						msg.channel.send(Client.users.get(msg.author.id) + " " + updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match));
+						msg.channel.send(Client.users.cache.get(msg.author.id) + " " + updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match));
 					}
 				}else if(msg.channel.id == "708527265851506779") {
 					var reportGPMatch = msg.content.match(/\$report (?:gp|gpc|league|sealed|block|standard)? ?(match ?([0-9]+))? ?([^<]*<@!?([0-9]*)>)? ?([0-9]) ?[-\/\|] ?([0-9])[^<]*<@!?([0-9]*)/i);
@@ -9962,7 +10011,7 @@ Client.on("message", (msg) => {
 						if(matchNo == 0) {
 							msg.channel.send("Please include the match number to edit past matches. It can be found using $matches.")
 						}else{
-							msg.channel.send(Client.users.get(msg.author.id) + " " + updateGPMatch(gpName, player1, reportGPMatch[7], reportGPMatch[5], reportGPMatch[6], matchNo));
+							msg.channel.send(Client.users.cache.get(msg.author.id) + " " + updateGPMatch(gpName, player1, reportGPMatch[7], reportGPMatch[5], reportGPMatch[6], matchNo));
 						}
 					}
 				}else if(msg.content.match(/\$report/)){
@@ -10111,7 +10160,7 @@ Client.on("message", (msg) => {
 				let devLoadMatch = msg.content.match(/(\$|\?)fetch ?upload/i);
 				if(devLoadMatch) {
 					let attachURL = msg.attachments.array()[0].url;
-					let filename = msg.attachments.array()[0].filename;
+					let filename = msg.attachments.array()[0].name;
 					let newName = new Date().getTime()
 					download(attachURL, {directory:"./dev/", filename: newName + "devtest.json"}, function(err) {
 						if(err) throw err;
@@ -10143,8 +10192,16 @@ Client.on("message", (msg) => {
 
 	}
 });
-Client.on("messageReactionAdd", (message, user) => { //functions when posts are reacted too
-	let cajunCheck = message.users.find(val => val.id == cajun);
+Client.on("messageReactionAdd", async (message, user) => { //functions when posts are reacted too
+	if(message.message.partial) {
+		try{
+			await message.message.fetch();
+		}catch(e){
+			console.log(e);
+			return;
+		}
+	}
+	let cajunCheck = message.users.cache.find(val => val.id == cajun);
 	if(cajunCheck || !offline) { //only reacts to cajun in offline mode
 		try{ //in a try/catch in case anything goes wrong
 			let msg = message.message;
@@ -10158,9 +10215,9 @@ Client.on("messageReactionAdd", (message, user) => { //functions when posts are 
 				
 				let textFlag = false;
 				let update = true;
-				if(!message.users.find(val => val.id != Client.user.id))
+				if(!message.users.cache.find(val => val.id != Client.user.id))
 					update = false; //LackeyBot reacting
-				if((emittedEmote == plainText && message.users.find(val => val.id != Client.user.id) || (emittedEmote != plainText && msg.content != "")))
+				if((emittedEmote == plainText && message.users.cache.find(val => val.id != Client.user.id) || (emittedEmote != plainText && msg.content != "")))
 					textFlag = true; //someone reacts w/PT, or with something else in PTmode
 				if(msg.content != "" && emittedEmote == plainText) { //someone reacts w/PT in PT mode
 					textFlag = false;
@@ -10173,7 +10230,7 @@ Client.on("messageReactionAdd", (message, user) => { //functions when posts are 
 					}
 					let embedData = msg.embeds[0];
 					if((embedData && embedData.footer)) { //all reactable embeds will have a footer or switcheroo data, all unreactable embeds will not
-						let emoteArray = msg.reactions.array();
+						let emoteArray = msg.reactions.cache.array();
 						if(embedData.title) { //embeds that depend on title data
 							if(msg.guild && allRoles.guilds.hasOwnProperty(msg.guild.id)) {
 								let guildID = msg.guild.id;
@@ -10254,10 +10311,10 @@ Client.on("messageReactionAdd", (message, user) => { //functions when posts are 
 										imageFlag = true;
 									if(emittedEmote == excEmote && closestCanon) {
 										let showCard = priceCheck([closestCanon], arcana.magic, msg);
-										let deadEmbed = new Discord.RichEmbed()
+										let deadEmbed = new Discord.MessageEmbed()
 											.setDescription('PS search converted to canon search')
 										msg.edit(showCard, deadEmbed);
-										msg.clearReactions();
+										msg.reactions.removeAll();
 										return;
 									}
 									if(emittedEmote == mag)
@@ -10331,7 +10388,7 @@ Client.on("messageReactionAdd", (message, user) => { //functions when posts are 
 								}else{
 									guessedLetters = [];
 								}
-								/*if((emittedEmote == plainText && message.users.find(val => val.id != Client.user.id)) || (msg.content != "" && emittedEmote != plainText))
+								/*if((emittedEmote == plainText && message.users.cache.find(val => val.id != Client.user.id)) || (msg.content != "" && emittedEmote != plainText))
 									textFlag = true;*/
 								let azIndex = azEmoteArray.indexOf(emittedEmote);
 								if(azIndex != -1) {
@@ -10402,7 +10459,7 @@ Client.on("messageReactionAdd", (message, user) => { //functions when posts are 
 											break;
 									}
 									if(number != null) {
-										let pingTime = setFuture(number, distance)
+										let pingTime = setTimeDistance(number, distance)
 										remindAdder(msg.channel.id, thisID, thisMessage, number + " " + distance, pingTime.getTime(), msg.channel.id);
 									}
 								}
@@ -10433,7 +10490,7 @@ Client.on("messageReactionAdd", (message, user) => { //functions when posts are 
 							cullReacts(msg, [Client.user.id])
 						}
 						if(emittedEmote == plainText && embedData.footer.text == collectToPlainMsg) {
-							let trimmedEmbed = new Discord.RichEmbed(embedData)
+							let trimmedEmbed = new Discord.MessageEmbed(embedData)
 								.setFooter(plainToCollectMsg)
 								.setDescription('')
 							let embedText = '';
@@ -10443,7 +10500,7 @@ Client.on("messageReactionAdd", (message, user) => { //functions when posts are 
 							msg.edit(embedText, trimmedEmbed)
 						}else if(emittedEmote == plainText && embedData.footer.text == plainToCollectMsg) {
 							let embedText = msg.content.replace(/\*\*[^\*]+\*\*\n/, "").replace(/: </g, "(").replace(/>/g, ")")
-							let filledEmbed = new Discord.RichEmbed(embedData)
+							let filledEmbed = new Discord.MessageEmbed(embedData)
 								.setDescription(embedText)
 								.setFooter(collectToPlainMsg)
 							msg.edit('', filledEmbed);
@@ -10552,12 +10609,11 @@ Client.on("messageReactionAdd", (message, user) => { //functions when posts are 
 					}
 				}
 			}else{ //LackeyBot assistance commands
-				if(msg.channel && selfPins.includes(msg.channel.id) && pinEmotes.includes(emittedEmote)) { //self pins
-					let users = cullReacts(msg, []); //clear reacts, check if legal user
-					for(let user in users) {
-						if(users[user] == msg.author.id) { //if its a self pin
-							asyncSwapPins(msg, {author:msg.author.id}, 1)
-						}
+				if(msg.channel && selfPins.includes(msg.channel.id) && pinEmotes.includes(emittedEmote) && user.id == msg.author.id) { //self pins
+					if(msg.pinned) {
+						msg.unpin();
+					}else{
+						asyncSwapPins(msg, {author:msg.author.id}, 1)
 					}
 				}
 			}
@@ -10565,6 +10621,21 @@ Client.on("messageReactionAdd", (message, user) => { //functions when posts are 
 			console.log("Error: Reaction emits.")
 			console.log(e);
 		}
+	}
+});
+Client.on('messageReactionRemove', async (message, user) => {
+	if (message.message.partial) {
+		try{
+			await message.message.fetch();
+		}catch(e){
+			console.error('Something went wrong when fetching the message: ', e);
+		}
+	}
+	let removedEmote = message.emoji.name;
+	let msg = message.message
+	if(msg.channel && selfPins.includes(msg.channel.id) && pinEmotes.includes(removedEmote)) { //self pins
+		if(msg.author.id == user.id && msg.pinned)
+			msg.unpin();
 	}
 });
 Client.on("ready", () => { //performed when the bot logs in
