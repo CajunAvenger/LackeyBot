@@ -86,8 +86,10 @@ const myriadFix = require('./myriadfix.js');	//some adjustments for myriad data
 const packgen = require('./packgen.js');		//scripts for generating packs
 var psScrape = require('./psScrape.js');		//scripts for searching PS
 let quote = require('./quotedex.js')			//testing scripts for $q command
+var statDexHandler = require('./statDex.js');	//handles the statDex analysis
+statDexHandler.initialize({arcana:arcana});
 
-const Client = new Discord.Client({ disableMentions: 'everyone', partials:['MESSAGE', 'REACTION'] });
+const Client = new Discord.Client({ partials:['MESSAGE', 'REACTION'] });
 
 
 /*website test
@@ -1129,7 +1131,7 @@ function checkRank(msg) { //checks the rank of a poster
 			rank.push(9); //9 for banned
 		}
 		let modRole = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name === allRoles.guilds[guildID].modRole)
-		if(modRole && msg.member.roles.has(modRole.id))
+		if(modRole && msg.member.roles.cache.find(val => val.id == modRole.id))
 			rank.push(4);
 	}
 	return rank; 
@@ -1146,12 +1148,6 @@ var reminderData = {}, reminderBase = {}, reminderCell = {};
 var packInfo = {}, packStash = {};
 var admincheck = [7];
 var allpacks = {}, draft = {}
-var archiveArray = [
-  'gp_20_05_archive.json',
-  'gp_20_06_archive.json',
-  'league_20_05_archive.json',
-  'league_20_06_archive.json'
-];
 var arttemp = {};
 var creatureTypeArray = [];
 var decklist = {};
@@ -1163,7 +1159,6 @@ var playerArray = [];
 var playtime = 0;
 var ruleJson = {};
 var scryRegex = [];
-var statDex = {cards:{}, players:{}};
 var switcherooCache = {};
 var tempSetsArray = {};
 var bribeBoost = 0, cardBoost = 0;
@@ -3926,11 +3921,25 @@ function buildRoleEmbed(guildID, page, textFlag) { //builds a page of the roles 
 function buildInRoleEmbed(guild, roleName, page, textFlag) { //build inrole embed
 	roleName = roleName.replace(/ $/, "")
 	let members;
-	if(allRoles.guilds[guild.id].roles.hasOwnProperty(roleName)) {
+	if(allRoles.guilds[guild.id].roles.hasOwnProperty(roleName)) { //exact role
 		members = guild.roles.cache.get(allRoles.guilds[guild.id].roles[roleName].id).members.array();
-	}else{
+	}else if(allRoles.guilds[guild.id].countable.hasOwnProperty(roleName)) { //exact countable
 		members = guild.roles.cache.get(allRoles.guilds[guild.id].countable[roleName].id).members.array();		
+	}else{ //fuzzy
+		let first = fuzzy.searchArray(roleName, Object.keys(allRoles.guilds[guild.id].roles), {percent:0.33});
+		let second = fuzzy.searchArray(roleName, Object.keys(allRoles.guilds[guild.id].countable), {percent:0.33});
+		if(first[1] == 0 && second[1] == 0)
+			return ["Role not found.", null];
+		if(first[1] > second[1]) {
+			roleName = first[0];
+			members = guild.roles.cache.get(allRoles.guilds[guild.id].roles[roleName].id).members.array();
+		}else{
+			roleName = second[0];
+			members = guild.roles.cache.get(allRoles.guilds[guild.id].countable[roleName].id).members.array();
+		}
 	}
+	if(members.length == 0)
+		return ["No one has the " + roleName + " role.", null]
 	let memberArray = [];
 	for(let mem in members)
 		memberArray.push(members[mem].user.username);
@@ -3959,7 +3968,7 @@ function adjustRoles(littleName, thisGuild, member, base, forceRemove){ //adds/r
 		bribes++;
 		let type = null;
 		let thisRole = roleCall[thisGuild][base][littleName];
-		if(member.roles.has(thisRole.id)){
+		if(member.roles.cache.find(val => val.id == thisRole.id)){
 			member.roles.remove(thisRole.id).catch(console.error);
 			return thisRole.take;
 		}else if(forceRemove) {
@@ -5064,6 +5073,13 @@ function remindEditor(time, slot, remindData){
 		thisReminder.id = remindData.id;
 	if(remindData.hasOwnProperty('message'))
 		thisReminder.message = remindData.message;
+	if(remindData.hasOwnProperty('event')) {
+		if(!thisReminder.hasOwnProperty('event')){
+			thisReminder.event = true;
+		}else{
+			delete thisReminder.event
+		}
+	}
 	if(remindData.hasOwnProperty('time')) {
 		//find date of original remind
 		let now = new Date();
@@ -5085,12 +5101,12 @@ function hookShift(currentTime, newTime){
 	}
 	for(let remind in reminderBase[currentTime]){
 		let thisReminder = reminderBase[currentTime][remind];
-		//if(thisReminder.hasOwnProperty('event')) { //skip non hook reminds that managed to get in here
+		if(thisReminder.hasOwnProperty('event')) { //skip non hook reminds that managed to get in here
 			reminderBase[newTime][i] = thisReminder;
 			reminderBase[newTime][i].event = true;
 			i++;
 			delArray.push(remind);
-		//}
+		}
 	}
 	for(let remind in delArray)
 		delete reminderBase[currentTime][delArray[remind]];
@@ -5118,6 +5134,9 @@ function parseReminderEdit(command){
 		let messMatch = command.match(/message: ?([\s\S]*)/i);
 		if(messMatch)
 			remindData.message = messMatch[1];
+		let eventMatch = command.match(/event: ?(true|false)/i);
+		if(eventMatch)
+			remindData.event = eventMatch[1];
 		return remindEditor(time, slot, remindData);
 	}else{
 		return "Reminder slot must be included.";
@@ -5350,8 +5369,8 @@ function archivePlayer(tourney, id, wins, losses, run) { //saves player data for
 	let archPlay = {};
 	archPlay.id = id;
 	archPlay.username = pullUsername(id);
-	archPlay.wins = wins;
-	archPlay.losses = losses;
+	archPlay.wins = parseInt(wins);
+	archPlay.losses = parseInt(losses);
 	archPlay.winner = (wins > losses ? 1 : 0);
 	archPlay.run = run;
 	if(partRun && partRun.dropLink) {
@@ -5582,9 +5601,9 @@ function updateMatch (tourney, p1id, p2id, p1w, p2w, match) { //creates or edits
 	let sendString = "";
 	if(match) {
 		if(matchDex[tourney].matches[match-1].p1 != p1id && matchDex[tourney].matches[match-1].p2 != p1id)
-			sendString += pullUsername(p1id) + " is not in match " + match + ".\n";
+			sendString += `${pullUsername(p1id)} is not in match ${match}.\n}`;
 		if(matchDex[tourney].matches[match-1].p1 != p2id && matchDex[tourney].matches[match-1].p2 != p2id)
-			sendString += pullUsername(p2id) + " is not in match " + match + ".\n";
+			sendString += `${pullUsername(p2id)} is not in match ${match}.\n}`;
 		if(sendString)
 			return sendString;
 		matchDex[tourney].matches[match-1].p1 = p1id;
@@ -5595,17 +5614,17 @@ function updateMatch (tourney, p1id, p2id, p1w, p2w, match) { //creates or edits
 		matchDex[tourney].matches[match-1].p2r = matchDex[tourney].players[p2id].currentRun;
 		let player1 = pullUsername(p1id);
 		let player2 = pullUsername(p2id);
-		let winString = player1 + " and " + player2 + " draw with " + p1w + " wins each";
+		let winString = `${player1} and ${player2} draw with ${p1w} wins each.`;
 		matchDex[tourney].matches[match-1].winner = null;
 		if(p1w > p2w) {
 			matchDex[tourney].matches[match-1].winner = p1id;
-			winString = player1 + " wins " + p1w + " - " + p2w + " over " + player2;
+			winString = `${player1} wins ${p1w} - ${p2w} over ${player2}`;
 		}
 		if(p2w > p1w) {
 			matchDex[tourney].matches[match-1].winner = p2id;
-			winString = player2 + " wins " + p2w + " - " + p1w + " over " + player1;
+			winString = `${player2} wins ${p2w} - ${p1w} over ${player1}`;
 		}
-		sendString = "corrected match " + match + ": " + winString + ".";
+		sendString = `corrected match ${match}: ${winString}.`;
 	}else{
 		let disqualified = invalidMatch(tourney, p1id, p2id);
 		if(disqualified)
@@ -5613,7 +5632,7 @@ function updateMatch (tourney, p1id, p2id, p1w, p2w, match) { //creates or edits
 		let newMatch = {};
 		let player1 = pullUsername(p1id);
 		let player2 = pullUsername(p2id);
-		let winString = player1 + " and " + player2 + " draw with " + p1w + " wins each";
+		let winString = `${player1} and ${player2} draw with ${p1w} wins each.`;
 		newMatch.p1 = p1id;
 		newMatch.p1w = p1w;
 		newMatch.p1r = matchDex[tourney].players[p1id].currentRun;
@@ -5623,17 +5642,17 @@ function updateMatch (tourney, p1id, p2id, p1w, p2w, match) { //creates or edits
 		newMatch.winner = null;
 		if(p1w > p2w) {
 			newMatch.winner = p1id;
-			winString = player1 + " wins " + p1w + " - " + p2w + " over " + player2;
+			winString = `${player1} wins ${p1w} - ${p2w} over ${player2}`;
 		}
 		if(p2w > p1w) {
 			newMatch.winner = p2id;
-			winString = player2 + " wins " + p2w + " - " + p1w + " over " + player1;
+			winString = `${player2} wins ${p2w} - ${p1w} over ${player1}`;
 		}
 		matchDex[tourney].matches.push(newMatch);
 		matchDex[tourney].players[p1id].runs[matchDex[tourney].players[p1id].currentRun-1].matches.push(matchDex[tourney].matches.length);
 		matchDex[tourney].players[p2id].runs[matchDex[tourney].players[p2id].currentRun-1].matches.push(matchDex[tourney].matches.length);
 		let matchNo = matchDex[tourney].matches.length;
-		sendString = "recorded match " + matchNo + ": " + winString + ".";
+		sendString = `recorded match ${matchNo}: ${winString}.`;
 	}
 	sendString += "\n" + auditMatches(tourney, p1id);
 	sendString += "\n" + auditMatches(tourney, p2id);
@@ -6174,8 +6193,8 @@ function swissPair (tourney) { //pairs players swiss style
 		}
 		playerIDArray = shuffleArray(playerIDArray);
 		for(let i=0; i<playerIDArray.length; i = i+2) {
-			addNewRun(tourney, playerIDArray[i], "");
-			addNewRun(tourney, playerIDArray[i+1], "");
+			//addNewRun(tourney, playerIDArray[i], "");
+			//addNewRun(tourney, playerIDArray[i+1], "");
 			if(playerIDArray[i] == bye || playerIDArray[i+1] == bye) {
 				byeTemp = newGPMatch(tourney, playerIDArray[i], playerIDArray[i+1]);
 			}else{
@@ -6704,7 +6723,7 @@ function sendRuleData (testRul) { //generates data for a given CR entry
 		if(!rulMatch){
 			if(ruleJson.glossary.hasOwnProperty(testRul))
 				glos = testRul;
-			glos = fuzzy.searchArray(testRul, Object.keys(ruleJson.glossary).reverse(), {score:3})
+			glos = fuzzy.searchArray(testRul, Object.keys(ruleJson.glossary).reverse(), {score:3})[0];
 		}
 		if(glos) {
 			ruleData.title = glos;
@@ -6774,310 +6793,6 @@ function buildCREmbed(testrul, textFlag) { //build !cr embeds
 			.setFooter(footer)
 		return ["", embedData];
 	}
-}
-//StatDex
-function loadArchives() { //reads the archived tournament files
-	fs.readdir("tourneyArchives",function(err, array) {
-		archiveArray = array;
-		console.log(archiveArray);
-	});
-}
-function addNewStatDexCard(card) { //adds a new card to statDex
-	let thisCard = arcana.msem.cards[searchCards(arcana.msem, card)];
-	let statName = thisCard.fullName;
-	
-	if(!statDex.cards.hasOwnProperty(statName)) {
-		statDex.cards[statName] = {};
-		statDex.cards[statName].mainCount = 0;
-		statDex.cards[statName].sideCount = 0;
-		statDex.cards[statName].setCount = 0;
-		statDex.cards[statName].decks = [];
-		statDex.cards[statName].matchWins = 0;
-		statDex.cards[statName].matchLoss = 0;
-		statDex.cards[statName].matchDraw = 0;
-		statDex.cards[statName].matches = {};
-		statDex.cards[statName].cmc = thisCard.cmc;
-		statDex.cards[statName].colors = arrayifyColors(thisCard.color);
-		statDex.cards[statName].set = thisCard.prints;
-	}
-	return statName;
-}
-function buildStatDex() { //builds statDex.json
-	var archives = {};
-	for(let archive in archiveArray) {
-		let thisArchive = require('./tourneyArchives/' + archiveArray[archive]);
-		let tourneyName = archiveArray[archive].match(/(league|gp)_[0-9][0-9]_[0-9][0-9]/);
-		archives[tourneyName[0]] = (thisArchive);
-	}
-	//go through the archives, grab each decklist
-	//count its W-L, winLists, and lossLists
-	//convert deck to json, then apply W-L to each card in them
-	for(let archive in archives) {														//for each tournament in the archive...
-		for(let player in archives[archive].players) {									//for each player in the tournament...
-			if(player != bye){
-				for(let list in archives[archive].players[player].lists) {						//for each decklist of that player...
-					let wins = 0;
-					let losses = 0;
-					let draws = 0;
-					let winLists = []; //the lists the deck beat
-					let lossLists = []; //the lists the deck lost to
-					let allMatches = [];
-					let thisList = archives[archive].players[player].lists[list]; 					//a decklist from the array
-					if(thisList == "")
-						thisList = "/" + archive + "/" + archives[archive].players[player].username + ".json";
-					thisList = thisList.replace(".txt", ".json"); //change file types from HTML to JSON lists
-					let thoseMatches = archives[archive].players[player].matches[list];			//the set of matches for that run
-					for(let match in thoseMatches) {										//for each match that decklist was in...
-						thisMatch = archives[archive].matches[thoseMatches[match]-1];			//a match in that run
-						allMatches.push(thoseMatches[match]);
-						if(thisMatch.winner == player) {
-							wins++;
-							winLists.push(thisMatch.players[1].list); //push the loser's list
-						}else if(thisMatch.winner == "") {
-							draws++;
-						}else{
-							losses++;
-							lossLists.push(thisMatch.players[0].list); //push the winner's list
-						}
-					}//end of matches in a list
-					//convert the list, extract plain, feed list
-					let convertedList = require("./decks"+thisList);
-					for(let card in convertedList) {										//for each card in that decklist...
-						let cardName = addNewStatDexCard(card);
-						statDex.cards[cardName].mainCount += convertedList[card].mainCount;
-						statDex.cards[cardName].sideCount += convertedList[card].sideCount;
-						statDex.cards[cardName].setCount += Math.min(Math.floor(0.25*(convertedList[card].mainCount + convertedList[card].sideCount)), 1);
-						statDex.cards[cardName].decks.push(thisList);
-						statDex.cards[cardName].matchWins += wins;
-						statDex.cards[cardName].matchLoss += losses;
-						statDex.cards[cardName].matchDraw += draws;
-						for(let aMatch in allMatches) {
-							if(!statDex.cards[cardName].matches.hasOwnProperty(archive))
-								statDex.cards[cardName].matches[archive] = [];
-							if(!statDex.cards[cardName].matches[archive].includes(allMatches[aMatch]))
-								statDex.cards[cardName].matches[archive].push(allMatches[aMatch]);
-						}
-					}//end of cards in list
-					if(!statDex.players.hasOwnProperty(player)) {
-						statDex.players[player] = {};
-						statDex.players[player].wins = 0;
-						statDex.players[player].losses = 0;
-						statDex.players[player].matches = {};
-					}
-					statDex.players[player].wins += wins;
-					statDex.players[player].losses += losses;
-					for(let aMatch in allMatches) {
-						if(!statDex.players[player].matches.hasOwnProperty(archive))
-							statDex.players[player].matches[archive] = [];
-						if(!statDex.players[player].matches[archive].includes(allMatches[aMatch]))
-							statDex.players[player].matches[archive].push(allMatches[aMatch]);
-					}
-					console.log("Converted ./decks" + thisList + "...");
-				}//end of lists in a player
-			}//player isn't bye
-		}//end of players in an archive
-	}//end of archives
-	statDexFull = statDex;
-	console.log('Done building.');
-}
-function statDexStats(dex) { //writes card spreadsheet of statDex
-	let output = "Card Name 	Wins	Losses	Matches	WinRate	MainCount	SideCount\r\n";
-	for(let card in dex.cards) {
-		output += card + "	"
-		output += dex.cards[card].matchWins + "	"
-		output += dex.cards[card].matchLoss + "	"
-		output += (dex.cards[card].matchWins + dex.cards[card].matchLoss) + "	"
-		output += dex.cards[card].matchWins / (dex.cards[card].matchWins + dex.cards[card].matchLoss) + "	"
-		output += dex.cards[card].mainCount + "	"
-		output += dex.cards[card].sideCount + "	"
-		output += "\r\n";
-	}
-	return output;
-}
-function playerWinRate(dex) { //writes player spreadsheet of statDex
-	let output = "Player	Wins	Losses	Matches	WinRate\r\n";
-	for(let player in dex.players) {
-		output += pullUsername(player) + "	";
-		output += dex.players[player].wins + "	";
-		output += dex.players[player].losses + "	";
-		output += (dex.players[player].wins + dex.players[player].losses) + "	";
-		output += dex.players[player].wins / (dex.players[player].wins + dex.players[player].losses) + "\r\n";
-	}
-	return output;
-}
-function pairedWinRate(dex, card1, card2, matchFunction) { //finds winrates of two cards
-	let scoreArray = [0,0];
-	if(!dex.cards.hasOwnProperty(card1) || !dex.cards.hasOwnProperty(card2))
-		return scoreArray;
-	let refCard = dex.cards[card1];
-	let pairCard = dex.cards[card2];
-	for(let tourney in refCard.matches) {
-		if(pairCard.matches.hasOwnProperty(tourney)) {
-			let pairedMatches = arrayDuplicates(refCard.matches[tourney], pairCard.matches[tourney]);
-			let scores = matchFunction(card1, card2, tourney, pairedMatches);
-			scoreArray[0] += scores[0];
-			scoreArray[1] += scores[1];
-		}
-	}
-	return scoreArray;
-}
-function unpairedWinRate(dex, card1, card2) { //finds winrates of card 1 without card 2
-	let scores = [0,0];
-	if(!dex.cards.hasOwnProperty(card1) || !dex.cards.hasOwnProperty(card2))
-		return [0,0];
-	let refCard = dex.cards[card1];
-	let pairCard = dex.cards[card2];
-	for(let tourney in refCard.matches) {
-		if(pairCard.matches.hasOwnProperty(tourney)) {
-			let loneMatches = [];
-			for(let match in refCard.matches[tourney]) {
-				if(!pairCard.matches[tourney].includes(refCard.matches[tourney][match]))
-					loneMatches.push(refCard.matches[tourney][match])
-			}
-			let thisTourney = require('./tourneyArchives/' + tourney + '_archive.json');
-			let thoseMatches = thisTourney.matches;
-			for(let match in loneMatches) {
-				let thisMatch = thoseMatches[loneMatches[match]-1];
-				let deck1 = thisMatch.players[0].list.replace(".txt",".json");
-				let deck2 = thisMatch.players[1].list.replace(".txt",".json");
-				if(!deck1.match(/^\//))
-					deck1 = "/" + tourney + "/" + deck1;
-				if(!deck2.match(/^\//))
-					deck2 = "/" + tourney + "/" + deck2;
-				try{
-					let list1 = require("./decks" + deck1);
-					let list2 = require("./decks" + deck2);
-					if(list1.hasOwnProperty(card1)) {
-						scores[0]++;
-					}
-					if(list2.hasOwnProperty(card1)) {
-						scores[1]++;
-					}
-				}catch(e){console.log("Bye bye")}
-			}
-		}
-	}
-	return scores;
-}
-function vsScore(card1, card2, tourney, pairedMatches) { //finds winrates of one card vs another
-	let thisTourney = require('./tourneyArchives/' + tourney + '_archive.json');
-	let thoseMatches = thisTourney.matches;
-	let scores = [0,0];
-	for(let aMatch in pairedMatches) {
-		let thisMatch = thoseMatches[pairedMatches[aMatch]-1];
-		let deck1 = thisMatch.players[0].list.replace(".txt",".json");
-		let deck2 = thisMatch.players[1].list.replace(".txt",".json");
-		if(!deck1.match(/^\//))
-			deck1 = "/" + tourney + "/" + deck1;
-		if(!deck2.match(/^\//))
-			deck2 = "/" + tourney + "/" + deck2;
-		try{
-			let list1 = require("./decks" + deck1);
-			let list2 = require("./decks" + deck2);
-			if(list1.hasOwnProperty(card1) && list2.hasOwnProperty(card2)) {
-				scores[0]++;
-			}
-			if(list1.hasOwnProperty(card2) && list2.hasOwnProperty(card1)) {
-				scores[1]++;
-			}
-		}catch(e){console.log("Bye bye")}
-	}
-	return scores;
-}
-function pairedScore(card1, card2, tourney, pairedMatches) { //finds winrates of one card when paired with another
-	let thisTourney = require('./tourneyArchives/' + tourney + '_archive.json');
-	let thoseMatches = thisTourney.matches;
-	let scores = [0,0];
-	for(let aMatch in pairedMatches) {
-		let thisMatch = thoseMatches[pairedMatches[aMatch]-1];
-		let deck1 = thisMatch.players[0].list.replace(".txt",".json");
-		let deck2 = thisMatch.players[1].list.replace(".txt",".json");
-		if(!deck1.match(/^\//))
-			deck1 = "/" + tourney + "/" + deck1;
-		if(!deck2.match(/^\//))
-			deck2 = "/" + tourney + "/" + deck2;
-		try{
-			let list1 = require("./decks" + deck1);
-			let list2 = require("./decks" + deck2);
-			if(list1.hasOwnProperty(card1) && list1.hasOwnProperty(card2)) {
-				scores[0]++;
-			}
-			if(list2.hasOwnProperty(card2) && list2.hasOwnProperty(card1)) {
-				scores[1]++;
-			}
-		}catch(e){console.log("Bye bye")}
-	}
-	return scores;
-}
-function playerFace (p1id, p2id, dex) { //find wins of player 1 vs player 2
-	let player1 = dex.players[p1id];
-	let player2 = dex.players[p2id];
-	let p1w = 0;
-	let p2w = 0;
-	for(let tourney in player1.matches) {
-		let tFile = require(`./tourneyArchives/${tourney}_archive.json`);
-		if(tourney.match(/^league/)){
-			for(let match in player1.matches[tourney]) {
-				if(player2.matches.hasOwnProperty(tourney) && player2.matches[tourney].includes(player1.matches[tourney][match])) {
-					let theMatch = tFile.matches[player1.matches[tourney][match]-1];
-					if(theMatch.winner == p1id) {
-						p1w++
-						console.log('pip wins')
-						console.log(theMatch.players[0].list)
-						console.log(theMatch.players[1].list)
-					}else if(theMatch.winner == p2id) {
-						p2w++;
-						console.log('blues wins');
-						console.log(theMatch.players[0].list)
-						console.log(theMatch.players[1].list)
-					}else{
-						console.log(`Error at ${tourney} match ${player1.matches[tourney][match]}`) 
-					}
-				}
-			}
-		}
-	}
-	return [p1w, p2w]
-}
-function statFromSet(dex, set, exclusion) { //finds winningest cards from a set
-	let cardArray = [];
-	for(let card in dex.cards) {
-		if(!dex.cards[card].hasOwnProperty('set')) {
-			let fullname = searchCards(arcana.msem, card)
-			dex.cards[card].set = arcana.msem.cards[fullname].prints;
-		}
-		if(dex.cards[card].set.includes(set) && (!exclusion || dex.cards[card].set.length == 1)){
-			cardArray.push(card)
-		}
-	}
-	cardArray.sort(function(a,b) {
-		return wr(dex.cards[b]) - wr(dex.cards[a]);
-	});
-	for(let card in cardArray) {
-		if(dex.cards[cardArray[card]].matchWins > 5)
-			console.log(cardArray[card] + ": " + wr(dex.cards[cardArray[card]]))
-	}
-	return cardArray;
-}
-function wr(statCard) { //winrate of a card
-	let matchCount = statCard.matchWins + statCard.matchLoss + statCard.matchDraw
-	return statCard.matchWins / matchCount;
-}
-function statFromDesign(dex, designer) { //finds winningest cards from a designer
-	let cardArray = [];
-	for(let card in dex.cards) {
-		if(arcana.msem.cards[searchCards(arcana.msem, card)].designer == designer){
-			cardArray.push(card)
-		}
-	}
-	cardArray.sort(function(a,b) {
-		return dex.cards[b].matchWins - dex.cards[a].matchWins;
-	});
-	for(let card in cardArray) {
-		if(dex.cards[cardArray[card]].matchWins > 5)
-			console.log(cardArray[card] + ": " + dex.cards[cardArray[card]].matchWins)
-	}
-	return cardArray;
 }
 //Toolbox functions
 function isReal (test, type) { //checks that test variable is not undefined and optionally the correct type
@@ -7493,56 +7208,8 @@ Client.on("message", (msg) => {
 				}
 				if(jsoncheck !== null && jsoncheck[1] == "TRICE")
 					mtgjsonSetsBuilder(msg.author);
-				if(msg.content.match("!statdex1")) //builds statDex
-					buildStatDex();
-				if(msg.content.match("!statdex2")) {//writes statDex.json
-					fs.writeFile('statDex.json', JSON.stringify(statDex).replace(/"]},"/g,'"]},\r\n"'), 'binary', function(err) {
-						if(err) throw err;
-					});
-				}
-				
-				if(msg.content.match("!statdex3")) {//writes card spreadsheet of statDex
-					fs.writeFile('statDex.txt', statDexStats(statDexFull), 'binary', function(err) {
-						if(err) throw err;
-						console.log("Done");
-					});
-				}
-				if(msg.content.match("!statdex4")) {//writes player spreadhseet of statDex
-					fs.writeFile('playerDex.txt', playerWinRate(statDexFull), 'binary', function(err) {
-						if(err) throw err;
-						console.log("Done");
-					});
-				}
-				if(msg.content.match("!statdex5")) {//X vs Y winrates
-					console.log(pairedWinRate(statDexFull, "Zhedina Envoys", "Exeunt", vsScore));
-				}
-				if(msg.content.match("!statdex6")) {//X + Y winrates
-					let card1 = "Island";
-					let card2 = "Mountain";
-					console.log(pairedWinRate(statDexFull, card1, card2, pairedScore));
-					console.log(statDexFull.cards[card1].matchWins + " " + statDexFull.cards[card1].matchLoss);
-					console.log(statDexFull.cards[card2].matchWins + " " + statDexFull.cards[card2].matchLoss);
-				}
-				if(msg.content.match("!statdex7")){//finds most wins in set
-					statFromSet(statDexFull, "DOA", false)
-				}
-				if(msg.content.match("!statdex8")){//finds most wins by designer
-					statFromDesign(statDexFull, "Pipsqueak")
-				}
-				if(msg.content.match("!statdex9")) {//X - Y winrates
-					let card1 = "Petal-Weaver Alexa";
-					let card2 = "Worlds Colliding";
-					console.log(unpairedWinRate(statDexFull, card1, card2));
-					console.log(statDexFull.cards[card1].matchWins + " " + statDexFull.cards[card1].matchLoss);
-					console.log(statDexFull.cards[card2].matchWins + " " + statDexFull.cards[card2].matchLoss);
-				}
-				if(msg.content.match("!statdexA")) { //player vs player winrate
-					let play1 = '107957368997834752';
-					let play2 = '180885469037461504';
-					console.log(playerFace(play1, play2, statDexFull))
-				}
 				if(msg.content.match("!bad")) { //bad and shameful
-					if(msg.member.roles.has("494215662286274561")){
+					if(msg.member.roles.cache.find(val => val.id == "494215662286274561")){
 						msg.member.roles.remove("494215662286274561").catch(console.error);
 					}else{
 						msg.member.roles.add("494215662286274561").catch(console.error);
@@ -8050,6 +7717,9 @@ Client.on("message", (msg) => {
 						logRole(msg.guild.id);
 					}
 				}
+			}
+			if(msg.channel && msg.channel.id == "755707492947722301"){
+				msg.channel.send(statDexHandler.processCommands(msg))
 			}
 		}catch(e){
 			console.log("Admin commands:");
@@ -8949,7 +8619,7 @@ Client.on("message", (msg) => {
 			if(quoteMatch) { //$quote
 				let qName = quoteMatch[1];
 				if(!quote.dex.hasOwnProperty(quoteMatch[1]))
-					qName = fuzzy.searchArray(qName, Object.keys(quote.dex))
+					qName = fuzzy.searchArray(qName, Object.keys(quote.dex))[0];
 				let output = quote.dex[qName][rand(quote.dex[qName].length-1)]
 				msg.channel.send(output)
 				bribes++;
@@ -9438,6 +9108,11 @@ Client.on("message", (msg) => {
 						match: ["ZRI","ZRS","Zendikar","Zendikar Rising","Zendikar Resurgent","Zendikar Resurgence"],
 						message: "`Zendikar`, for the release of Zendikar Rising on September 25"
 					},
+					MSEM: {
+						time: new Date('Thu, 15 October 2020 10:00:00 EST'),
+						match: ["MSEM"],
+						message: "`MSEM`, for the MSEM release announcement on October 15"
+					},
 					Kaldheim: {
 						time: new Date('Fri, 22 January 2021 10:00:00 EST'),
 						match: ["Kaldheim"],
@@ -9797,7 +9472,7 @@ Client.on("message", (msg) => {
 				}else{
 					let iamCheck = msg.content.toLowerCase().match(/\$iam(n|not)? ([^\$]+)/);
 					if(iamCheck){
-						let closestName = fuzzy.searchArray(iamCheck[2].replace(/ /g,""), Object.keys(roleCall[thisGuild].roles,{percent:0.33}))
+						let closestName = fuzzy.searchArray(iamCheck[2].replace(/ /g,""), Object.keys(roleCall[thisGuild].roles,{percent:0.33}))[0];
 						let test = adjustRoles(closestName, thisGuild, msg.member, "roles", iamCheck[1]);
 						if(test)
 							msg.channel.send(test.replace("$USER", msg.author.username));
@@ -9844,15 +9519,17 @@ Client.on("message", (msg) => {
 				let inroleMatch = msg.content.match(/^\$inrole ([^\n]+)/i)
 				if(inroleMatch) {
 					let roleName = inroleMatch[1].toLowerCase();
-					if(allRoles.guilds[msg.guild.id].roles.hasOwnProperty(roleName) || allRoles.guilds[msg.guild.id].countable.hasOwnProperty(roleName)) {
-						bribes++;
-						let embedInfo = buildInRoleEmbed(msg.guild, roleName, 0);
+					bribes++;
+					let embedInfo = buildInRoleEmbed(msg.guild, roleName, 0);
+					if(embedInfo[1] === null) {
+						msg.channel.send(embedInfo[0])
+					}else{
 						msg.channel.send(embedInfo[0])
 							.then(function(mess) { mess.react(plainText).then(() => {if(embedInfo[1]>1){mess.react(leftArrow)
 							.then(() => mess.react(rightArrow))}})})
 							.catch(console.log("An emote didn't spawn"))
-						
 					}
+						
 				}
 			}else{
 				if(msg.content.match(/\$fblthp/i)){
@@ -9866,7 +9543,7 @@ Client.on("message", (msg) => {
 			}
 			if(msg.guild && fightGuilds.hasOwnProperty(msg.guild.id)) { //guilds with $fight commands
 				if(msg.content.match(/\$fi(ght|te)/i)){
-					if(msg.member.roles.has(fightGuilds[msg.guild.id])){
+					if(msg.member.roles.cache.find(val => val.id == fightGuilds[msg.guild.id])){
 						msg.member.roles.remove(fightGuilds[msg.guild.id]).catch(console.error);
 						msg.channel.send(msg.author.username + " has left the arena. <:fblthp:372438950171770891>");
 					}else{
@@ -9893,7 +9570,7 @@ Client.on("message", (msg) => {
 					if(reportMatch[4] && admincheck.includes(1))
 						player1 = reportMatch[4];
 					bribes++;
-					msg.channel.send(Client.users.cache.get(msg.author.id) + " " + updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match));
+					msg.channel.send(`${Client.users.cache.get(msg.author.id)} ${updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match)}`);
 				}
 				
 				var reportGPMatch = msg.content.match(/\$report *gp[a-z]? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
@@ -9989,7 +9666,7 @@ Client.on("message", (msg) => {
 						if(reportMatch[4] && admincheck.includes(1))
 							player1 = reportMatch[4];
 						bribes++;
-						msg.channel.send(Client.users.cache.get(msg.author.id) + " " + updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match));
+						msg.channel.send(`${Client.users.cache.get(msg.author.id)} ${updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match)}`);
 					}
 				}else if(msg.channel.id == "708527265851506779") {
 					var reportGPMatch = msg.content.match(/\$report (?:gp|gpc|league|sealed|block|standard)? ?(match ?([0-9]+))? ?([^<]*<@!?([0-9]*)>)? ?([0-9]) ?[-\/\|] ?([0-9])[^<]*<@!?([0-9]*)/i);

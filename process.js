@@ -97,6 +97,7 @@ fs.readdir("tourneyArchives",function(err, array) {
 	processJsons(array);
 });
 function processJsons(archiveArray) {
+	console.log(archiveArray);
 	for(let archive in archiveArray) {
 		let thisArchive = require('./tourneyArchives/' + archiveArray[archive]);
 		let tourneyName = archiveArray[archive].match(/(league|gp)_[0-9][0-9]_[0-9][0-9]/);
@@ -108,41 +109,46 @@ function processJsons(archiveArray) {
 				for(let list in archives[archive].players[player].lists) {						//for each decklist of that player...
 					let thisList = archives[archive].players[player].lists[list]; 					//a decklist from the array
 					if(thisList == "")
-						thisList = "/" + archive + "/" + archives[archive].players[player].username + ".txt";
-
-					fs.readFile("./decks"+thisList, "utf8", function read(err, data) {
-						if(!err) {
-							let deckString = extractPlain(data);
-							let splitDeck = deckString.split("Sideboard");
-							let mainMatch = function (string) {
-								if(!toolbox.hasValue(string))
-									return ["","",""];
-								return string.match(/([0-9]+)x ([^\n]+)/g)
-							}
-							let mainBoard = mainMatch(splitDeck[0]);
-							let sideBoard = mainMatch(splitDeck[1]);
-							let convertedList = {};
-							if(mainBoard && mainBoard[0]) {
-								for(let match in mainBoard) {
-									let card = mainBoard[match].match(/([0-9]+)x ([^\n]+)/);
-									let cardName = cards[searchInput(cards, card[2])].fullName;
-									if(!convertedList.hasOwnProperty(card[2]))
-										convertedList[cardName] = {mainCount: 0, sideCount: 0};
-									convertedList[cardName].mainCount += parseInt(card[1]);
+						thisList = "/" + archive + "/" + archives[archive].players[player].username;
+					console.log('trying ' + thisList);
+					try{
+						let testList = require(`./decks${thisList}.json`);
+					}catch(e){
+						console.log('converting ' + thisList)
+						fs.readFile("./decks"+thisList, "utf8", function read(err, data) {
+							if(!err) {
+								let deckString = extractPlain(data);
+								let splitDeck = deckString.split("Sideboard");
+								let mainMatch = function (string) {
+									if(!toolbox.hasValue(string))
+										return ["","",""];
+									return string.match(/([0-9]+)x ([^\n]+)/g)
 								}
-							}
-							if(sideBoard && sideBoard[0]) {
-								for(let match in sideBoard) {
-									let card = sideBoard[match].match(/([0-9]+)x ([^\n]+)/);
-									let cardName = cards[searchInput(cards, card[2])].fullName;
-									if(!convertedList.hasOwnProperty(card[2]))
-										convertedList[cardName] = {mainCount: 0, sideCount: 0};
-									convertedList[cardName].sideCount += parseInt(card[1]);
+								let mainBoard = mainMatch(splitDeck[0]);
+								let sideBoard = mainMatch(splitDeck[1]);
+								let convertedList = {};
+								if(mainBoard && mainBoard[0]) {
+									for(let match in mainBoard) {
+										let card = mainBoard[match].match(/([0-9]+)x ([^\n]+)/);
+										let cardName = cards[searchInput(cards, card[2])].fullName;
+										if(!convertedList.hasOwnProperty(card[2]))
+											convertedList[cardName] = {mainCount: 0, sideCount: 0};
+										convertedList[cardName].mainCount += parseInt(card[1]);
+									}
 								}
+								if(sideBoard && sideBoard[0]) {
+									for(let match in sideBoard) {
+										let card = sideBoard[match].match(/([0-9]+)x ([^\n]+)/);
+										let cardName = cards[searchInput(cards, card[2])].fullName;
+										if(!convertedList.hasOwnProperty(card[2]))
+											convertedList[cardName] = {mainCount: 0, sideCount: 0};
+										convertedList[cardName].sideCount += parseInt(card[1]);
+									}
+								}
+								fs.writeFile("./decks"+thisList.replace(".txt",".json"), JSON.stringify(convertedList), function read(err, data) {if (err) throw err});
 							}
-							fs.writeFile("./decks"+thisList.replace(".txt",".json"), JSON.stringify(convertedList), function read(err, data) {if (err) throw err});
-						}
-					});
+						});
+					}
 				}
 			}
 		}

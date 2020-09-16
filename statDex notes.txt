@@ -22,10 +22,7 @@ cards: {
 		"matchDraw":0,									//match draws of those decklists
 		"matches":{										//object of all tournaments the card appears in
 			"gp_19_11":[3,6,10]								//array of matches in each tournament the card appeared in
-		},													//these can be cross-referenced with [tournament].matches
-		"cmc":2,
-		"colors":["Black"],
-		"set":["101"]
+		}													//these can be cross-referenced with [tournament].matches
 	}
 },
 players: {
@@ -51,20 +48,20 @@ matches: [												//array of matches. match names are 1-indexed so use [tour
 		{
 			"id":"228286499953704961",					//player id
 			"username":"CyberChronometer",				//player username at the time
-			"wins":"2",									//wins in match
-			"losses":"0",								//losses in match
+			"wins":2,									//wins in match
+			"losses":0,									//losses in match
 			"victor":1,									//did they win?
 			"run":1,									//player's run
-			"list":"CyberChronometer"					//player's decklist name => gp_19_11/CyberChronometer.json
+			"list":"/gp_19_11/CyberChronometer.txt"		//player's decklist name => gp_19_11/CyberChronometer.json
 		},
 		{
 			"id":"197714567537754113",
 			"username":"Hoop_Thrower",
-			"wins":"0",
-			"losses":"2",
+			"wins":0,
+			"losses":2,
 			"victor":0,
 			"run":1,
-			"list":"Hoop_Thrower"
+			"list":"/gp_19_11/Hoop_Thrower.txt"
 		}
 	],
 	"winner":"228286499953704961"}						//winner id here or null if a tie. more reliable than players[0].id
@@ -75,7 +72,7 @@ players: {
 		"matches":[										//matches played in each run
 			[3,6,10]									//gps are just a single, leagues can have more
 		],
-		"lists":[""],									//array of decklists, gp will always be == username, should change this to not be empty tho
+		"lists":["/gp_19_11/Hoop_Thrower.txt"],			//array of decklists
 		"opponents":[									//array of played opponents for each run
 			[												//"first" run
 				["228286499953704961",1],				//opponent id and their run

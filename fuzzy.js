@@ -286,7 +286,7 @@ function searchArray(string, array, scoreObj) { //fuzzy search arrary elements f
 		if(i>bestMatch[1])
 			bestMatch = [array[thisElement], i]
 	}
-	return bestMatch[0];
+	return bestMatch;
 }
 function buildScryRegex () { //builds the regexes for reading scryfall arguments
 	let keys = '(name|mana|cmc|ft|power|toughness|type|pow|tou|loy|set|artist|art|lore|adds|produces|companion|comp|ci|id|in|is|fo|a|c|e|f|m|o|r|t|block|b|border|cube|display|direction|game|frame|lang|new|order|prefer|sort|unique|wm|usd|tix|eur)'
