@@ -37,8 +37,36 @@ players: {
 			"league_19_12":[4,8,9,13,16,18,21,26,29,33,72,73],
 			"league_20_01":[1,6,23,25,33,34,36,42],
 			"league_20_03":[6,8,12,16,20,24,25,32,35,36]
-		}
+		},
+		"lists": [										//array of all decklists associated with this player
+			"/gp_19_11/Hoop_Thrower.json",
+			"/gp_19_12/Hoop_Thrower.json",
+			"etc"
+		]
 	}
+},
+decklists: {
+	"/gp_19_11/Hoop_Thrower.json":{						//decklist name
+		"cards":{										//all cards in the list
+			"Mausoleum Suffragan_WAY":{					//statDex name
+				"mainCount":4,							//number in mainboard
+				"sideCount":0							//number in sideboard
+			},
+		}
+		"player":"126785105556537344",					//player id
+		"tournament":"gp_19_11"							//tournament id
+	}
+},
+tournaments:{											
+	"gp_19_11":[										//tournament id
+		"/gp_19_11/Hoop_Thrower.json",					//array of decks in the tournament
+		"/gp_19_11/BluesEclipse.json"
+	]
+},
+global:{
+	"matches":1682,										//total matches
+	"decks":453,										//total decks
+	"playedCards":1573									//unique cards played
 }
 
 tournament example

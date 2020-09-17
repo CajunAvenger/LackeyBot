@@ -76,6 +76,7 @@ var yeet = console.log; //use for temp logs to make them easy to differentiate f
 const boop = "boop"; //boop
 
 //load modules
+var discClient = require('./discClient.js')			//handles discord client
 var arcana = require('./arcana.js');			//handles all the card databases
 const fuzzy = require('./fuzzy.js');			//handles the general search engine
 const mod_magic = require('./magic.js');		//handles Magic-specific coding
@@ -89,7 +90,8 @@ let quote = require('./quotedex.js')			//testing scripts for $q command
 var statDexHandler = require('./statDex.js');	//handles the statDex analysis
 statDexHandler.initialize({arcana:arcana});
 
-const Client = new Discord.Client({ partials:['MESSAGE', 'REACTION'] });
+discClient.initialize();
+const Client = discClient.sendClient();
 
 
 /*website test
@@ -7719,7 +7721,13 @@ Client.on("message", (msg) => {
 				}
 			}
 			if(msg.channel && msg.channel.id == "755707492947722301"){
-				msg.channel.send(statDexHandler.processCommands(msg))
+				if(msg.author.id == cajun && msg.content.match(/!testing/i) && !offline) {
+					//donothing
+				}else{
+					let out = statDexHandler.processCommands(msg)
+					if(out)
+						msg.channel.send(out)
+				}
 			}
 		}catch(e){
 			console.log("Admin commands:");
@@ -9601,7 +9609,7 @@ Client.on("message", (msg) => {
 					if(matchNo == 0) {
 						msg.channel.send("Please include the match number to edit past matches. LackeyBot gives that number after reporting, or can be found using $matches. The edit command is formatted `$report gp match N X-Y @Opponent`.")
 					}else{
-						msg.channel.send(Client.users.cache.get(msg.author.id) + " " + updateGPMatch(gpName, player1, reportGPMatch[7], reportGPMatch[5], reportGPMatch[6], matchNo));
+						msg.channel.send(`${Client.users.cache.get(msg.author.id)} ${updateGPMatch(gpName, player1, reportGPMatch[7], reportGPMatch[5], reportGPMatch[6], matchNo)}`);
 						if(matchDex[gpName].awaitingMatches.length == 0)
 							msg.channel.send("<@!" + matchDex[gpName].data.TO + ">, All matches have been reported!");
 					}
