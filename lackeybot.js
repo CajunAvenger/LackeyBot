@@ -1681,11 +1681,11 @@ function generateHangman (diff) { //generate canon hangman
 	let cardNames = Object.keys(canon);
 	let rando = Math.floor(Math.random()*cardNames.length-1)+1;
 	//rando = 5439; //Man-o'-war for debugging purposes
-	//rando = 31555;
 	let chosenName = cardNames[rando];
 	let card = canon[chosenName];
 	chosenName = card.cardName;
 	chosenName = chosenName.replace(/_[^\n]+/g, "");
+	let nameMatch = new RegExp('guess: ' + chosenName, 'i')
 	let blankName = chosenName.toLowerCase();
 	let count = 0;
 	for(let letter in azArray) {
@@ -1713,6 +1713,7 @@ function generateHangman (diff) { //generate canon hangman
 	hangText += " _|_______";
 	hangText += "```";
 	hangText += "\nReact with 🇦 🇧 ... 🇿 to guess letters.";
+	hangText += "\nOr guess an answer with `guess: Card Name`.";
 	let embedded = new Discord.MessageEmbed()
 		.setDescription(hangText)
 		.setFooter("Game in progress. React with 💬 to change to plaintext mode.")
@@ -1723,7 +1724,67 @@ function generateHangman (diff) { //generate canon hangman
 		embedded.setColor('000002')
 	return embedded;
 }
-function updateHangman (hangMan, newLetter, guessedLetters, diff, textFlag) { //update canon hangman
+function hangmanCallback (msg, channel) {
+	msg.react(plainText)
+	const collFilter = m => m.content.match(/guess:/i)
+	const collector = channel.createMessageCollector(collFilter, {time:5*60*1000});
+	collector.on('collect', m => {
+		hangmanParser(msg, msg.embeds[0], null, msg.content != "", m.content, collector);
+	});
+	/*collector.on('end', collected => {
+		console.log(`Collected ${collected.size}`);
+	});*/
+
+}
+function hangmanParser(msg, embedData, emittedEmote, textFlag, guess, collector){
+	let hangText = msg.content;
+	if(hangText == "")
+		hangText = embedData.description
+	let guessedLetters = hangText.match(/Guessed: ([A-Z]+)/);
+	if(guessedLetters) {
+		guessedLetters = guessedLetters[1].match(/([A-Z])/g);
+	}else{
+		guessedLetters = [];
+	}
+	let newLetter = "";
+	let update = false;
+	if(emittedEmote) { //reaction
+		var azIndex = azEmoteArray.indexOf(emittedEmote);
+		if(azIndex != -1) { //letter react
+			newLetter = azArray[azIndex].toUpperCase();
+			if(!guessedLetters.includes(newLetter)) {
+				guessedLetters.push(newLetter);
+				update = true;
+			}
+		}else if(textFlag) { //convert to plaintext
+			let diff = "medium"
+			if(embedData.color == 0)
+				diff = "easy";
+			if(embedData.color == 2)
+				diff = "hard";
+			let embedded = updateHangman(hangText, "", guessedLetters, diff, textFlag, guess, msg, collector)
+			msg.edit(embedded[0], embedded[1])
+		}
+	}
+	if(update || guess) {
+		let diff = "medium"
+		if(embedData.color == 0)
+			diff = "easy";
+		if(embedData.color == 2)
+			diff = "hard";
+		let embedded = updateHangman(hangText, newLetter, guessedLetters, diff, textFlag, guess, msg, collector)
+		if(textFlag) {
+			msg.edit(embedded[0], embedded[1])
+		}else{
+			msg.edit("", embedded);
+		}
+	}
+}
+function updateHangman (hangMan, newLetter, guessedLetters, diff, textFlag, guess, msg, collector) { //update canon hangman
+	let gameOver = 0;
+	let count = parseInt(hangMan.match(/Missing: ([0-9]+)/)[1]);
+	let misses = 0;
+	let guessedRight = 0;
 	let rando = hangMan.match(/```([^\n]+)/)[1];
 	let cardList = Object.keys(canon);
 	let cardName = cardList[rando]
@@ -1740,22 +1801,35 @@ function updateHangman (hangMan, newLetter, guessedLetters, diff, textFlag) { //
 	let blankName = "";
 	
 	let guessString = guessedLetters.join('');
-	let gameOver = 0;
-	let count = parseInt(hangMan.match(/Missing: ([0-9]+)/)[1]);
+	let missedCards = hangMan.match(/Guessed cards:\n([^`]+)```/i);
+	if(missedCards)
+		missedCards = missedCards[1].match(/([^\n`]+)/g);
+	if(missedCards == null)
+		missedCards = [];
 	if(newLetter != "") {
 		let counReg = new RegExp(newLetter, 'i')
 		if(chosenName.match(counReg))
 			count--;
+	}else{ //guessed name
+		let collMatch = new RegExp('guess: ?'+chosenName, 'i');
+		if(guess.match(collMatch)) { //they got it right
+			count = 0;
+			guessedRight = 1;
+			collector.stop();
+		}else{ //they guessed wrong
+			missedCards.push(guess.replace(/guess: ?/i, ""));
+		}
 	}
 	if(count == 0)
 		gameOver = 2;
-	let misses = 0;
 	for(let letter in guessedLetters) {
 		let letReg = new RegExp(guessedLetters[letter], 'i');
 		if(!chosenName.match(letReg))
 			misses++;
 	}
-	let correctPer = parseFloat((1 - misses / guessedLetters.length)*100).toFixed(0);
+	for(let card in missedCards)
+		misses++;
+	let correctPer = parseFloat((1 - misses / (guessedLetters.length+missedCards.length+guessedRight))*100).toFixed(0);
 	let headText = (misses > 0 ? "o" : " ");
 	let bodText = (misses > 1 ? "|" : " ");
 	let lArmText = (misses > 2 ? "/" : " ");
@@ -1764,19 +1838,20 @@ function updateHangman (hangMan, newLetter, guessedLetters, diff, textFlag) { //
 	let rLegText = (misses > 5 ? "\\" : " ");
 	if(misses > 5)
 		gameOver = 1;
-
-	for(let i = 0; i < chosenName.length; i++) {
-		let thisLetter = chosenName.charAt(i).toUpperCase();
-		if(guessedLetters.includes(thisLetter)) {
-			blankName += chosenName.charAt(i);
-		}else if(azArray.includes(thisLetter.toLowerCase())) {
-			blankName += blank;
-		}else{
-			blankName += chosenName.charAt(i);
+	if(gameOver > 0) {
+		blankName = chosenName;
+	}else{
+		for(let i = 0; i < chosenName.length; i++) {
+			let thisLetter = chosenName.charAt(i).toUpperCase();
+			if(guessedLetters.includes(thisLetter)) {
+				blankName += chosenName.charAt(i);
+			}else if(azArray.includes(thisLetter.toLowerCase())) {
+				blankName += blank;
+			}else{
+				blankName += chosenName.charAt(i);
+			}
 		}
 	}
-	if(gameOver > 0)
-		blankName = chosenName;
 	chosenName = fuzzy.anglicizeLetters(chosenName.replace(/[’'"\(\)\/\-,]/g, "").replace(/ /g, "_"));
 	let hangText = "Guess the card:\n" + blankName + medMana + ezType + "\n```" + rando + "\n";
 	hangText += "   ____    \n"; 
@@ -1785,8 +1860,15 @@ function updateHangman (hangMan, newLetter, guessedLetters, diff, textFlag) { //
 	hangText += "  |   " + lArmText + bodText + rArmText + "   Correct: " + correctPer + "%\n";
 	hangText += "  |   " + lLegText + " " + rLegText + "   \n";
 	hangText += " _|_______";
+	if(missedCards) {
+		hangText += "\nGuessed cards:\n";
+		for(let card in missedCards){
+			hangText += missedCards[card] + "\n";
+		}
+	}
 	hangText += "```";
 	hangText += "\nReact with 🇦 🇧 ... 🇿 to guess letters.";
+	hangText += "\nOr guess an answer with `guess: Card Name`.";
 	if(textFlag) {
 		let embedText = "";
 		embedText += hangText;
@@ -8550,7 +8632,7 @@ Client.on("message", (msg) => {
 			if(hmMatch) {
 				bribes++;
 				msg.channel.send(generateHangman(hmMatch[1]))
-					.then(mess => mess.react(plainText))
+					.then(mess => hangmanCallback(mess, msg.channel))
 					.catch(e => console.log(e))
 			}
 			let searchCheck = msg.content.match(/(\$|!|\?)(s?earch|li?mitfy|scryf?a?l?l?) ([^\n]+)/i);
@@ -10064,43 +10146,7 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 							}
 							let hangCheck = embedData.description.match(/(Guess the card|Hangman is in plaintext mode.)/);
 							if(hangCheck && !embedData.footer.text.match(/^Game over/)) { //hangman games
-								let hangText = msg.content;
-								if(hangText == "")
-									hangText = embedData.description
-								let guessedLetters = hangText.match(/Guessed: ([A-Z]+)/);
-								if(guessedLetters) {
-									guessedLetters = guessedLetters[1].match(/([A-Z])/g);
-								}else{
-									guessedLetters = [];
-								}
-								/*if((emittedEmote == plainText && message.users.cache.find(val => val.id != Client.user.id)) || (msg.content != "" && emittedEmote != plainText))
-									textFlag = true;*/
-								let azIndex = azEmoteArray.indexOf(emittedEmote);
-								if(azIndex != -1) {
-									newLetter = azArray[azIndex].toUpperCase();
-									if(!guessedLetters.includes(newLetter)) {
-										guessedLetters.push(newLetter);
-										let diff = "medium"
-										if(embedData.color == 0)
-											diff = "easy";
-										if(embedData.color == 2)
-											diff = "hard";
-										let embedded = updateHangman(hangText, newLetter, guessedLetters, diff, textFlag)
-										if(textFlag) {
-											msg.edit(embedded[0], embedded[1])
-										}else{
-											msg.edit("", embedded);
-										}
-									}
-								}else if(textFlag) {
-									let diff = "medium"
-									if(embedData.color == 0)
-										diff = "easy";
-									if(embedData.color == 2)
-										diff = "hard";
-									let embedded = updateHangman(hangText, "", guessedLetters, diff, textFlag)
-									msg.edit(embedded[0], embedded[1])
-								}
+								hangmanParser(msg, embedData, emittedEmote, textFlag)
 							}
 							let scodeCheck = embedData.description.match(/(Magic|MSEM|Custom Project) Set Codes/) //flip setcode pages
 							if(scodeCheck) {
