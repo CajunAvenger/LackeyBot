@@ -1,9 +1,8 @@
-﻿
-/* LackeyBot
+﻿/* LackeyBot
  Primary LackeyBot script
  Working on splitting up modules as appropriate
  Potential Modules to break off:
- Roles, Reminders, matchDex, statDex, "games"
+ Roles, Reminders, matchDex, "games"
 */
 //Live and Test Bot login
 const config = require("./config/lackeyconfig.json");
@@ -960,8 +959,29 @@ function findExclusive(boolArray) { //checks array for boolean true, returns [bo
 }
 //Bot Management
 function editVersions() { //version control post
+	if(botname == "TestBot" || offline)
+		return;
+	if(reminderData.version === undefined || matchDex.version === undefined || allRoles.version === undefined || gpbase.version === undefined || draft.version === undefined || (devDex.version === undefined && versionCheck.devDex === undefined)){
+		readVersionControl();
+		if(reminderData.verions === undefined)
+			reminderData.versions = versionCheck.remind;
+		if(matchDex.verions === undefined)
+			matchDex.versions = versionCheck.matchDex;
+		if(allRoles.verions === undefined)
+			allRoles.versions = versionCheck.allRoles;
+		if(gpbase.verions === undefined)
+			gpbase.versions = versionCheck.gpbase;
+		if(draft.verions === undefined)
+			draft.versions = versionCheck.draft;
+		if(devDex.verions === undefined)
+			devDex.versions = versionCheck.devDex;
+		if(reminderData.version === undefined || matchDex.version === undefined || allRoles.version === undefined || gpbase.version === undefined || draft.version === undefined || (devDex.version === undefined && versionCheck.devDex === undefined)){
+			Client.users.cache.get(cajun).send("Version control is seriously effed.")
+			Client.users.cache.get(cajun).send(JSON.stringify(versionCheck))
+			return;
+		}
+	}
 	let newwords = "";
-	newwords += "stats: " + stats.version;
 	newwords += "\nremind: " + reminderData.version;
 	newwords += "\nmatchDex: " + matchDex.version;
 	newwords += "\ndevDex: " + (devDex.version || versionCheck.devDex);
@@ -1172,21 +1192,29 @@ var statDexFull = require('./statDex.json');
 var arcanaSettings = {};
 loadArcanaSettings();
 
+function matchDexTesting() {
+	if(matchDex.hasOwnProperty('testingGround'))
+		delete matchDex["testingGround"]
+}
+async function readVersionControl(){
+	let vc = await Client.channels.cache.get(config.versionControlChannel).messages.fetch(config.versionControlPost)
+	vc = vc.content;
+	yeet(vc);
+	versionCheck.remind = parseInt(vc.match(/remind: (\d+)/)[1]);
+	versionCheck.matchDex = parseInt(vc.match(/matchDex: (\d+)/)[1]);
+	versionCheck.devDex = parseInt(vc.match(/devDex: (\d+)/)[1]);
+	versionCheck.roles = parseInt(vc.match(/roles: (\d+)/)[1]);
+	versionCheck.gpbase = parseInt(vc.match(/gpbase: (\d+)/)[1]);
+	versionCheck.draft = parseInt(vc.match(/draft: (\d+)/)[1]);
+	return "Done";
+}
 async function startUpFunctions() { //all the start up functions for nicer async
 	let mun = Math.floor(Math.random()*extras.games.length); //sets a random game
 	let newGame = extras.games[mun];
 	Client.user.setPresence( { activity: {name: newGame}});
 	//check versions
 	try {
-		let vc = await Client.channels.cache.get(config.versionControlChannel).messages.fetch(config.versionControlPost)
-		vc = vc.content;
-		yeet(vc);
-		versionCheck.remind = parseInt(vc.match(/remind: (\d+)/)[1]);
-		versionCheck.matchDex = parseInt(vc.match(/matchDex: (\d+)/)[1]);
-		versionCheck.devDex = parseInt(vc.match(/devDex: (\d+)/)[1]);
-		versionCheck.roles = parseInt(vc.match(/roles: (\d+)/)[1]);
-		versionCheck.gpbase = parseInt(vc.match(/gpbase: (\d+)/)[1]);
-		versionCheck.draft = parseInt(vc.match(/draft: (\d+)/)[1]);
+		let wait = await readVersionControl();
 	}catch(e){
 		console.log(e);
 		Client.users.cache.get(cajun).send("Version control has failed.");
@@ -1211,7 +1239,8 @@ async function startUpFunctions() { //all the start up functions for nicer async
 	}else{
 		dropboxDownload('msem/matchDex.json','https://www.dropbox.com/s/3rn1zu8qly0z52o/matchDex.json?dl=0',reloadMatchBase);
 	}
-	dropboxDownload('dev/devDex.json','https://www.dropbox.com/s/hzcb14qeovfin3e/devDex.json?dl=0',reloadDevDex);
+	if(!offline)
+		dropboxDownload('dev/devDex.json','https://www.dropbox.com/s/hzcb14qeovfin3e/devDex.json?dl=0',reloadDevDex);
 	dropboxDownload('msem/gpbase.json','https://www.dropbox.com/s/t9hdhad8ol1c7cu/gpbase.json?dl=0',reloadGPBase)
 	dropboxDownload('draft/draft.json','https://www.dropbox.com/s/i91wp73lshtorir/draft.json?dl=0',reloadDraft);
 	try{
@@ -1296,6 +1325,7 @@ function reloadMatchBase() { //loads matchdex after downloading
 		matchString += tourney + '|'
 	matchString = matchString.replace(/\|$/, ")");
 	tournamentNames = matchString;
+	matchDexTesting()
 }
 function reloadDevDex() { //loads matchdex after downloading
 	console.log('Reloading devDex');
@@ -2588,7 +2618,7 @@ function testPackFilters(packSlots, setID) {
 		return "packSlots have still been saved, but the following filters match no cards. This may result in packs missing cards:\n" + borkLine;
 	return null;
 }
-function generatePack(set, library) { //generates a pack given a set code
+function generatePack(set, library, sealedCourtesy) { //generates a pack given a set code
 	let database = library.cards;
 	let setDatabase = library.setData;
 	var newPack = [];
@@ -2953,6 +2983,47 @@ function fancification (deckString, user, deckName) { //fancy engine handler
 	if(deckName == undefined)
 		user.send("Don't forget to replace DECK NAME AND TITLE HERE with your deck's name.");
 }
+function giveSealedDeck (count, deckChecking) {
+	let pool = {};
+	for(let i=0; i<count; i++) {
+		let pack = generatePack(deckChecking[1], arcana.msem);
+		for(let card in pack) {
+			if(pack[card].match(/^★ (Plains|Island|Swamp|Mountain|Forest)( [a-z]|\d+)_/)) {
+				//be nice to sealed players and give them a random foil common instead of foil basic. Snow and Dry basics stay though.
+				let randtemp = fuzzy.scryDatabase(randBase, 'e:' + deckChecking[1] + ' r=c', true)[0];
+				if(randtemp.length > 0) {
+					let num = Math.floor(Math.random()*randtemp.length);
+					pack[card] = "★ " + shuffleArray(randtemp)[0];
+				}
+			}
+			let trimmedName = unFoil(pack[card]);
+			if(!pool.hasOwnProperty(trimmedName))
+				pool[trimmedName] = {mainCount:0, foil:0}
+			pool[trimmedName].mainCount++;
+			if(isFoil(pack[card]))
+				pool[trimmedName].foil++;
+		}
+	}
+	let cardList = Object.keys(pool);
+	let rarArray = ["basic land", "common", "uncommon", "rare", "bonus", "mythic rare", "masterpiece", "special"]
+	cardList.sort(function(a, b){
+		let result = rarArray.indexOf(arcana.msem.cards[b].rarity) - rarArray.indexOf(arcana.msem.cards[a].rarity)
+		if(result == 0)
+			result = pool[b].mainCount - pool[a].mainCount
+		return result;
+	});
+	let list = "```";
+	let foils = "";
+	for(let card in cardList) {
+		list += pool[cardList[card]].mainCount + "  " + arcana.msem.cards[cardList[card]].cardName + "\n"
+		if(pool[cardList[card]].foil)
+			foils += pool[cardList[card]].foil + " " + arcana.msem.cards[cardList[card]].cardName + "\n";
+	}
+	list += "```";
+	if(foils)
+		list += "\nYou opened some foils! They are included in the decklist but listed below so you know your rarity counts are right:\n" + foils;
+	return [list, pool];
+}
 function giveFancyDeck (deckString, user, deckName, save, deckChecking) { //sends user legal errors and writes file
 	let fancyDeck = makeFancyDeck(deckString, deckName, "fancy", deckChecking);
 	let legalArray = fancyDeck[1];
@@ -3022,13 +3093,16 @@ function makeCardArray(cardString) { //turns a decklist into an array of cards a
 		let thisName = numberThenName[2];
 		thisName = promoCheck(thisName);
 		let thisCard = searchCards(arcana.msem,thisName);
-		cardArray[thisCard] = {};
-		cardArray[thisCard].name = thisCard;
-        cardArray[thisCard].amountPlayed = numberThenName[1];
-        cardArray[thisCard].type = arcana.msem.cards[thisCard].cardType;
-        cardArray[thisCard].setID = arcana.msem.cards[thisCard].setID;
-        cardArray[thisCard].cardID = arcana.msem.cards[thisCard].cardID;
-        cardArray[thisCard].cmc = arcana.msem.cards[thisCard].cmc;
+		console.log(thisCard);
+		if(!arcana.msem.cards[thisCard].setID.match(/^(PLAY|tokens|BOT|MSEMAR)$/)) {
+			cardArray[thisCard] = {};
+			cardArray[thisCard].name = thisCard;
+			cardArray[thisCard].amountPlayed = numberThenName[1];
+			cardArray[thisCard].type = arcana.msem.cards[thisCard].cardType;
+			cardArray[thisCard].setID = arcana.msem.cards[thisCard].setID;
+			cardArray[thisCard].cardID = arcana.msem.cards[thisCard].cardID;
+			cardArray[thisCard].cmc = arcana.msem.cards[thisCard].cmc;
+		}
 	}
 	return cardArray
 }
@@ -5464,6 +5538,9 @@ function archivePlayer(tourney, id, wins, losses, run) { //saves player data for
 	}
 	return archPlay
 }
+function addLackeyBot(tourney){
+	addNewPlayer(tourney, '341937757536387072', false);
+}
 function addNewPlayer (tourney, id, midFlag) { //adds new player to given tourney
 	if(matchDex[tourney].players[id]) {
 		return "";
@@ -5766,24 +5843,29 @@ function invalidMatch (tourney, p1id, p2id) { //true if match is illegal
 		errors += "Error: " + pullUsername(p2id) + " is not signed up for " + tourney + ".\n";
 	if(errors)
 		return errors;
-	if(matchDex[tourney].players[p1id].runs[matchDex[tourney].players[p1id].currentRun-1].matches.length >= matchDex[tourney].data.runLength) //if a player is over their five matches
-		errors += "Error: " + pullUsername(p1id) + " has already completed their current run.\n";
-	if(matchDex[tourney].players[p2id].runs[matchDex[tourney].players[p2id].currentRun-1].matches.length >= matchDex[tourney].data.runLength)
-		errors += "Error: " + pullUsername(p2id) + " has already completed their current run.\n";
-	if(errors)
-		return errors;
+	if(matchDex[tourney].data.runLength) {
+		if(matchDex[tourney].players[p1id].runs[matchDex[tourney].players[p1id].currentRun-1].matches.length >= matchDex[tourney].data.runLength) //if a player is over their five matches
+			errors += "Error: " + pullUsername(p1id) + " has already completed their current run.\n";
+		if(matchDex[tourney].players[p2id].runs[matchDex[tourney].players[p2id].currentRun-1].matches.length >= matchDex[tourney].data.runLength)
+			errors += "Error: " + pullUsername(p2id) + " has already completed their current run.\n";
+		if(errors)
+			return errors;
+	}
 	let oppArrays = getPlayedOpps(tourney, p1id, matchDex[tourney].players[p1id].currentRun);
 	if(!oppArrays[0].includes(p2id)) //if they haven't played this player
 		return 0; //match is valid
-	oppArrays[2] = []; //TODO League customization for rematches
-	for(let thisOpp in oppArrays[0]) {
-		if(oppArrays[0][thisOpp] == p2id)
-			oppArrays[2].push(oppArrays[1][thisOpp])
+	//check the rematchLimit
+	let opCurrentRun = matchDex[tourney].players[p2id].currentRun;
+	let opRematchCounter = 0; //number of matches these runs have had
+	for(let thisOpp in oppArrays[0]) { //for each opponent
+		if(oppArrays[1][thisOpp] == opCurrentRun)	//if their current run
+			opRematchCounter++;
 	}
-	for(let thatOpp in oppArrays[2]) {
-		if(oppArrays[2][thatOpp] == matchDex[tourney].players[p2id].currentRun)
-			return "Invalid match: These two runs have already played each other."
-	}
+	let remLimit = matchDex[tourney].data.rematch;
+	if(!remLimit)
+		remLimit = 0;
+	if(opRematchCounter > remLimit)
+		return `Invalid match: These two runs have already played each other${(remLimit > 0 ? " the maximum number of times" : "")}.`
 	return 0;
 }
 function reportRecord (tourney, id, lookback) { // the $league info command
@@ -7199,7 +7281,7 @@ Client.on("message", (msg) => {
 	}catch(e){
 		admincheck = [7];
 	}
-    if(!msg.author.bot && !admincheck.includes(9) && !msg.content.match(/\$ignore/i) && (!offline || admincheck.includes(0))){ //prevents LackeyBot from responding to itself or other bots
+    if(!msg.author.bot && !admincheck.includes(9) && !msg.content.match(/\$ignore/i) && (!offline || admincheck.includes(0) || msg.channel.id == "755707492947722301")){ //prevents LackeyBot from responding to itself or other bots
 	//Admin Commands
 	//0 - Bot admin permissions
 	//1 - TO permssions
@@ -7237,13 +7319,16 @@ Client.on("message", (msg) => {
 					echoReminders();
 					logReminders();
 				}
-				
+				let lbAdder = msg.content.match(/!addlb ([\s\S]+)/i);
+				if(lbAdder){
+					addLackeyBot(lbAdder[1]);
+				}
 				let tourneyAdder = msg.content.match(/!addmatch([\s\S]+)/i);
 				if(tourneyAdder) {
 					let tourneyname = tourneyAdder[1].match(/name: ([^\n]+)/i);
 					if(tourneyname) {
 						tourneyname = tourneyname[1];
-						let pairing = 'swiss', TO = login.TO, channel = login.comp, rematch = null, runLength = null;
+						let pairing = 'swiss', TO = login.TO, channel = login.comp, rematch = null, runLength = null, set = null;
 						let pairCheck = tourneyAdder[1].match(/pairing: ([^\n]+)/i);
 						if(pairCheck)
 							pairing = pairCheck[1];
@@ -7259,13 +7344,17 @@ Client.on("message", (msg) => {
 						let runsCheck = tourneyAdder[1].match(/runLength: ([^\n]+)/i);
 						if(runsCheck)
 							runLength = runsCheck[1];
-						
+						let setCheck = tourneyAdder[1].match(/set: ([^\n]+)/i);
+						if(setCheck)
+							set = setCheck[1];
 						if(!matchDex.hasOwnProperty[tourneyname]) {
 							matchDex[tourneyname] = {matches:[], players:{}, round:0, pairing:pairing, awaitingMatches:[], data:{}};
 							matchDex[tourneyname].data.TO = TO;
 							matchDex[tourneyname].data.channel = channel;
 							matchDex[tourneyname].data.rematch = rematch;
 							matchDex[tourneyname].data.runLength = runLength;
+							if(set)
+								matchDex[tourneyname].data.set = set;								
 							logMatch();
 							let matchString = '('
 							for(let tourney in matchDex)
@@ -7803,13 +7892,9 @@ Client.on("message", (msg) => {
 				}
 			}
 			if(msg.channel && msg.channel.id == "755707492947722301"){
-				if(msg.author.id == cajun && msg.content.match(/!testing/i) && !offline) {
-					//donothing
-				}else{
-					let out = statDexHandler.processCommands(msg)
+				let out = statDexHandler.processCommands(msg, offline)
 					if(out)
 						msg.channel.send(out)
-				}
 			}
 		}catch(e){
 			console.log("Admin commands:");
@@ -8397,14 +8482,14 @@ Client.on("message", (msg) => {
 				msg.channel.send(writeLegal(legalData));
 				bribes++;
 			}
-			let uploadcheck = msg.content.match(/\$submit (league|GP[A-Z]|PT[0-9]+|primordial [A-Z0-9]+) ?([^\n]+)/i);
-			if(uploadcheck !== null && listMatch !== null) {
+			let uploadcheck = msg.content.match(/\$submit (league|GP[A-Z]|PT[0-9]+|primordial [A-Z0-9]+|sealed|cnm) ?([^\n]+)/i);
+			if(uploadcheck && (listMatch||uploadcheck[1].match(/sealed/i))) {
 				if(botname != "TestBot")
 					Client.channels.cache.get('634557558589227059').send("```\n"+msg.content.replace("$",'')+"```");
 				deckName = uploadcheck[2];
 				let tourneyname = uploadcheck[1].toLowerCase();
 				
-				if(tourneyname.match(/primordial/i)) {
+				if(tourneyname.match(/primordial/i)) { //primordial deckcheck
 					let checkSet = tourneyname.match(/primordial ([A-Z0-9]+)/i);
 					if(checkSet) {
 						let checkedSet = checkSet[1].toUpperCase(); //the set to check legality on
@@ -8429,7 +8514,18 @@ Client.on("message", (msg) => {
 							}
 						}
 					}
-				}else{
+				}else if(uploadcheck[1].match(/sealed/i)){ //sealed deck give
+					let addNew = addNewPlayer("sealed", msg.author.id);
+					if(addNew != "") {
+						msg.channel.send(addNew);
+						let deckContent = giveSealedDeck(6, ['Sealed', matchDex['sealed'].data.set])
+						msg.channel.send(deckContent[0]);
+						let path = '/sealed/' + toolbox.stripEmoji(msg.author.username) + '.txt';
+						addNewRun("sealed",msg.author.id, path, msg.author.username+"'s Sealed Pool");
+						dropboxUpload(path, deckContent[1], function() {verifyDeck(path, deckContent[0])})
+						logMatch();
+					}
+				}else{ //msem deckcheck
 					tourneyname = tourneyname.replace(" ", "");
 					let deckContent = giveFancyDeck(msg.content, msg.author, deckName,0,['MSEM']);
 					let numberString = "";
@@ -8445,13 +8541,13 @@ Client.on("message", (msg) => {
 						Client.guilds.cache.get('317373924096868353').members.cache.get(msg.author.id).roles.add('638181322325491744');
 					}else{
 						Client.guilds.cache.get('317373924096868353').members.cache.get(msg.author.id).roles.add('588781514616209417');
-						if(matchDex.gp.round > 0) {
+						if(matchDex[tourneyname].round > 0) {
 							//deckContent[1] = "";
 							msg.author.send("Sorry, but deck submissions for the GP are closed!");
 						}
 						if(matchDex.gp.round == 0) {
-							msg.channel.send(addNewPlayer('gp', msg.author.id).replace("gp", tourneyname));
-							addNewRun("gp",msg.author.id,'/' + tourneyname + '/' + toolbox.stripEmoji(msg.author.username) + '.txt',deckName)
+							msg.channel.send(addNewPlayer(tourneyname, msg.author.id).replace("gp", tourneyname));
+							addNewRun(tourneyname,msg.author.id,'/' + tourneyname + '/' + toolbox.stripEmoji(msg.author.username) + '.txt',deckName)
 							logMatch();
 						}
 					}
@@ -9666,10 +9762,18 @@ Client.on("message", (msg) => {
 				var reportGPMatch = msg.content.match(/\$report *gp[a-z]? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
 				if(!reportGPMatch && msg.channel.id == login.comp)
 					reportGPMatch = msg.content.match(/\$report *(?:gp[a-z]?)? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
+
 				var reportPIEMatch = msg.content.match(/\$report *(?:pie|primordial)? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
 				if(!reportPIEMatch && msg.channel.id == "743145579298816050")
 					reportPIEMatch = msg.content.match(/\$report *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
-				if((reportGPMatch || reportPIEMatch) && (!codeCheck || admincheck.includes(0))) {
+
+				var reportCNMMatch = msg.content.match(/\$report *cn?mn? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
+				if(!reportCNMMatch && msg.channel.id == "663814604425789461")
+				var reportCNMMatch = msg.content.match(/\$report *c?n?m?n? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
+
+				var gpReported = (reportGPMatch || reportPIEMatch || reportCNMMatch)
+
+				if(gpReported && (!codeCheck || admincheck.includes(0))) {
 					if(reportPIEMatch) {
 						gpName = 'pie';
 						reportGPMatch = reportPIEMatch;
