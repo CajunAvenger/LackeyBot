@@ -1058,16 +1058,14 @@ function logMatch() { //updates matchDex.json
 	matchDex.version++;
 	editVersions();
 	let matchWords = JSON.stringify(matchDex);
-	matchWords = matchWords.replace(/},{/g,"},\r\n{");
-	matchWords = matchWords.replace(/]},"/g,"]},\r\n\"");
-	matchWords = matchWords.replace(/"league":/, "\r\n\"league\":");
-	matchWords = matchWords.replace(/"gp":/, "\r\n\"gp\":");
-	matchWords = matchWords.replace(/"chikyu/g, "\r\n\"chikyu");
-	matchWords = matchWords.replace(/:{"matches":\[\{/g, ":{\r\n\"matches\":[\r\n{");
-	matchWords = matchWords.replace(/,\r\n{"matches":\[/g, ",{\"matches\":[");
-	matchWords = matchWords.replace(/"players":\{/g, "\r\n\"players\":{\r\n");
-	matchWords = matchWords.replace(/},"round":/g, "},\r\n\"round\":");
-	matchWords = matchWords.replace(/{\r\n}/g,"{}");
+	matchWords = matchWords.replace('"version":', '\r\n\t"version":')
+	matchWords = matchWords.replace(/\}$/, "\r\n}")
+	let tourns = Object.keys(matchDex);
+	for(let key in tourns) {
+		matchWords = matchWords.replace(',"'+tourns[key]+'":{', ',\r\n\t"'+tourns[key]+'":{\r\n\t\t');
+		matchWords = matchWords.replace('],"players":{', '],\r\n\t\t"players":{')
+		matchWords = matchWords.replace(',"data":{', ',\r\n\t\t"data":{')
+	}
 	if(botname == "TestBot") {
 		fs.writeFile('msem/matchDex.json', matchWords, (err) => {
 			if (err) throw err;
@@ -1097,6 +1095,9 @@ function logDev(id) { //updates devDex.json
 }
 function logRole(guildID) { //updates roles.json
 	allRoles.version++;
+	for(let guild in allRoles.guilds)
+		if(!allRoles.guilds[guild].hasOwnProperty('excluded'))
+			allRoles.guilds[guild].excluded = {};
 	editVersions();
 	dropboxUpload('/lackeybot stuff/roles.json',JSON.stringify(allRoles, null, 3));
 }
@@ -1307,19 +1308,6 @@ function reloadMatchBase() { //loads matchdex after downloading
 	if(test.version < versionCheck.matchDex)
 	console.log("Version error in matchDex.");
 	matchDex = test;
-	matchDex["gp"].data = {
-		TO: login.TO,
-		channel: login.comp,
-		rematch: null,
-		runLength: null
-	}
-	matchDex.league.pairing = "league";
-	matchDex["league"].data = {
-		TO: login.TO,
-		channel: "636670779693727754",
-		rematch: false,
-		runLength: 5
-	}
 	let matchString = '('
 	for(let tourney in matchDex)
 		matchString += tourney + '|'
@@ -3093,7 +3081,6 @@ function makeCardArray(cardString) { //turns a decklist into an array of cards a
 		let thisName = numberThenName[2];
 		thisName = promoCheck(thisName);
 		let thisCard = searchCards(arcana.msem,thisName);
-		console.log(thisCard);
 		if(!arcana.msem.cards[thisCard].setID.match(/^(PLAY|tokens|BOT|MSEMAR)$/)) {
 			cardArray[thisCard] = {};
 			cardArray[thisCard].name = thisCard;
@@ -3759,7 +3746,7 @@ function buildRoleRegex(server) { //builds roleRegex on startup to reduce comput
 }
 function newGuild(guildID){ //adds a new role server to LB
 	if(!roleCall.hasOwnProperty(guildID)){
-		roleCall[guildID] = {banned:[], prefix:"", roles:{}, groups:["General","Colors"], exclusive:[]};
+		roleCall[guildID] = {banned:[], prefix:"", roles:{}, groups:["General","Colors"], exclusive:[], excluded:{}};
 		return "LackeyBot has initialized this server.";
 	}
 	return "Server is already established."
@@ -3950,6 +3937,32 @@ function unassignRole(guildID, roleName) { //removes a role from LB
 	buildRoleRegex(guildID);
 	return response;
 }
+function excludeRole(guildID, flag, userID, roleName){ //bans a user from having a self-assignabe role
+	let thisGuild = roleCall[guildID];
+	roleName = roleName.replace(/ $/, "").toLowerCase();
+	let thisRole;
+	if(thisGuild.roles.hasOwnProperty(roleName)) {
+		thisRole = thisGuild.roles[roleName];
+	}else{
+		roleName = fuzzy.searchArray(roleName.replace(/ /g,""), Object.keys(thisGuild.roles,{percent:0.33}))[0];
+		thisRole = thisGuild.roles[roleName];
+	}
+	if(flag.match(/arenot/)) {
+		if(!thisGuild.hasOwnProperty('excluded'))
+			thisGuild.excluded = {};
+		if(!thisGuild.excluded.hasOwnProperty(thisRole.id))
+			thisGuild.excluded[thisRole.id] = [];
+		thisGuild.excluded[thisRole.id].push(userID)
+		let thatMember = Client.guilds.cache.get(guildID).members.cache.get(userID)
+		adjustRoles(roleName, guildID, thatMember, "roles", true); //remove the role
+		return `${thatMember.user.username} can no longer assign ${roleName}.`;
+	}else{
+		let userIndex = thisGuild.excluded[thisRole.id].indexOf(userID)
+		thisGuild.excluded[thisRole.id].splice(userIndex, 1)
+		let thatMember = Client.guilds.cache.get(guildID).members.cache.get(userID)
+		return `${thatMember.user.username} can now assign ${roleName} again.`;
+	}
+}
 function toggleFightRole(guildID, fightID) { //toggles if a server uses the $fight/$unfight commands
 	if(allRoles.fightGuilds.hasOwnProperty(guildID)) {
 		delete allRoles.fightGuilds[guildID];
@@ -3960,19 +3973,19 @@ function toggleFightRole(guildID, fightID) { //toggles if a server uses the $fig
 }
 function createNewRole(guildID, roleName, roleColor, hoist, mention, group, channel, giveFlag) { //create a new role in the guild
 	roleName = roleName.replace(/ $/, "")
+	if(!allRoles.guilds[guildID].groups.includes(group))
+		group = allRoles.guilds[guildID].groups[0];
 	let roleData = {name:roleName, color:roleColor, hoist:hoist, mentionable:mention}
 	let callback = function(role) {
 		let output = "";
-		if(group != "" || giveFlag == "c") {
-			if(giveFlag == "a") {
-				output += newAssignableRole(guildID, roleName, "", "", group);
-			}else if(giveFlag == "g") {
-				output += newGivenRole(guildID, roleName, "", "", group);
-			}else if(giveFlag == "c") {
-				output += newCountableRole(guildID, roleName);
-			}
-			logRole(guildID);
+		if(giveFlag == "a") {
+			output += newAssignableRole(guildID, roleName, "", "", group);
+		}else if(giveFlag == "g") {
+			output += newGivenRole(guildID, roleName, "", "", group);
+		}else if(giveFlag == "c") {
+			output += newCountableRole(guildID, roleName);
 		}
+		logRole(guildID);
 		output = `Created new role with name ${role.name}\n` + output;
 		channel.send(output);
 	};
@@ -4121,6 +4134,13 @@ function buildInRoleEmbed(guild, roleName, page, textFlag) { //build inrole embe
 	embedded.setTitle("List of users in " + roleName + " role - " + members.length);
 	return [embedded, embedInfo[1]];
 }
+function isExcluded(guild, role, user) {
+	if(guild.excluded.hasOwnProperty(role)) {
+		if(guild.excluded[role].includes(user))
+			return true;
+	}
+	return false;
+}
 function adjustRoles(littleName, thisGuild, member, base, forceRemove){ //adds/removes/toggles roles
 	if(littleName && roleCall[thisGuild][base].hasOwnProperty(littleName.toLowerCase())) {
 		bribes++;
@@ -4129,7 +4149,7 @@ function adjustRoles(littleName, thisGuild, member, base, forceRemove){ //adds/r
 		if(member.roles.cache.find(val => val.id == thisRole.id)){
 			member.roles.remove(thisRole.id).catch(console.error);
 			return thisRole.take;
-		}else if(forceRemove) {
+		}else if(forceRemove || isExcluded(roleCall[thisGuild], thisRole.id, member.id)) {
 			return "";
 		}else{
 			if(roleCall[thisGuild].exclusive.includes(thisRole.group)){
@@ -5499,7 +5519,7 @@ function deleteTourney (tourney) { //ends a tourney
 		matchDex[tourney].players = {};
 		matchDex[tourney].round = 0;
 		if(tourney == "gp") {
-			matchDex[tourney].pairing = "swiss";
+			matchDex[tourney].data.pairing = "swiss-knockout";
 			matchDex[tourney].awaitingMatches = [];
 		}
 		logMatch();
@@ -5540,6 +5560,7 @@ function archivePlayer(tourney, id, wins, losses, run) { //saves player data for
 }
 function addLackeyBot(tourney){
 	addNewPlayer(tourney, '341937757536387072', false);
+	addNewRun(tourney, '341937757536387072', 'idk', 'idk');
 }
 function addNewPlayer (tourney, id, midFlag) { //adds new player to given tourney
 	if(matchDex[tourney].players[id]) {
@@ -5938,16 +5959,8 @@ function vsSeeker (tourney, id) { //finds players the command user can play in t
 	let clearedArray = [];
 	for(let playerArray in openArray) {
 		let thisOpponent = openArray[playerArray][0];
-		let thisRun = openArray[playerArray][1];
-		if(thisOpponent != id) {
-			let facedRuns = [];
-			for(let aPlayer in oppArray[0]) {
-				if(oppArray[0][aPlayer] == thisOpponent)
-					facedRuns.push(oppArray[1][aPlayer]);
-			}
-			if(!(oppArray[0].includes(thisOpponent) && facedRuns.includes(thisRun)))
-				clearedArray.push(thisOpponent);
-		}
+		if(!invalidMatch(tourney, id, thisOpponent))
+			clearedArray.push(thisOpponent);
 	}
 	let output = pullUsername(id) + ", you are able to play the following opponents: ";
 	let i = clearedArray.length;
@@ -6196,6 +6209,9 @@ function newGPMatch (tourney, p1, p2, knockout) { //creates new gp match, auto-s
 	return ping;
 }
 function startTourney(tourney) { //begin swiss pairing
+	if(matchDex[tourney].data.pairing == "knockout" || matchDex[tourney].data.pairing == "double-elimination") //if knockout tourney go straight to that
+		return beginKnockoutRounds(tourney)
+	//else swiss it
 	let numberOfPlayers = Object.keys(matchDex[tourney].players).length;
 	let odd = numberOfPlayers % 2;
 	if(odd) //add bye player
@@ -6222,12 +6238,12 @@ function pushTourney(tourney) { //move tournament to next round, change style if
 			numberOfHumans++;
 	}
 	//if we're in a knockout round, knockout matches
-	if(matchDex[tourney].pairing == 'knockout') {
+	if(matchDex[tourney].data.pairing == 'knockout') {
 		return knockoutRound(tourney);
 	}
 	//if we're past the swiss rounds, cut to top
-	if(matchDex[tourney].round > swissCount(numberOfHumans) && matchDex[tourney].pairing != 'pure-swiss') {
-		return swissTop(tourney);
+	if(matchDex[tourney].round > swissCount(numberOfHumans) && matchDex[tourney].data.pairing != 'swiss') {
+		return beginKnockoutRounds(tourney);
 	}
 	//otherwise, swiss it
 	return swissPair(tourney);
@@ -6239,16 +6255,6 @@ function postTourney(tourney, message, author, channel) { //posts the gp matchup
 		.catch(e => console.log(e))
 	let pingTime = setTimeDistance(3, "day");
 	remindAdder(channel, author, "Check the round " + matchDex[tourney].round + " gp matches.", "3 days", pingTime.getTime())
-}
-function findCurrentGP(tourney) { //determines which GP is currently running
-	if(tourney == "chikyudraft")
-		return "Grand Prix Chikyu";
-	let currentgp = "";
-	for(let thisGP in gpbase) {
-		if(gpbase[thisGP].status == 'running')
-			currentgp = thisGP;
-	}
-	return currentgp.toUpperCase();
 }
 function pingTourney(tourney) { //pings everyone with awaiting matches
 	let pingParty = "";
@@ -6352,7 +6358,10 @@ function swissPair (tourney) { //pairs players swiss style
 	
 	if(matchDex[tourney].round <= 1) {
 		//random
-		pingParty = "Round " + matchDex[tourney].round + " of " + findCurrentGP(tourney) + ". You have 3 days to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
+		let tName = matchDex[tourney].data.name;
+		if(!tName)
+			tName = tourney;
+		pingParty = "Round " + matchDex[tourney].round + " of " + tName + ". You have 3 days to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
 		for(let thisPlayer in matchDex[tourney].players) {
 			if(matchDex[tourney].players[thisPlayer].playing)
 				playerIDArray.push(thisPlayer);
@@ -6373,7 +6382,10 @@ function swissPair (tourney) { //pairs players swiss style
 	}
 
 	//else swiss it
-	pingParty = "Round " + matchDex[tourney].round + " of " + findCurrentGP(tourney) + ". You have 3 days to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
+	let tName = matchDex[tourney].data.name;
+	if(!tName)
+		tName = tourney;
+	pingParty = "Round " + matchDex[tourney].round + " of " + tName + ". You have 3 days to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
 	let recordArray = [];
 	for(let thisPlayer in matchDex[tourney].players) {
 		if(matchDex[tourney].players[thisPlayer].playing) {
@@ -6449,7 +6461,7 @@ function swissEngine (tourney, playRecArray, pairUpArray, pairDownArray, loopcou
 		}
 		let loopcount = 0;
 		while(unpaired > 1 && loopcount < 2) {
-			//get shortest array, controls pairing
+			//get shortest array, it controls pairings
 			let shortstack = ["",[0],100]; //id, opps, length
 			for(let id in valid) {
 				if(valid[id].length < shortstack[2] || (valid[id].length == shortstack[2] && id == bye))
@@ -6500,9 +6512,12 @@ function swissEngine (tourney, playRecArray, pairUpArray, pairDownArray, loopcou
 		return swissEngine (tourney, playRecArray, pairUpArray, pairDownArray, loopcount+1)
 	return null;
 }
-function swissTop(tourney) { //pairs players seeded bracket style
+function beginKnockoutRounds(tourney) { //pairs players seeded bracket style
 	let topArray = [];
-	let pingParty = "Round " + matchDex[tourney].round + " of " + findCurrentGP(tourney) + ". You have 3 days to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
+	let tName = matchDex[tourney].data.name;
+	if(!tName)
+		tName = tourney;
+	let pingParty = "Round " + matchDex[tourney].round + " of " + tName + ". You have 3 days to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
 	let players = matchDex[tourney].players;
 	let matches = matchDex[tourney].matches;
 	matchDex[tourney].knockoutMatches = [];
@@ -6510,7 +6525,8 @@ function swissTop(tourney) { //pairs players seeded bracket style
 		if(matchDex[tourney].players[thisPlayer].gpLoss+matchDex[tourney].players[thisPlayer].gpDraw < 2 && matchDex[tourney].players[thisPlayer].playing && thisPlayer != bye)
 			topArray.push(thisPlayer);
 	}
-	topArray = sortWithBreakers('gp',topArray); //sort by highest to lowest gpWin
+	if(topArray.length > 1)
+		topArray = sortWithBreakers(tourney,topArray); //sort by highest to lowest gpWin
 	let numberOfHumans = topArray.length;
 	let numberOfPlayers = 2;	//increase to next square
 	while(numberOfHumans > numberOfPlayers) {
@@ -6523,7 +6539,7 @@ function swissTop(tourney) { //pairs players seeded bracket style
 		pingParty += newGPMatch(tourney, topArray[pairsArray[thisPair][0]-1], topArray[pairsArray[thisPair][1]-1],'knockout');
 		matchDex[tourney].knockoutMatches.push(matchDex[tourney].matches.length);
 	}
-	matchDex[tourney].pairing = "knockout";
+	matchDex[tourney].data.pairing = "knockout";
 	logMatch();
 	return pingParty;
 }
@@ -6623,7 +6639,10 @@ function applyBreakers (tourney, a, b) { //handles tiebreakers
 	return result;
 }
 function knockoutRound (tourney) { //handles knockout matches
-	let pingParty = "Round " + matchDex[tourney].round + " of " + findCurrentGP() + ". You have 3 days to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
+	let tName = matchDex[tourney].data.name;
+	if(!tName)
+		tName = tourney;
+	let pingParty = "Round " + matchDex[tourney].round + " of " + tName + ". You have 3 days to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
 	let newMatches = [];
 	for(let i=0; i<matchDex[tourney].knockoutMatches.length; i+=2) {
 		let fight1 = matchDex[tourney].matches[matchDex[tourney].knockoutMatches[i]-1];
@@ -7315,58 +7334,90 @@ Client.on("message", (msg) => {
 				}
 				if(msg.content.match(/!admin log roles/i))
 					logRole();
+				if(msg.content.match(/!admin log match/i))
+					logMatch();
 				if(msg.content.match(/!admin log remind/i)) {
 					echoReminders();
 					logReminders();
 				}
 				let lbAdder = msg.content.match(/!addlb ([\s\S]+)/i);
 				if(lbAdder){
-					addLackeyBot(lbAdder[1]);
+					msg.channel.send(addLackeyBot(lbAdder[1]));
 				}
-				let tourneyAdder = msg.content.match(/!addmatch([\s\S]+)/i);
+				let tourneyAdder = msg.content.match(/!editmatch/i);
 				if(tourneyAdder) {
-					let tourneyname = tourneyAdder[1].match(/name: ([^\n]+)/i);
+					let tourneyname = msg.content.match(/name: ([^\n]+)/i);
 					if(tourneyname) {
 						tourneyname = tourneyname[1];
-						let pairing = 'swiss', TO = login.TO, channel = login.comp, rematch = null, runLength = null, set = null;
-						let pairCheck = tourneyAdder[1].match(/pairing: ([^\n]+)/i);
+						let pairing = null, TO = null, channel = null, rematch = null, runLength = null, set = null, subName = null, pingtime = null;
+
+						let pairCheck = msg.content.match(/pairing: ([^\n]+)/i);
 						if(pairCheck)
 							pairing = pairCheck[1];
-						let toCheck = tourneyAdder[1].match(/TO: ([^\n]+)/i);
+						let toCheck = msg.content.match(/TO: ([^\n]+)/i);
 						if(toCheck)
 							TO = toCheck[1];
-						let channelCheck = tourneyAdder[1].match(/channel: ([^\n]+)/i);
+						let channelCheck = msg.content.match(/channel: ([^\n]+)/i);
 						if(channelCheck)
 							channel = channelCheck[1];
-						let rematchCheck = tourneyAdder[1].match(/rematch: ([^\n]+)/i);
+						let rematchCheck = msg.content.match(/rematch: ([^\n]+)/i);
 						if(rematchCheck)
 							rematch = rematchCheck[1];
-						let runsCheck = tourneyAdder[1].match(/runLength: ([^\n]+)/i);
+						let runsCheck = msg.content.match(/runLength: ([^\n]+)/i);
 						if(runsCheck)
 							runLength = runsCheck[1];
-						let setCheck = tourneyAdder[1].match(/set: ([^\n]+)/i);
+						let setCheck = msg.content.match(/set: ([^\n]+)/i);
 						if(setCheck)
 							set = setCheck[1];
-						if(!matchDex.hasOwnProperty[tourneyname]) {
+						let subNameCheck = msg.content.match(/subtitle: ([^\n]+)/i);
+						if(subNameCheck)
+							subName = subNameCheck[1];
+						let timeCheck = msg.content.match(/pingtime: (\d+) ([^\n]+)/i);
+						if(timeCheck)
+							pingtime = [parseInt(timeCheck[1]), timeCheck[2]];
+						
+						if(!matchDex.hasOwnProperty(tourneyname)) {
 							matchDex[tourneyname] = {matches:[], players:{}, round:0, pairing:pairing, awaitingMatches:[], data:{}};
-							matchDex[tourneyname].data.TO = TO;
-							matchDex[tourneyname].data.channel = channel;
-							matchDex[tourneyname].data.rematch = rematch;
-							matchDex[tourneyname].data.runLength = runLength;
-							if(set)
-								matchDex[tourneyname].data.set = set;								
-							logMatch();
-							let matchString = '('
-							for(let tourney in matchDex)
-								matchString += tourney + '|'
-							matchString = matchString.replace(/\|$/, ")");
-							tournamentNames = matchString;
+							msg.channel.send("Tournament created!");			
 						}else{
-							msg.channel.send("Tournament name is already in use.");
+							msg.channel.send("Tournament edited.");
 						}
+						if(TO)
+							matchDex[tourneyname].data.TO = TO;
+						if(pairing)
+							matchDex[tourneyname].data.pairing = pairing;
+						if(channel)
+							matchDex[tourneyname].data.channel = channel;
+						if(rematch)
+							matchDex[tourneyname].data.rematch = parseInt(rematch);
+						if(runLength)
+							matchDex[tourneyname].data.runLength = parseInt(runLength);
+						if(set)
+							matchDex[tourneyname].data.set = set;								
+						if(subName)
+							matchDex[tourneyname].data.name = subName;
+						if(pingtime)
+							matchDex[tourneyname].data.time = pingtime;							
+						logMatch();
+						let matchString = '('
+						for(let tourney in matchDex)
+							matchString += tourney + '|'
+						matchString = matchString.replace(/\|$/, ")");
+						tournamentNames = matchString;
+					}else{
+						let output = "Use !editmatch to edit matchDex tournaments.\n";
+						output += "**name**: name of the tournament behind the scenes. Determines the name of $gpleader and $report gp.\n";
+						output += "**subtitle**: the name used for front facing things. Used for things like \"Your CNM Matches\" and \"Round 1 of GPL\"\n";
+						output += "**TO**: id of Tournament Organizer\n";
+						output += "**pairing**: tournament pairing. Supports swiss, knockout, swiss-knockout, and league\n";
+						output += "**channel**: the channel id where the tournament is housed\n";
+						output += "**rematch**: in leagues, the number of rematches allowed\n";
+						output += "**runLength**: in leagues, the number of matches in a run. Leave blank for unlimited lengths\n";
+						output += "**set**: in sealed leagues, the set to generate pools from\n";
+						output += "**pingtime**: after pushing a round, set a reminder to check on them after this time\n";
+						msg.channel.send(output);
 					}
-				}
-				
+				}		
 				let eventAdd = msg.content.match(/!addevent ([0-9]+)/);
 				if(eventAdd){
 					msg.content.send(addEventTags(eventAdd[1]));
@@ -7588,7 +7639,7 @@ Client.on("message", (msg) => {
 				if(pushMatch) { //move to next round
 					let message = "";
 					let tourney = pushMatch[1].toLowerCase();
-					if(matchDex[tourney].pairings != "league" && (msg.author.id == cajun || msg.author.id == matchDex[tourney].data.TO)) {
+					if(matchDex[tourney].data.pairing != "league" && (msg.author.id == cajun || msg.author.id == matchDex[tourney].data.TO)) {
 						if(matchDex[tourney].matches.length == 0) {
 							matchDex[tourney].round++;
 							message = startTourney(tourney);
@@ -7720,8 +7771,8 @@ Client.on("message", (msg) => {
 					output += "`$role setup` to initialize.\n";
 					output += "`$groupindex` to list the group indexes.\n";
 					let output1 = "To add an existing role to the self-assignable database:\n`$sar Name\ngroup: Group Name (optional)\ngive: Special Give Message (optional)\ntake: Special Take Message (optional)`\n";
-					output1 += "To create a new role that is optionally colored, pingable, hoisted, and/or grouped:\n`$car Role Name\ncolor: Color, ping, hoist, group: GroupName (all optional)`\nPassing a group also adds it as self-assignable.\n";
-					output1 += "The same syntax with `$sgr` or `$cgr` instead of `$sar` or `$car` will add a role that can only be given with the $giverole command, and `$scr` or `$ccr` to add a role that is countable with the $inrole command.\n";
+					output1 += "To create a new role that is optionally colored, pingable, hoisted, and/or grouped:\n`$car Role Name\ncolor: Color, ping, hoist, group: GroupName (all optional)`\n";
+					output1 += "The same syntax with `$sgr` or `$cgr` instead of `$sar` or `$car` will add a role that can only be given with the $giverole command, and `$scr` or `$ccr` to add a role that is countable with the $inrole command, while `$cnr` simply creates the new role.\n";
 					output1 += "`$unset Role Name` to remove an assignable role.\n";
 					output1 += "`$regroup index Role Name` to assign a different group to a role.\n";
 					output1 += "`$rename Role Name $to New Name` to rename a role.";
@@ -7733,6 +7784,7 @@ Client.on("message", (msg) => {
 					let output3 = "`$modrole Role Name` to assign a moderator role. They will be able to use the following commands:\n";
 					output3 += "`$giverole @User RoleName` to give that user that role.\n";
 					output3 += "`$silence @User` to have LackeyBot ignore their posts. Reversed with `$unsilence @User`.";
+					output3 += "`$youarenot @User Rolename` to have LackeyBot not give that role to that user anymore. Reversed with `$youcanbe @User RoleName`.";
 					var exampleEmbed = new Discord.MessageEmbed()
 						.setColor('#00ff00')
 						.setFooter("`$rolehelp` to get this message.")
@@ -7832,7 +7884,7 @@ Client.on("message", (msg) => {
 							.then(mess => logRole(mess.guild.id))
 							.catch(e => console.log(e))
 					}
-					let newRoleMatch = msg.content.match(/^\$c(a|g|c)r ([^\n]+)\n?(color: ?([^\n ]+))?,? ?(ping)?,? ?(hoist)?,? ?(group: ?([^\n]+))?/i);
+					let newRoleMatch = msg.content.match(/^\$c(a|g|c|n)r ([^\n]+)\n?(color: ?([^\n ]+))?,? ?(ping)?,? ?(hoist)?,? ?(group: ?([^\n]+))?/i);
 					if(newRoleMatch){
 						let roleName = newRoleMatch[2];
 						let roleColor = null;
@@ -7856,14 +7908,17 @@ Client.on("message", (msg) => {
 						msg.channel.send(modCheck[1] + " set as the mod role.")
 						logRole(msg.guild.id);
 					}
-				}
-
-				if(msg.guild && allRoles.guilds.hasOwnProperty(msg.guild.id)){
+					let excludeRoleMatch = msg.content.match(/^\$you(arenot|canbe)([^\n]+) <?@?!?([0-9]+)>?$/i)
+					if(excludeRoleMatch) {
+						msg.channel.send(excludeRole(msg.guild.id, excludeRoleMatch[1], excludeRoleMatch[3], excludeRoleMatch[2]))
+							.then(mess => logRole(mess.guild.id))
+							.catch(e => console.log(e))
+					}
+					
 					let giveMatch = msg.content.match(/^\$giverole <?@?!?([0-9]+)>? ([^\n]+)/i);
 					if(giveMatch){
 						let thatMember = Client.guilds.cache.get(msg.guild.id).members.cache.get(giveMatch[1]);
 						let test = false;
-						console.log(giveMatch);
 						if(allRoles.guilds[msg.guild.id].roles.hasOwnProperty(giveMatch[2].toLowerCase())) {
 							test = adjustRoles(giveMatch[2].toLowerCase(), msg.guild.id, thatMember, "roles");
 						}else if(allRoles.guilds[msg.guild.id].givable.hasOwnProperty(giveMatch[2].toLowerCase())){
@@ -8545,7 +8600,7 @@ Client.on("message", (msg) => {
 							//deckContent[1] = "";
 							msg.author.send("Sorry, but deck submissions for the GP are closed!");
 						}
-						if(matchDex.gp.round == 0) {
+						if(matchDex[tourneyname].round == 0) {
 							msg.channel.send(addNewPlayer(tourneyname, msg.author.id).replace("gp", tourneyname));
 							addNewRun(tourneyname,msg.author.id,'/' + tourneyname + '/' + toolbox.stripEmoji(msg.author.username) + '.txt',deckName)
 							logMatch();
@@ -9596,6 +9651,16 @@ Client.on("message", (msg) => {
 						output += thatMatchArray[thatMatch] + " — " + thisRecord + "\n";
 					}
 				}
+				gpName = 'cnm';
+				if(matchDex[gpName].players[msg.author.id]) {
+					output += "__Your CNM matches:__\n";
+					let thatMatchArray = matchDex[gpName].players[msg.author.id].runs[0].matches;
+					for(let thatMatch in thatMatchArray) {
+						let thisRecord = listRecord(matchDex[gpName].matches[thatMatchArray[thatMatch]-1]).replace(/ \(#\d\)/g,"");
+						thisRecord = thisRecord.replace("0-0","(unreported)");
+						output += thatMatchArray[thatMatch] + " — " + thisRecord + "\n";
+					}
+				}
 				if(matchDex[leagueName].players[msg.author.id] && matchDex[leagueName].players[msg.author.id].runs[0]) {
 					output += "__Your league matches:__\n";
 					let thisMatchArray = matchDex[leagueName].players[msg.author.id].runs[matchDex[leagueName].players[msg.author.id].currentRun-1].matches;
@@ -9778,6 +9843,10 @@ Client.on("message", (msg) => {
 						gpName = 'pie';
 						reportGPMatch = reportPIEMatch;
 					}
+					if(reportCNMMatch) {
+						gpName = 'cnm'
+						reportGPMatch = reportCNMMatch;
+					}
 					let matchNo = 0;
 					bribes++;
 					if(hasValue(reportGPMatch[2]))
@@ -9806,87 +9875,6 @@ Client.on("message", (msg) => {
 					helpMess += "LackeyBot will give a confirm message that includes your match number. If you need to edit the results, use that number after the tournament name, for example:\n"
 					helpMess += "> $report gp match 1 0-2 <@341937757536387072>";
 					msg.channel.send(helpMess);
-				}
-			}
-			if(msg.guild && msg.guild.id == "708526831334195272") {//GPC Discord specific
-				//matchDex commands
-				let leagueChans = ["708527337813311499","708857043389513779","712624970207068160"];
-				var signupMatch = msg.content.toLowerCase().match(/\$sign ?up ?(gp|sealed|block|standard)?/i)
-				if(signupMatch) {
-					let override;
-					switch(signupMatch[1]) {
-						case "gp":
-							override = gpName;
-							break;
-						case "sealed":
-							override = "chikyusealedleague";
-							break;
-						case "block":
-							override = "chikyublockleague";
-							break;
-						case "standard":
-							override = "chikyustandardleague";
-							break;
-						default:
-							override = leagueName;
-							if(msg.channel.id == "708527265851506779")
-								override = gpName;
-								break;
-					}
-					if(override == gpName) {
-						if(matchDex[gpName].round == 0){
-							msg.channel.send(addNewPlayer(gpName, msg.author.id).replace(gpName, "GP Chikyu"));
-							addNewRun(gpName,msg.author.id,'','')
-							logMatch();
-						}else{
-							msg.channel.send("The draft GP has already started.");
-						}
-					}else if(override == "chikyusealedleague" && matchDex[override].players.hasOwnProperty(msg.author.id)) {
-						msg.channel.send("You are already signed up for the Sealed league.");
-					}else{
-						msg.channel.send(addNewPlayer(leagueName,msg.author.id));
-						msg.channel.send(addNewRun(leagueName,msg.author.id,'',''));
-						logMatch();
-					}
-				}
-				
-				if(leagueChans.includes(msg.channel.id)) {
-					var reportMatch = msg.content.match(/\$report (?:gp|gpc|league|sealed|block|standard)? ?(match ?([0-9]+))? ?([^<]*<@!?([0-9]*)>)? ?([0-9]) ?[-\/\|] ?([0-9])[^<]*<@!?([0-9]*)/i);
-					if(reportMatch && (!codeCheck || admincheck.includes(0))) {
-						let match = null;
-						if(reportMatch[2])
-							match = reportMatch[2];
-						let player1 = msg.author.id;
-						if(reportMatch[4] && admincheck.includes(1))
-							player1 = reportMatch[4];
-						bribes++;
-						msg.channel.send(`${Client.users.cache.get(msg.author.id)} ${updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match)}`);
-					}
-				}else if(msg.channel.id == "708527265851506779") {
-					var reportGPMatch = msg.content.match(/\$report (?:gp|gpc|league|sealed|block|standard)? ?(match ?([0-9]+))? ?([^<]*<@!?([0-9]*)>)? ?([0-9]) ?[-\/\|] ?([0-9])[^<]*<@!?([0-9]*)/i);
-					if(reportGPMatch && (!codeCheck || admincheck.includes(0))) {
-						let matchNo = 0;
-						bribes++;
-						if(hasValue(reportGPMatch[2]))
-							matchNo = reportGPMatch[2];
-						let player1 = msg.author.id;
-						if(reportGPMatch[4] && admincheck.includes(1))
-							player1 = reportGPMatch[4];
-						if(matchNo == 0) {
-							for(let aMatch in matchDex[gpName].players[player1].awaitingMatches) {
-								let checkMatch = matchDex[gpName].matches[matchDex[gpName].players[player1].awaitingMatches[aMatch]-1];
-								if(checkMatch.p1 == reportGPMatch[7] || checkMatch.p2 == reportGPMatch[7])
-									matchNo = matchDex[gpName].players[player1].awaitingMatches[aMatch];
-							}
-						}
-						if(matchNo == 0) {
-							msg.channel.send("Please include the match number to edit past matches. It can be found using $matches.")
-						}else{
-							msg.channel.send(Client.users.cache.get(msg.author.id) + " " + updateGPMatch(gpName, player1, reportGPMatch[7], reportGPMatch[5], reportGPMatch[6], matchNo));
-						}
-					}
-				}else if(msg.content.match(/\$report/)){
-					msg.channel.send("Scores can only be reported in their respective channels.");
 				}
 			}
 			if(msg.guild && msg.guild.id == "205457071380889601"){ //purple server specific

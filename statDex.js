@@ -10,10 +10,14 @@ var arcana = require('./arcana.js');									//can work with card fields
 var archiveArray = [];													//holds array of tourneyArchive files
 var baseFilters = {after:2004};											//default to after May Madness update
 const bye = "343475440083664896"; 										//bye player id
+var cardBase = arcana.msem.cards;
 const config = require("./config/lackeyconfig.json");					//for logging into Discord
 var discClient = require('./discClient.js');							//other Discord stuff
 var fs = require('fs');
 var fuzzy = require('./fuzzy.js');										//fuzzy searching for fun and profit
+var skipThese = function(){
+	return false; //don't skip anything by default
+};
 var statDex = {															//a baby statDex
 	cards:{},															//card data, holds historic W-L, decks that contain them, matches that contain them
 	players:{},															//player data, holds historid W-L, their decks, and their matches
@@ -267,12 +271,12 @@ function playerWinRate(dex) { 											//writes player spreadsheet of statDex
 	}
 	return output;
 }
-function sortComparedData(dex,array,minMatches,filters,flagLands,comp) {//sorts cards by given compare function, can enforce minimum #of matches to count
+function sortComparedData(dex,array,minMatches,filters,skipThese,comp) {//sorts cards by given compare function, can enforce minimum #of matches to count
 	let filteredWRs = {};
 	let cullSlots = [];
 	for(let card in array) {
 		filteredWRs[array[card]] = comp(dex, array[card], filters);
-		if(filteredWRs[array[card]].matches < minMatches || (flagLands && isBoring(array[card])))
+		if(filteredWRs[array[card]].matches < minMatches || (skipThese(array[card])))
 			cullSlots.push(card);
 		filteredWRs[array[card]].wr = winValToWR(filteredWRs[array[card]])
 	}
@@ -589,7 +593,7 @@ function statFromSet(dex, min, filters, lands, conditional) {			//finds winninge
 }
 function defaultConditional(sets, exclusion){							//default set filter
 	return cond = function(cardName){
-		let card = arcana.msem.cards[cardName];
+		let card = cardBase[cardName];
 		let send = false;
 		for(let set in sets) {
 			if(card.prints.includes(sets[set]))
@@ -603,7 +607,7 @@ function defaultConditional(sets, exclusion){							//default set filter
 				for(let print in card.prints) {
 					if(sets.includes(card.prints[print])) {
 						let newName = cardName.replace(/_[A-Z0-9_]+/, "_" + card.prints[print]);
-						let newCard = arcana.msem.cards[newName];
+						let newCard = cardBase[newName];
 						if(newCard && !newCard.notes.includes("reprint")) //original print
 							send = true;
 					}
@@ -616,7 +620,7 @@ function defaultConditional(sets, exclusion){							//default set filter
 function statFromDesign(dex, designer) {		 						//finds winningest cards from a designer
 	let cardArray = [];
 	for(let card in dex.cards) {
-		if(arcana.msem.cards[fuzzy.searchCards(arcana.msem, card)].designer == designer){
+		if(cardBase[fuzzy.searchCards(arcana.msem, card)].designer == designer){
 			cardArray.push(card)
 		}
 	}
@@ -629,7 +633,7 @@ function statFromDesign(dex, designer) {		 						//finds winningest cards from a
 	}
 	return cardArray;
 }
-function playrateGenerator(dex, filters){								//generates playRate data for each card
+function playrateGenerator(dex, filters, skipThese){					//generates playRate data for each card
 	let miniDex = {}; 								//holds our cards and calc'd playrate values
 	let deckCount = 0;								//keep track of how many decks we've checked
 	for(tourney in dex.tournaments){
@@ -639,15 +643,17 @@ function playrateGenerator(dex, filters){								//generates playRate data for e
 				let listName = dex.tournaments[tourney][list];
 				let thisList = dex.decklists[listName];
 				for(let card in thisList.cards) {
-					let thisCard = thisList.cards[card];
-					if(!miniDex.hasOwnProperty(card))
-						miniDex[card] = {decks:0, mainCount:0, sideCount:0, allCount:0, setCount:0};
-					miniDex[card].decks++;
-					miniDex[card].mainCount += thisCard.mainCount;
-					miniDex[card].sideCount += thisCard.sideCount;
-					miniDex[card].allCount += thisCard.mainCount + thisCard.sideCount;
-					if(thisCard.mainCount + thisCard.sideCount >= 4)
-						miniDex[card].setCount++;
+					if(!skipThese(card)) {
+						let thisCard = thisList.cards[card];
+						if(!miniDex.hasOwnProperty(card))
+							miniDex[card] = {decks:0, mainCount:0, sideCount:0, allCount:0, setCount:0};
+						miniDex[card].decks++;
+						miniDex[card].mainCount += thisCard.mainCount;
+						miniDex[card].sideCount += thisCard.sideCount;
+						miniDex[card].allCount += thisCard.mainCount + thisCard.sideCount;
+						if(thisCard.mainCount + thisCard.sideCount >= 4)
+							miniDex[card].setCount++;
+					}
 				}
 			}
 		}
@@ -729,7 +735,7 @@ function buildUsernameData(dex) {										//returns an array of usernames in th
 	return [array, array2];
 }
 function isBoring(cardName) {											//removes boring lands from topWins
-	let thisCard = arcana.msem.cards[cardName];
+	let thisCard = cardBase[cardName];
 	if(thisCard.typeLine.match("Basic"))
 		return true;
 	if(thisCard.prints.includes("SHRINE"))
@@ -828,9 +834,53 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 	let filterData = processFilters(input);
 	let filters = filterData[0];
 	let filterMessage = filterData[1];
-	let flagLands = false;
-	if(input.match(/nolands/i))
-		flagLands = true;
+	let landFilter = "";
+	if(input.match(/nolands/i)) {
+		skipThese = function(cardName){
+			return isBoring(cardName); //skip boring lands with nolands
+		};
+		landFilter = " and no boring lands";
+	}
+	if(input.match(/yeslands/i)) {
+		skipThese = function(cardName){
+			return !isBoring(cardName); //skip everything but boring lands with yeslands
+		};
+		landFilter = " and only boring lands";
+	}
+	let colorFlag = input.match(/everything (mono)?(white|blue|black|red|green)/i)
+	if(colorFlag) {
+		let colorPoke = new RegExp(colorFlag[2], 'i')
+		skipThese = function(cardName){ //skip colors that aren't everything
+			if(colorPoke[1] && colorPoke[1].match(/mono/i) && cardBase[cardName].color.match("/"))
+				return true;
+			if(cardBase[cardName].color.match(colorPoke))
+				return false;
+			return true;
+		};
+		landFilter = " and everything is " + (colorFlag[1]||"") + colorFlag[2];
+	}
+	let typeFlag = input.match(/yes(artifact|creature|enchantment|instant|sorcery|planeswalker|tribal)/i)
+	if(typeFlag){
+		let typePoke = new RegExp(typeFlag[1], 'i');
+		landFilter = " and only " + typePoke + " cards";
+		skipThese = function(cardName) {
+			if(cardBase[cardName].typeLine.match(typePoke))
+				return false;
+			if(cardBase[cardName].hasOwnProperty('typeLine2') && cardBase[cardName].typeLine2.match(typePoke))
+				return false;
+			return true
+		};
+	}
+	let nonCreFlag = input.match(/noncreatures/);
+	if(nonCreFlag){
+		landFilter = " and only noncreature cards";
+		skipThese = function(cardName) {
+			if(cardBase[cardName].typeLine.match(/Creature/i))
+				return true;
+			return false;
+		}
+	}
+	filterMessage += landFilter;
 	let LBShouldPost = true;
 	if(offline)
 		LBShouldPost = false;
@@ -909,7 +959,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 					return miniDex[name];
 				}
 				let minMatch = grabMin(input);
-				let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, flagLands, comp);
+				let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, comp);
 				let array = wrData[0];				//ordered by winrate
 				let topN = grabTop(array, input);
 				let topBot = "Top";
@@ -942,7 +992,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 			let comp = function(aDex, aCard, someFilters){
 				return matchScript(aDex, player, aCard, someFilters)[0];
 			}
-			let wrData = sortComparedData(dex, Object.keys(dex.cards), minMatch, filters, flagLands, comp);
+			let wrData = sortComparedData(dex, Object.keys(dex.cards), minMatch, filters, skipThese, comp);
 			let array = wrData[0];
 			let topN = grabTop(array, input);
 			let topBot = "Top";
@@ -1045,7 +1095,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				for(let card in dex.cards) {
 					let res = pairedWinRate(dex, card1, card, vsScore, filters);
 					let winRate = winValToWR(res);
-					if(winRate > 0 && res.matches >= minMatch && !(flagLands && isBoring(card))){
+					if(winRate > 0 && res.matches >= minMatch && !(skipThese(card))){
 						cardsArray.push(card)
 						filteredWRs[card] = {};
 						filteredWRs[card].wr = winRate;
@@ -1072,7 +1122,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 		}
 		if(input.match(/(top|bot)Win/i)) {					//top N winrates
 			let minMatch = grabMin(input);
-			let wrData = sortComparedData(dex, Object.keys(dex.cards), minMatch, filters, flagLands, filteredWinRate);
+			let wrData = sortComparedData(dex, Object.keys(dex.cards), minMatch, filters, skipThese, filteredWinRate);
 			let array = wrData[0];
 			let topN = grabTop(array, input);
 			let topBot = "Top";
@@ -1130,7 +1180,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				let setsNab = setsMatch[2].match(/([A-Z0-9_]{1,7})/g);
 				let cond = defaultConditional(setsNab, exc);
 				let minMatches = grabMin(input);
-				let wrData = statFromSet(dex, minMatches, filters, flagLands, cond);
+				let wrData = statFromSet(dex, minMatches, filters, skipThese, cond);
 				let array = wrData[0];
 				let wrObj = wrData[1];
 				let topN = grabTop(array, input, 20);
@@ -1142,6 +1192,42 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				let output = topBot + " winrates for " + setsNab.concat() + "\n";
 				for(let i=0; i<topN; i++) {
 					output += `${i+1}: ${pullSet(array[i])} (${wrObj[array[i]].wins}/${wrObj[array[i]].matches} -> ${winValToWR(wrObj[array[i]])}%)\n`;
+				}
+				return output;
+			}
+		}
+		if(input.match(/playRate/i)) {
+			let playrates = playBase;
+			if(filters == baseFilters && landFilter == "") {
+				playrates = playBaseRecent
+			}else if(Object.keys(filters).length || landFilter){
+				playrates = playrateGenerator(dex, filters, skipThese);
+			}
+			playrates[2] = playrateReporter(playrates);
+			let c = input.match(/\[([^\]]+)\]/);
+			if(c) {
+				let card = addNewStatDexCard(dex, c[1]);
+				if(!playrates[0].hasOwnProperty(card)) {
+					return "No playrate data for " + pullSet(card);
+				}else{
+					let rates = playrates[0][card]
+					let output = "Playrate data for " + pullSet(card) + "\n";
+					output += `Found ${rates.mainCount} in mainboards and ${rates.sideCount} in sideboards across ${rates.decks} decks\n`;
+					output += `${pullSet(card)} is played in ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}% of decks, making it the ${toolbox.ordinalize(playrates[2].indexOf(card)+1)} most played card.`
+					return output;
+				}
+			}else{ //playRateTop/Bot
+				let topBot = "Top";
+				if(input.match(/playRateBot/i)) {
+					playrates[2].reverse();
+					topBot = "Bottom";
+				}
+				let topN = grabTop(playrates[2], input);
+				let output = `${topBot} ${topN} cards by playrate${filterMessage}\n`;
+				for(let i=0; i<topN; i++) {
+					let name = playrates[2][i];
+					let rates = playrates[0][name];
+					output += `${i+1}: ${pullSet(name)} (${rates.decks}/${playrates[1]} -> ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}%)\n`;
 				}
 				return output;
 			}
@@ -1210,14 +1296,11 @@ function playrateReporter(info) {										//sorts and reports playRate data
 			result = miniDex[b].wr*miniDex[b].setCount - miniDex[a].wr*miniDex[a].setCount
 		return result;
 	});
-	let i = 0;
-	console.log("CardName,,Play%,,Win%,,flaggedLand");
-	for(let card in cards) {
-		console.log(`${pullSet(cards[card])},,${parseFloat(100*miniDex[cards[card]].decks/deckCount).toFixed(2)},,${miniDex[cards[card]].wr},,${(isBoring(cards[card]) ? "Y" : "N")}`)
-	}
+	return cards;
 }
-
-//console.log(processCommands({content:"count:10 min:10 setBot VTM", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
+let playBaseRecent = playrateGenerator(statDexPreBuilt, baseFilters, skipThese);
+let playBase = playrateGenerator(statDexPreBuilt, {}, skipThese);
+console.log(processCommands({content:"playRateTop everything black", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
 //loadArchives(fixFiles);
 //exports for live
 exports.initialize = initialize
