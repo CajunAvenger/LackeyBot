@@ -9,13 +9,14 @@ These databases can be changed per server, leaving LackeyBot also fetching cards
 Additionally, you can add $img/!img/?img to your command to show the image instead of the card text, or $rul/!rul/?rul to include any rulings LackeyBot has on it.
 
 When LackeyBot posts the fetched card, it will add a few reactions. X deletes the post, the magnifying glass toggles the card image, the ruler shows any rulings for the card, and the $, !, and ? switch it as though the card had been called in `[[square brackets]]`, `<<angle brackets>>`, or `{{curly brackets}}` respectively, for when you use the wrong ones.
+
 ![Reaction image](https://cdn.discordapp.com/attachments/443557716842250240/754859046389022790/unknown.png)
 
 ### Other LackeyBot Magic commands:
 Command | Description
 ------- | -----------
 `<<Card Name>>` | Returns the card text of Card Name, or the closest thing LackeyBot's fuzzy search finds
-`<<Card Name_SET|(Scryfall query)` | Optional filters. _SET prioritizes cards that are in that set, useful for pulling particular reprints. Scryfall queries after a pipe filter out all cards that don't match the query.
+`<<Card Name_SETl(Scryfall query)` | Optional filters. _SET prioritizes cards that are in that set, useful for pulling particular reprints. Scryfall queries after a pipe filter out all cards that don't match the query.
 !codes | Returns an embed of all set codes for the database
 !stat SET | Returns some stats for the given set code
 !open SET | Opens a pack of the given set code in an embed only the command-sender can interact with
@@ -129,6 +130,8 @@ preview.js is the database builder for sets being previewed
 quotedex.js is the quoteDex database and scripts
 
 rick.js is the Cockatrice plugin builder
+
+statDex.js handles MSEM tournament stats
 
 stitch.js is the main MSEM database updator
 
