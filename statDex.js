@@ -340,13 +340,15 @@ function filteredWinRate(dex, card, filters) { 							//returns general card win
 				for(let match in refCard.matches[tourney]) {
 					let thisMatch = thisTourney.matches[refCard.matches[tourney][match]-1];
 					for(let player in thisMatch.players) {
-						let list = thisMatch.players[player].list.replace('.txt', '.json');
-						if(refCard.decks.includes(list)) {
-							results.matches++;
-							if(thisMatch.players[player].id == thisMatch.winner) {
-								results.wins++;
-							}else{
-								results.losses++;
+						if(matchFilter(thisMatch, player, filters)) {
+							let list = thisMatch.players[player].list.replace('.txt', '.json');
+							if(refCard.decks.includes(list)) {
+								results.matches++;
+								if(thisMatch.players[player].id == thisMatch.winner) {
+									results.wins++;
+								}else{
+									results.losses++;
+								}
 							}
 						}
 					}
@@ -400,20 +402,22 @@ function vsScore(dex, card1, card2, tourney, pairedMatches) {			//finds winrates
 	let thoseMatches = thisTourney.matches;
 	let score = [0,0];
 	for(let aMatch in pairedMatches) {
-		let thisMatch = thisTourney.matches[pairedMatches[aMatch]-1];
-		let player1 = thisMatch.players[0];
-		let player2 = thisMatch.players[1];
-		let winner = thisMatch.winner;
-		if(winner != player1.id && winner != player2.id)
-			continue; //tie
-		let winList = player1.list.replace('.txt', '.json'), loseList = player2.list.replace('.txt', '.json')
-		if(winner == player2.id)
-			winList = player2.list.replace('.txt', '.json'), loseList = player1.list.replace('.txt', '.json');
-		if(dex.cards[card1].decks.includes(winList) && dex.cards[card2].decks.includes(loseList))
-			score[0]++;
-		if(dex.cards[card1].decks.includes(loseList) && dex.cards[card2].decks.includes(winList))
-			score[1]++;
-		//check they're in opposite decks, ticks up both in the mirror
+		if(matchFilter(aMatch, "both", filters)) {
+			let thisMatch = thisTourney.matches[pairedMatches[aMatch]-1];
+			let player1 = thisMatch.players[0];
+			let player2 = thisMatch.players[1];
+			let winner = thisMatch.winner;
+			if(winner != player1.id && winner != player2.id)
+				continue; //tie
+			let winList = player1.list.replace('.txt', '.json'), loseList = player2.list.replace('.txt', '.json')
+			if(winner == player2.id)
+				winList = player2.list.replace('.txt', '.json'), loseList = player1.list.replace('.txt', '.json');
+			if(dex.cards[card1].decks.includes(winList) && dex.cards[card2].decks.includes(loseList))
+				score[0]++;
+			if(dex.cards[card1].decks.includes(loseList) && dex.cards[card2].decks.includes(winList))
+				score[1]++;
+			//check they're in opposite decks, ticks up both in the mirror
+		}
 	}
 	return score;
 }
@@ -422,20 +426,22 @@ function pairedScore(dex,card1,card2,tourney,pairedMatches) {			//finds winrates
 	let thoseMatches = thisTourney.matches;
 	let score = [0,0];
 	for(let aMatch in pairedMatches) {
-		let thisMatch = thisTourney.matches[pairedMatches[aMatch]-1];
-		let player1 = thisMatch.players[0];
-		let player2 = thisMatch.players[1];
-		let winner = thisMatch.winner;
-		if(winner != player1.id && winner != player2.id)
-			continue; //tie
-		let winList = player1.list.replace('.txt', '.json'), loseList = player2.list.replace('.txt', '.json')
-		if(winner == player2.id)
-			winList = player2.list.replace('.txt', '.json'), loseList = player1.list.replace('.txt', '.json');
-		if(dex.cards[card1].decks.includes(winList) && dex.cards[card2].decks.includes(winList))
-			score[0]++;
-		if(dex.cards[card1].decks.includes(loseList) && dex.cards[card2].decks.includes(loseList))
-			score[1]++;
-		//check they're in the same deck, ticks up both in the mirror
+		if(matchFilter(aMatch, "both", filters)) {
+			let thisMatch = thisTourney.matches[pairedMatches[aMatch]-1];
+			let player1 = thisMatch.players[0];
+			let player2 = thisMatch.players[1];
+			let winner = thisMatch.winner;
+			if(winner != player1.id && winner != player2.id)
+				continue; //tie
+			let winList = player1.list.replace('.txt', '.json'), loseList = player2.list.replace('.txt', '.json')
+			if(winner == player2.id)
+				winList = player2.list.replace('.txt', '.json'), loseList = player1.list.replace('.txt', '.json');
+			if(dex.cards[card1].decks.includes(winList) && dex.cards[card2].decks.includes(winList))
+				score[0]++;
+			if(dex.cards[card1].decks.includes(loseList) && dex.cards[card2].decks.includes(loseList))
+				score[1]++;
+			//check they're in the same deck, ticks up both in the mirror
+		}
 	}
 	return score;
 }
@@ -453,13 +459,15 @@ function unpairedWinRate(dex, card1, card2, filters) { 					//finds winrates of 
 				if(thisMatch.winner != thisMatch.players[0].id && thisMatch.winner != thisMatch.players[1].id)
 					continue; //skip ties
 				for(let player in thisMatch.players) {
-					let list = thisMatch.players[player].list.replace('.txt', '.json');
-					if(refCard.decks.includes(list) && !pairCard.decks.includes(list)){
-						score.matches++;
-						if(thisMatch.players[player].id == thisMatch.winner) {
-							score.wins++;
-						}else{
-							score.losses++;
+					if(matchFilter(aMatch, player, filters)) {
+						let list = thisMatch.players[player].list.replace('.txt', '.json');
+						if(refCard.decks.includes(list) && !pairCard.decks.includes(list)){
+							score.matches++;
+							if(thisMatch.players[player].id == thisMatch.winner) {
+								score.wins++;
+							}else{
+								score.losses++;
+							}
 						}
 					}
 				}
@@ -639,20 +647,22 @@ function playrateGenerator(dex, filters, skipThese){					//generates playRate da
 	for(tourney in dex.tournaments){
 		if(tourneyFilter(tourney, filters)){
 			for(let list in dex.tournaments[tourney]) {
-				deckCount++;
 				let listName = dex.tournaments[tourney][list];
 				let thisList = dex.decklists[listName];
-				for(let card in thisList.cards) {
-					if(!skipThese(card)) {
-						let thisCard = thisList.cards[card];
-						if(!miniDex.hasOwnProperty(card))
-							miniDex[card] = {decks:0, mainCount:0, sideCount:0, allCount:0, setCount:0};
-						miniDex[card].decks++;
-						miniDex[card].mainCount += thisCard.mainCount;
-						miniDex[card].sideCount += thisCard.sideCount;
-						miniDex[card].allCount += thisCard.mainCount + thisCard.sideCount;
-						if(thisCard.mainCount + thisCard.sideCount >= 4)
-							miniDex[card].setCount++;
+				if(matchFilter(null, thisList.player, filters)) {
+					deckCount++;
+					for(let card in thisList.cards) {
+						if(!skipThese(card)) {
+							let thisCard = thisList.cards[card];
+							if(!miniDex.hasOwnProperty(card))
+								miniDex[card] = {decks:0, mainCount:0, sideCount:0, allCount:0, setCount:0};
+							miniDex[card].decks++;
+							miniDex[card].mainCount += thisCard.mainCount;
+							miniDex[card].sideCount += thisCard.sideCount;
+							miniDex[card].allCount += thisCard.mainCount + thisCard.sideCount;
+							if(thisCard.mainCount + thisCard.sideCount >= 4)
+								miniDex[card].setCount++;
+						}
 					}
 				}
 			}
@@ -660,6 +670,7 @@ function playrateGenerator(dex, filters, skipThese){					//generates playRate da
 	}
 	for(let card in miniDex) {
 		miniDex[card].wr = winValToWR(filteredWinRate(dex, card, filters), 2);
+		miniDex[card].pwrm = parseFloat(miniDex[card].wr * miniDex[card].decks / deckCount).toFixed(2);
 	}
 	return [miniDex, deckCount];
 }
@@ -687,7 +698,7 @@ function winValToWR(array, precision) {									//converts [wins, matches] array
 		precision = 0;
 	return parseFloat(100*array[0]/array[1]).toFixed(precision)
 }
-function subtractWRs(base, resPre){
+function subtractWRs(base, resPre){										//subtracts two WR objects
 	let res = {};
 	res.wins = base.wins - resPre.wins;
 	res.matches = base.matches - resPre.matches;
@@ -713,13 +724,24 @@ function tourneyInfo(tourneyName) { 									//gives tourney type and truncated 
 	}
 	return [null, 0];
 }
-function tourneyFilter(tourneyName, tData) {	 						//returns if card passes tourney filters
+function tourneyFilter(tourneyName, filters) {	 						//returns if card passes tourney filters
 	let info = tourneyInfo(tourneyName);
-	if(tData.hasOwnProperty('after') && tData.after >= info[1]) //before an after check
+	if(filters.hasOwnProperty('after') && filters.after >= info[1]) //before an after check
 		return false;
-	if(tData.hasOwnProperty('before') && tData.before <= info[1]) //after a before check
+	if(filters.hasOwnProperty('before') && filters.before <= info[1]) //after a before check
 		return false;
-	if(tData.hasOwnProperty('type') && !tData.type.includes(info[0])) //not an approved type
+	if(filters.hasOwnProperty('type') && !filters.type.includes(info[0])) //not an approved type
+		return false;
+	return true;
+}
+function matchFilter(match, player, filters) {
+	if(player == "both" && filters.hasOwnProperty('player')) {
+		for(let aPlayer in match.players) {
+			if(filters.player.includes(aPlayer))
+				return false;
+		}
+	}
+	if(filters.hasOwnProperty('player') && filters.player.includes(player))
 		return false;
 	return true;
 }
@@ -760,6 +782,101 @@ function recordFinder(archive, matches, player) {						//returns score object fr
 		score.matches++;
 	}
 	return score;
+}
+function matchCount(playerCount) {										//expected matches in a gp
+	let rounds = 4;
+	if(playerCount < 9)
+		rounds = 3;
+	if(playerCount%2)
+		playerCount++;
+	let matchPer = playerCount / 2;
+	let expMatches = matchPer * rounds;
+	return expMatches;
+}
+function rankFinder(tourneyName) {										//sorts gp decklists to 1st, 2nd, top4, top8....
+	let thisTourney = require('./tourneyArchives/'+tourneyName+'_archive.json');
+	let win = [];
+	let second = [];
+	let top4 = [];
+	let top8 = [];
+	let theRest = [];
+	let nabbed = [];
+	let matches = thisTourney.matches;
+	let last = matches.length;
+	let lastMatch = matches[last-1];
+	let players = thisTourney.players;
+	let playerCount = Object.keys(players).length;
+	let expectedMatches = matchCount(playerCount);
+	expectedMatches += 3 //top 4 and top 2
+		
+	for(let player in lastMatch.players) {
+		if(lastMatch.winner == lastMatch.players[player].id) {
+			win.push(lastMatch.players[player].list)
+		}else{
+			second.push(lastMatch.players[player].list)
+		}
+		nabbed.push(lastMatch.players[player].list);
+	}
+	let top4s = [matches[last-2], matches[last-3]];
+	for(let match in top4s) {
+		for(let player in top4s[match].players) {
+			if(!nabbed.includes(top4s[match].players[player].list) && player != bye) {
+				top4.push(top4s[match].players[player].list)
+				nabbed.push(top4s[match].players[player].list)
+			}
+		}
+	}
+	if(last > expectedMatches) { //there should be a top 8
+		let top8s = [matches[last-4], matches[last-5], matches[last-6], matches[last-7]];
+		for(let match in top8s) {
+			for(let player in top8s[match].players) {
+				if(!nabbed.includes(top8s[match].players[player].list) && player != bye) {
+					top8.push(top8s[match].players[player].list)
+					nabbed.push(top8s[match].players[player].list)
+				}
+			}			
+		}
+	}
+	for(let player in players) {
+		if(!nabbed.includes(players[player].lists[0]) && player != bye) {
+			theRest.push(players[player].lists[0]);
+			nabbed.push(players[player].lists[0]);
+		}
+	}
+	let obj = {
+		win: win,
+		second: second,
+		top4: top4,
+		top8: top8,
+		theRest: theRest,
+		everybody: nabbed
+	}
+	return obj;
+}
+function leagueFourOhs(tourneyName){									//grabs 5-0, 4-1, and 4-1 league lists
+	let thisTourney = require('./tourneyArchives/'+tourneyName+'_archive.json');
+	let fourOhs = [];
+	let fourOnes = [];
+	let fiveOhs = [];
+	for(let player in thisTourney.players) {
+		for(let run in thisTourney.players[player].matches) {
+			let thisRun = thisTourney.players[player].matches[run]
+			let score = recordFinder(thisTourney, thisRun, player);
+			if(score.wins == 5){
+				fiveOhs.push(thisTourney.players[player].lists[run])
+			}else if(score.wins == 4 && score.losses == 1){
+				fourOnes.push(thisTourney.players[player].lists[run])				
+			}else if(score.wins == 4){
+				fourOhs.push(thisTourney.players[player].lists[run])
+			}
+		}
+	}
+	let obj = {
+		fiveOhs: fiveOhs,
+		fourOnes: fourOnes,
+		fourOhs: fourOhs
+	}
+	return obj;
 }
 //formatting
 function datify(num) {													//converts XX_YY to names
@@ -814,78 +931,98 @@ function processFilters(input) {										//process filters into filter objects
 	let afFilter = input.match(/filter after:? ?(\d+)/i);
 	let befFilter = input.match(/filter before:? ?(\d+)/i);
 	let typeFilter = input.match(/filter type:? ?(gp|league)/i);
+	let pipFilter = input.match(/filter out: ?pip/i);
 	if(afFilter)
 		filters.after = parseInt(afFilter[1]);
 	if(befFilter)
 		filters.before = parseInt(befFilter[1]);
 	if(typeFilter)
 		filters.type = [typeFilter[1]];
+	if(pipFilter)
+		filters.player = ["107957368997834752"];
 	if(filters.hasOwnProperty('after'))
 		message += " after " + datify(filters.after);
 	if(filters.hasOwnProperty('before'))
 		message += " before " + datify(filters.before);
 	if(filters.hasOwnProperty('type'))
 		message += " in " + filters.type + " tournaments";
+	if(filters.hasOwnProperty('type'))
+		message += " in " + filters.type + " tournaments";
+	if(filters.hasOwnProperty('player'))
+		message += " and skipping Pip";
 	return [filters, message];
 }
 function processCommands(msg, offline) { 								//processes commands from Discord posts
 	let input = msg.content;
 	let dex = statDexPreBuilt;
-	let filterData = processFilters(input);
-	let filters = filterData[0];
-	let filterMessage = filterData[1];
-	let landFilter = "";
-	if(input.match(/nolands/i)) {
-		skipThese = function(cardName){
-			return isBoring(cardName); //skip boring lands with nolands
-		};
-		landFilter = " and no boring lands";
-	}
-	if(input.match(/yeslands/i)) {
-		skipThese = function(cardName){
-			return !isBoring(cardName); //skip everything but boring lands with yeslands
-		};
-		landFilter = " and only boring lands";
-	}
-	let colorFlag = input.match(/everything (mono)?(white|blue|black|red|green)/i)
-	if(colorFlag) {
-		let colorPoke = new RegExp(colorFlag[2], 'i')
-		skipThese = function(cardName){ //skip colors that aren't everything
-			if(colorPoke[1] && colorPoke[1].match(/mono/i) && cardBase[cardName].color.match("/"))
-				return true;
-			if(cardBase[cardName].color.match(colorPoke))
-				return false;
-			return true;
-		};
-		landFilter = " and everything is " + (colorFlag[1]||"") + colorFlag[2];
-	}
-	let typeFlag = input.match(/yes(artifact|creature|enchantment|instant|sorcery|planeswalker|tribal)/i)
-	if(typeFlag){
-		let typePoke = new RegExp(typeFlag[1], 'i');
-		landFilter = " and only " + typePoke + " cards";
-		skipThese = function(cardName) {
-			if(cardBase[cardName].typeLine.match(typePoke))
-				return false;
-			if(cardBase[cardName].hasOwnProperty('typeLine2') && cardBase[cardName].typeLine2.match(typePoke))
-				return false;
-			return true
-		};
-	}
-	let nonCreFlag = input.match(/noncreatures/);
-	if(nonCreFlag){
-		landFilter = " and only noncreature cards";
-		skipThese = function(cardName) {
-			if(cardBase[cardName].typeLine.match(/Creature/i))
-				return true;
-			return false;
-		}
-	}
-	filterMessage += landFilter;
 	let LBShouldPost = true;
 	if(offline)
 		LBShouldPost = false;
 	if(msg.content.match(/!test/i))
 		LBShouldPost = true;
+	let filterData = processFilters(input); 				//converts filter:all, filter before:YYMM, filter after:YYMM, filter type:gp/league
+	let filters = filterData[0];							//min:# and count:# get pulled later
+	let filterMessage = filterData[1]; 						//normal text tourney filter description
+	let landFilter = "";									//normal text card filter description
+
+	skipThese = function(cardName) {
+		let test = false;
+		if(input.match(/nolands/i)) {
+			test = isBoring(cardName);
+			if(test)
+				return test;
+		}
+		if(input.match(/yeslands/i)) {
+			test = !isBoring(cardName);
+			if(test)
+				return test;
+		}
+		let colorFlag = input.match(/everything (mono)?(white|blue|black|red|green|gold)/i);
+		if(colorFlag) {
+			let colorPoke = new RegExp(colorFlag[2], 'i')
+			if(colorFlag[1] && colorFlag[1].match(/mono/i)) {
+				if(cardBase[cardName].color.match("/"))
+					return true;
+				test = !cardBase[cardName].color.match(colorPoke);
+			}else if(colorFlag[2].match(/gold/i)){
+				test = !cardBase[cardName].color.match("/");
+			}else{
+				test = !cardBase[cardName].color.match(colorPoke);
+			}
+			if(test)
+				return test;
+		}
+		let typeFlag = input.match(/yes(artifact|creature|enchantment|instant|sorcery|planeswalker|tribal)/i)
+		if(typeFlag){											//skip everything but proper type
+			let typePoke = new RegExp(typeFlag[1], 'i');
+			if(cardBase[cardName].hasOwnProperty('typeLine2') && cardBase[cardName].typeLine2.match(typePoke)) {
+				 test = false;
+			}else{
+				test = !cardBase[cardName].typeLine.match(typePoke)
+			}
+			if(test)
+				return test;
+		}
+		if(input.match(/noncreatures/)) {
+			test = cardBase[cardName].typeLine.match(/Creature/i);
+			if(test)
+				return test;
+		}
+		return false;
+	}
+	if(input.match(/nolands/i))							//skip boring lands with nolands
+		landFilter += " and no boring lands";
+	if(input.match(/yeslands/i))							//skip everything but boring lands with yeslands
+		landFilter += " and only boring lands";
+	let colorFlag = input.match(/everything (mono)?(white|blue|black|red|green|gold)/i)
+	if(colorFlag)											//skip everything but color/monocolor cards
+		landFilter += " and everything is " + (colorFlag[1]||"") + colorFlag[2];
+	let typeFlag = input.match(/yes(artifact|creature|enchantment|instant|sorcery|planeswalker|tribal)/i)
+	if(typeFlag)											//skip everything but proper type
+		landFilter += " and only " + typeFlag[1] + " cards";
+	if(input.match(/noncreatures/))											//skip creatures
+		landFilter += " and only noncreature cards";
+	filterMessage += landFilter;
 	if(LBShouldPost || offline === "all") { //LackeyBot responds
 		if(msg.content.match(/!test/i) && !offline)
 			return "";
@@ -932,7 +1069,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				let card2 = addNewStatDexCard(dex, c[2]);
 				let res = pairedWinRate(dex, card1, card2, pairedScore, filters);
 				let output = `${pullSet(card1)} comboed with ${pullSet(card2)}:\n`;
-				output += `Found ${res.matches} matches${filterMessage}n`;
+				output += `Found ${res.matches} matches${filterMessage}\n`;
 				output += `Decks playing both ${pullSet(card1)} and ${pullSet(card2)} won ${res.wins}/${res.matches} (${winValToWR(res)}%)\n`
 				return output;
 			}
@@ -976,21 +1113,25 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				return mess;
 			}
 		}
-		if(input.match(/player(Combo|Vs)Card(Top|Bot)/i)){	//winrates of cards of a player
+		if(input.match(/player(Combo|Vs)Card(Top|Bot)/i)){	//top/bottom winrates of cards of a player
 			let c = input.match(/(.*) ?player(?:Combo|Vs)Card/i);
 			let playArray = grabPlayerName(dex, msg, c);
 			let player = playArray[0];
 			let playName = playArray[1];		
 			let minMatch = grabMin(input);
-			
+			let youOrMe = 0;
+			if(input.match(/other/i))
+				youOrMe = 1;
 			let matchScript = playerComboCard;
 			let matchMessage = `when played by ${playName}`;
 			if(input.match(/playerVsCard/i)) {
 					matchScript = playerVsCard;
 					matchMessage = `when played against ${playName}`;
 			}
+			if(youOrMe)
+				matchMessage = matchMessage.replace(/when played (by|against)/, "when played $1 players other than")
 			let comp = function(aDex, aCard, someFilters){
-				return matchScript(aDex, player, aCard, someFilters)[0];
+				return matchScript(aDex, player, aCard, someFilters)[youOrMe];
 			}
 			let wrData = sortComparedData(dex, Object.keys(dex.cards), minMatch, filters, skipThese, comp);
 			let array = wrData[0];
@@ -1160,6 +1301,33 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				return output;
 			}
 		}
+		if(input.match(/playerWin(Top|Bot)/i)) {
+			let miniDex = {};
+			let minMatch = grabMin(input);
+			let boots = [];
+			for(let player in dex.players) {
+				miniDex[player] = playerWinRate(dex, player, filters);
+				if(miniDex[player].matches < 4)
+					boots.push(player);
+			}
+			let comp = function(dex, player) {
+				return miniDex[player];
+			}
+			let res = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, playerWinRate);
+			let topN = grabTop(res[0], input);
+			let goodNames = [];
+			let bootNames = [];
+			for(let player in res[0]) {
+				if(!boots.includes(res[0][player]))
+					goodNames.push(dex.players[res[0][player]].username);
+			}
+			for(let player in boots) {
+				bootNames.push(dex.players[boots[player]].username);
+			}
+			console.log("Players with fewer than 4 matches in the last 6 months:")
+			console.log(bootNames);
+				return "";
+		}
 		if(input.match(/playerWin/i)){						//basic player winrate
 			let c = input.match(/(.*) ?playerWin/i);
 			if(c) {
@@ -1196,7 +1364,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				return output;
 			}
 		}
-		if(input.match(/playRate/i)) {
+		if(input.match(/playRate/i)) {						//returns playRate values of cards
 			let playrates = playBase;
 			if(filters == baseFilters && landFilter == "") {
 				playrates = playBaseRecent
@@ -1213,21 +1381,27 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 					let rates = playrates[0][card]
 					let output = "Playrate data for " + pullSet(card) + "\n";
 					output += `Found ${rates.mainCount} in mainboards and ${rates.sideCount} in sideboards across ${rates.decks} decks\n`;
-					output += `${pullSet(card)} is played in ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}% of decks, making it the ${toolbox.ordinalize(playrates[2].indexOf(card)+1)} most played card.`
+					output += `${pullSet(card)} is played in ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}% of decks, making it the ${toolbox.ordinalize(playrates[2].indexOf(card)+1)} most played card.\n`
+					output += `${pullSet(card)} has a win rate of ${rates.wr}% and a play-win rate multi of ${rates.pwrm}%.`
 					return output;
 				}
 			}else{ //playRateTop/Bot
 				let topBot = "Top";
-				if(input.match(/playRateBot/i)) {
+				if(input.match(/playRate(Multi)?Bot/i)) {
 					playrates[2].reverse();
 					topBot = "Bottom";
 				}
 				let topN = grabTop(playrates[2], input);
 				let output = `${topBot} ${topN} cards by playrate${filterMessage}\n`;
+				if(input.match(/RateMulti/i))
+					output = output.replace('playrate', 'playrate * winrate')
 				for(let i=0; i<topN; i++) {
 					let name = playrates[2][i];
 					let rates = playrates[0][name];
-					output += `${i+1}: ${pullSet(name)} (${rates.decks}/${playrates[1]} -> ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}%)\n`;
+					let mess = `(${rates.decks}/${playrates[1]} -> ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}%)`;
+					if(input.match(/RateMulti/i))
+						mess = `(${rates.pwrm}%)`;
+					output += `${i+1}: ${pullSet(name)} ${mess}\n`;
 				}
 				return output;
 			}
@@ -1235,15 +1409,8 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 	}
 	if(!LBShouldPost || offline === "all") { //OfflineBot responds
 	}
-	/* finish api
-		if(input.match(/setWinRate/i)) {			//finds most wins in set
-			statFromSet(statDexPreBuilt, "DOA", false)
-		}
-		if(input.match(/designerWinRate/i)) {		//finds most wins by designer
-			statFromDesign(statDexPreBuilt, "Pipsqueak")
-		}
-		//disabled on live
-		
+
+	/* disabled on live	
 		if(input.match(/buildDefaultDex/i)) {		//builds statDex
 			statDex = buildStatDex(archiveArray);
 		}
@@ -1277,6 +1444,8 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				if(err) throw err;
 				console.log("Done");
 			});
+		if(input.match(/fixFiles/i))
+			loadArchives(fixFiles);
 		}
 	*/
 }
@@ -1300,8 +1469,8 @@ function playrateReporter(info) {										//sorts and reports playRate data
 }
 let playBaseRecent = playrateGenerator(statDexPreBuilt, baseFilters, skipThese);
 let playBase = playrateGenerator(statDexPreBuilt, {}, skipThese);
-console.log(processCommands({content:"playRateTop everything black", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
-//loadArchives(fixFiles);
+//console.log(processCommands({content:"pipsqueak other playerComboCardTop min:20 count:50 nolands", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
+//console.log(leagueFourOhs('league_20_08'))
 //exports for live
 exports.initialize = initialize
 exports.processCommands = processCommands

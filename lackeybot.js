@@ -63,7 +63,7 @@ const cajun = '190309440069697536'; //cajun id
 const azArray = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
 const azEmoteArray = ["🇦","🇧","🇨","🇩","🇪","🇫","🇬","🇭","🇮","🇯","🇰","🇱","🇲","🇳","🇴","🇵","🇶","🇷","🇸","🇹","🇺","🇻","🇼","🇽","🇾","🇿"]
 const blank = "⬚"; //blank square emote
-const leftArrow = "⬅️", rightArrow = "➡️", old_dollarEmote = "💲", old_excEmote = "❗", old_quesEmote = "❓";; old_plainText = "💬", old_mag = "🔍", old_ruler = "📏", old_xEmote = "❌"
+const leftArrow = "⬅️", rightArrow = "➡️", old_dollarEmote = "💲", old_excEmote = "❗", old_quesEmote = "❓", old_plainText = "💬", old_mag = "🔍", old_ruler = "📏", old_xEmote = "❌"
 const old_hourEmote = "🕐", old_dayEmote = "🌞", old_weekEmote = "📆", old_repeatEmote = "🔄";
 const pinEmotes = ["📌","📍"]
 const plainText = "711733693542039562", mag = "711732431472033852", ruler = "711732431614378004", xEmote = "711732430549286912", dollarEmote = "711733693336518738", excEmote = "711732431278833665", quesEmote = "711732431408988230", tieEmote = "753837098771021877";
@@ -1200,7 +1200,6 @@ function matchDexTesting() {
 async function readVersionControl(){
 	let vc = await Client.channels.cache.get(config.versionControlChannel).messages.fetch(config.versionControlPost)
 	vc = vc.content;
-	yeet(vc);
 	versionCheck.remind = parseInt(vc.match(/remind: (\d+)/)[1]);
 	versionCheck.matchDex = parseInt(vc.match(/matchDex: (\d+)/)[1]);
 	versionCheck.devDex = parseInt(vc.match(/devDex: (\d+)/)[1]);
@@ -1222,8 +1221,8 @@ async function startUpFunctions() { //all the start up functions for nicer async
 	}
 	dropboxDownload('stats/stats.json','https://www.dropbox.com/s/nug4q26u6ft44mp/stats.json?dl=0',reloadStats);
 	dropboxDownload('roles.json','https://www.dropbox.com/s/94ltqp66mmo1ko0/roles.json?dl=0',reloadRoles);
-	//dropboxDownload('reminderBase.json','https://www.dropbox.com/s/p69q3kvmfu2lvj2/reminderBase.json?dl=0',reloadRemind);
-	Client.channels.cache.get("750873235079430204").messages.fetch({limit:1}) //reminderfix
+	dropboxDownload('reminderBase.json','https://www.dropbox.com/s/p69q3kvmfu2lvj2/reminderBase.json?dl=0',reloadRemind);
+	/*Client.channels.cache.get("750873235079430204").messages.fetch({limit:1}) //reminderfix
 		.then(function(messages) {
 			let msgarray = messages.array();
 			if(msgarray[0]) {
@@ -1234,14 +1233,14 @@ async function startUpFunctions() { //all the start up functions for nicer async
 			}
 		})
 		.catch(console.error);
-	
+	*/
 	if(botname == "TestBot") {
 		dropboxDownload('matchTest.json','https://www.dropbox.com/s/3rn1zu8qly0z52o/matchDex.json?dl=0',reloadMatchBase);
 	}else{
 		dropboxDownload('msem/matchDex.json','https://www.dropbox.com/s/3rn1zu8qly0z52o/matchDex.json?dl=0',reloadMatchBase);
 	}
-	if(!offline)
-		dropboxDownload('dev/devDex.json','https://www.dropbox.com/s/hzcb14qeovfin3e/devDex.json?dl=0',reloadDevDex);
+	//dropboxDownload('dev/devDex.json','https://www.dropbox.com/s/hzcb14qeovfin3e/devDex.json?dl=0',reloadDevDex, true);
+	dropboxDownload('dev/devDex.json','/lackeybot stuff/devDex.json',reloadDevDex, true);
 	dropboxDownload('msem/gpbase.json','https://www.dropbox.com/s/t9hdhad8ol1c7cu/gpbase.json?dl=0',reloadGPBase)
 	dropboxDownload('draft/draft.json','https://www.dropbox.com/s/i91wp73lshtorir/draft.json?dl=0',reloadDraft);
 	try{
@@ -1255,7 +1254,7 @@ function downloadReminders(attachURL) { //downloads reminderBase after Dropbox b
 		if(err) {
 			Client.users.cache.get(cajun).send("reminderBase failed to reload.");
 		}else{
-			reloadRemind();
+			reloadRemind(attachURL);
 		}
 	});
 }
@@ -1273,14 +1272,12 @@ function reloadGPBase() { //loads gpbase after downloading
 	console.log("Version error in gpbase.");
 	gpbase = test;
 }
-function reloadRemind() { //loads reminderBase after downloading
+function reloadRemind(attachURL) { //loads reminderBase after downloading
 	console.log('Reloading reminderBase');
 	setTimeout(function(){ //won't stop firing early, try/catch isn't helping, time for aggressive measures
 		try{
 			let test = require("./reminderBase.json");
-			yeet(test.version);
 			let list = Object.keys(test.reminders);
-			yeet(test.reminders[list[0]]);
 			if(test.version < versionCheck.remind)
 				throw "Version error in reminders.";
 			reminderData = test;
@@ -1290,7 +1287,8 @@ function reloadRemind() { //loads reminderBase after downloading
 			downloadLoop.reminderBase++
 			console.log("reminderBase download failed, reattempt " + downloadLoop.reminderBase);
 			if(downloadLoop.reminderBase < 5){
-					dropboxDownload('reminderBase.json','https://www.dropbox.com/s/p69q3kvmfu2lvj2/reminderBase.json?dl=0',reloadRemind);
+					//dropboxDownload('reminderBase.json','https://www.dropbox.com/s/p69q3kvmfu2lvj2/reminderBase.json?dl=0',reloadRemind);
+					downloadReminders(attachURL);
 			}else{
 				Client.users.cache.get(cajun).send("reminderBase failed to reload.");
 			}
@@ -1317,29 +1315,32 @@ function reloadMatchBase() { //loads matchdex after downloading
 }
 function reloadDevDex() { //loads matchdex after downloading
 	console.log('Reloading devDex');
-	try{
-		let test = require("./dev/devDex.json");		
-		if(test.version < versionCheck.devDex)
-		console.log("Version error in devDex.");
-		devDex = test;
-		arcana.devDex.cards = devDex.cards;
-		arcana.devDex.devData = devDex.devData;
-		arcana.devDex.setData = devDex.setData;
-		arcana.devDex.formatBribes = bribeLackeyDev;
-		arcana.devDex.printImage = psLinker;
-		arcana.devDex.version = devDex.version;
-		devDex = arcana.devDex;
-		loadArcanaSettings();
-	}catch(e){ //firing before it's supposed to? 
-		console.log(e)
-		downloadLoop.devDex++
-		console.log("devDex download failed, reattempt " + downloadLoop.devDex);
-		if(downloadLoop.devDex < 5){
-			dropboxDownload('dev/devDex.json','https://www.dropbox.com/s/hzcb14qeovfin3e/devDex.json?dl=0',reloadDevDex)
-		}else{
-			Client.users.cache.get(cajun).send("devDex failed to reload.");
+	setTimeout(function() {
+		try{
+			let test = require("./dev/devDex.json");		
+			if(test.version < versionCheck.devDex)
+			console.log("Version error in devDex.");
+			devDex = test;
+			arcana.devDex.cards = devDex.cards;
+			arcana.devDex.devData = devDex.devData;
+			arcana.devDex.setData = devDex.setData;
+			arcana.devDex.formatBribes = bribeLackeyDev;
+			arcana.devDex.printImage = psLinker;
+			arcana.devDex.version = devDex.version;
+			devDex = arcana.devDex;
+			loadArcanaSettings();
+		}catch(e){ //firing before it's supposed to? 
+			console.log(e)
+			downloadLoop.devDex++
+			console.log("devDex download failed, reattempt " + downloadLoop.devDex);
+			if(downloadLoop.devDex < 5){
+				//https://www.dropbox.com/s/hzcb14qeovfin3e/devDex.json?dl=0
+				dropboxDownload('dev/devDex.json','/lackeybot stuff/devDex.json',reloadDevDex, true)
+			}else{
+				Client.users.cache.get(cajun).send("devDex failed to reload.");
+			}
 		}
-	}
+	}, 3000)
 }
 function reloadRoles() { //loads roles and roleRegex after downloading
 	console.log('Reloading roles');
@@ -3577,20 +3578,27 @@ function dropboxUpload (path, contents, callback) { //uploads to dropbox with op
 			console.error(error);
 		});
 }
-function dropboxDownload(path, downLink, callback) { //downloads from dropbox with optional callback
+function dropboxDownload(path, downLink, callback, slow) { //downloads from dropbox with optional callback
 	if(downLink.match(/^http/)) {
 		dbx.sharingGetSharedLinkFile({url:downLink})
 			.then(function(data) {
-				fs.writeFile(path, data.fileBinary, 'binary', function(err) {
-					if (err) throw err;
-					if(callback != undefined && callback != null)
-						callback();
-				});
+				if(slow) {
+					fs.writeFileSync(path, data.fileBinary, 'binary')
+					if(callback)
+						callback()
+				}else{
+					fs.writeFile(path, data.fileBinary, 'binary', function(err) {
+						if (err) throw err;
+						if(callback != undefined && callback != null)
+							callback();
+					});
+				}
 			})
 			.catch(function(err){console.log(err)})
 	}else{
 		dbx.filesDownload({path:downLink})
 			.then(function(data) {
+				console.log(data.fileBinary.length);
 				fs.writeFile(path, data.fileBinary, 'binary', function(err) {
 					if(err) throw err;
 					if(callback != undefined && callback != null)
@@ -5262,7 +5270,6 @@ function remindEditor(time, slot, remindData){
 		//find date of original remind
 		let now = new Date();
 		let dateDiff = timeConversion(remindData.time - now.getTime(), 1)
-		yeet(dateDiff)
 		remindAdder(thisReminder.channel, thisReminder.id, thisReminder.message, dateDiff, remindData.time, thisReminder.channel, thisReminder.hasOwnProperty('event'))
 		delete reminderBase[time][slot];
 	}else{
@@ -5585,7 +5592,7 @@ function addNewPlayer (tourney, id, midFlag) { //adds new player to given tourne
 	}
 }
 function getPlayedOpps (tourney, id, thisRun, knockFlag) { //returns [ [opponent ids], [opponent runs], [opponent matches] ]
-	if(!matchDex[tourney].players[id])
+	if(!matchDex[tourney].players.hasOwnProperty(id))
 		return [[],[],[]];
 	let matchArray = [];
 	if(matchDex[tourney].players[id].runs[thisRun-1])
@@ -5754,9 +5761,9 @@ function renderLeaderBoard(tourney, user, flag) { //creates the list of players 
 function nullMatch (tourney, number) { //nullifies a league match
 	let thisMatch = matchDex[tourney].matches[number-1];
 	//remove it from runs match array
-	let errIndex = matchDex[tourney].players[thisMatch.p1].runs[thisMatch.plr-1].matches.indexOf(number-1)
-	matchDex[tourney].players[thisMatch.p1].runs[thisMatch.plr-1].matches.splice(errIndex,1);
-	errIndex = matchDex[tourney].players[thisMatch.p12].runs[thisMatch.p2r-1].matches.indexOf(number-1)
+	let errIndex = matchDex[tourney].players[thisMatch.p1].runs[thisMatch.p1r-1].matches.indexOf(number)
+	matchDex[tourney].players[thisMatch.p1].runs[thisMatch.p1r-1].matches.splice(errIndex,1);
+	errIndex = matchDex[tourney].players[thisMatch.p2].runs[thisMatch.p2r-1].matches.indexOf(number)
 	//nix data from matches list
 	matchDex[tourney].players[thisMatch.p2].runs[thisMatch.p2r-1].matches.splice(errIndex,1);
 	matchDex[tourney].matches[number-1].p1w = 0;
@@ -5765,6 +5772,8 @@ function nullMatch (tourney, number) { //nullifies a league match
 	//audit player's points
 	auditMatches(tourney, thisMatch.p1);
 	auditMatches(tourney, thisMatch.p2);
+	logMatch();
+	return "Nulled match " + number + " from " + tourney; 
 }
 function addNewRun (tourney, id, dropLink, deckName) { //adds new league run
 	let newRun = {};
@@ -5796,7 +5805,7 @@ function updateMatch (tourney, p1id, p2id, p1w, p2w, match) { //creates or edits
 		matchDex[tourney].matches[match-1].p2r = matchDex[tourney].players[p2id].currentRun;
 		let player1 = pullUsername(p1id);
 		let player2 = pullUsername(p2id);
-		let winString = `${player1} and ${player2} draw with ${p1w} wins each.`;
+		let winString = `${player1} and ${player2} draw with ${p1w} wins each`;
 		matchDex[tourney].matches[match-1].winner = null;
 		if(p1w > p2w) {
 			matchDex[tourney].matches[match-1].winner = p1id;
@@ -5845,7 +5854,7 @@ function updateMatch (tourney, p1id, p2id, p1w, p2w, match) { //creates or edits
 function auditMatches(tourney, id) { //ensures score is correct and alerts that run has ended
 	let temp = bestRecord(tourney, id);
 	matchDex[tourney].players[id].month = temp[4];
-	if(matchDex[tourney].players[id].runs[matchDex[tourney].players[id].currentRun-1].matches.length >= matchDex[tourney].data.runLength) {
+	if(matchDex[tourney].data.runLength != null && matchDex[tourney].players[id].runs[matchDex[tourney].players[id].currentRun-1].matches.length >= matchDex[tourney].data.runLength) {
 		if(tourney == "league") //TODO League customization
 			fourWinPoster(tourney, id, matchDex[tourney].players[id].runs[matchDex[tourney].players[id].currentRun-1]);
 		return `${pullPing(id)}, your run is now over. You may start a new run by submitting a deck through DMs.`;
@@ -5962,6 +5971,7 @@ function vsSeeker (tourney, id) { //finds players the command user can play in t
 		if(!invalidMatch(tourney, id, thisOpponent))
 			clearedArray.push(thisOpponent);
 	}
+	console.log(clearedArray);
 	let output = pullUsername(id) + ", you are able to play the following opponents: ";
 	let i = clearedArray.length;
 	for(let thisOpponent in clearedArray) {
@@ -5981,7 +5991,7 @@ function getCurrentPlayers (tourney) { //finds players than can play in the tour
 	let openArray = [];
 	for(let player in players) {
 		let currentRun = players[player].currentRun;
-		if(hasValue(currentRun) && players[player].runs[currentRun-1].matches.length < matchDex[tourney].data.runLength) {
+		if(hasValue(currentRun) && (matchDex[tourney].data.runLength == null || players[player].runs[currentRun-1].matches.length < matchDex[tourney].data.runLength)) {
 			let oppArray = [player, currentRun];
 			openArray.push(oppArray)
 		}
@@ -6271,6 +6281,7 @@ function pingTourney(tourney) { //pings everyone with awaiting matches
 }
 function updateGPMatch (tourney, p1id, p2id, p1w, p2w, match) {	//edits a gp match
 	let sendString = "";
+	let recOrCorr = "reported";
 	if(matchDex[tourney].matches[match-1].p1 != p1id && matchDex[tourney].matches[match-1].p2 != p1id)
 		sendString += pullUsername(p1id) + " is not in match " + match + ".\n";
 	if(matchDex[tourney].matches[match-1].p1 != p2id && matchDex[tourney].matches[match-1].p2 != p2id)
@@ -6295,17 +6306,21 @@ function updateGPMatch (tourney, p1id, p2id, p1w, p2w, match) {	//edits a gp mat
 		matchDex[tourney].matches[match-1].winner = p2id;
 		winString = player2 + " wins " + p2w + " - " + p1w + " over " + player1;
 	}
-	let p1index = matchDex[tourney].players[p1id].awaitingMatches.indexOf(match);
-	matchDex[tourney].players[p1id].awaitingMatches.splice(p1index, 1)
-	let p2index = matchDex[tourney].players[p2id].awaitingMatches.indexOf(match);
-	matchDex[tourney].players[p2id].awaitingMatches.splice(p2index, 1)
 	let tindex = matchDex[tourney].awaitingMatches.indexOf(match);
-	matchDex[tourney].awaitingMatches.splice(tindex, 1)
+	if(tindex != -1) {
+		matchDex[tourney].awaitingMatches.splice(tindex, 1)
+		let p1index = matchDex[tourney].players[p1id].awaitingMatches.indexOf(match);
+		matchDex[tourney].players[p1id].awaitingMatches.splice(p1index, 1)
+		let p2index = matchDex[tourney].players[p2id].awaitingMatches.indexOf(match);
+		matchDex[tourney].players[p2id].awaitingMatches.splice(p2index, 1)
+	}else{
+		recOrCorr = "corected";	
+	}
 	
 	auditGPMatches(tourney, p1id);
 	auditGPMatches(tourney, p2id);
 	logMatch();
-	return "recorded match " + match + ": " + winString + ".";
+	return recOrCorr + " match " + match + ": " + winString + ".";
 }
 function gpLeaderBoard (tourney) { //creates the list of players sorted by best gp record
 	let players = matchDex[tourney].players;
@@ -6496,8 +6511,10 @@ function swissEngine (tourney, playRecArray, pairUpArray, pairDownArray, loopcou
 		}
 		if(unpaired) { //usually an odd one out, sometimes an unpairable loop
 			for(let lonePlayer in valid) { //for each of our unpaired players
-				playRecArray[parseInt(thisScore)+1].splice(0,0,lonePlayer); //add them to the beginning of the next score
-				pairUpArray.push(lonePlayer);
+				if(playRecArray[parseInt(thisScore)+1]) {
+					playRecArray[parseInt(thisScore)+1].splice(0,0,lonePlayer); //add them to the beginning of the next score
+					pairUpArray.push(lonePlayer);
+				}
 			}
 		}
 	}
@@ -6664,7 +6681,7 @@ function matchWinPercentage(tourney, player, min) { //finds a player's match win
 	if(!min)
 		min = 0;
 	let thisPlayer = matchDex[tourney].players[player];
-	let byed = getPlayedOpps(tourney, bye, 0, true); //get info on byes
+	let byed = getPlayedOpps(tourney, bye, 1, true); //get info on byes
 	let wins = 0, matches = 0; //set these as new numbers to avoid references
 	wins += thisPlayer.gpWin;
 	matches += thisPlayer.gpWin + thisPlayer.gpLoss + thisPlayer.gpDraw;
@@ -6679,7 +6696,7 @@ function gameWinPercentage(tourney, player, min) { //finds a player's game win p
 	if(!min)
 		min = 0;
 	let thisPlayer = matchDex[tourney].players[player];
-	let byed = getPlayedOpps(tourney, bye, 0, true); //get info on byes
+	let byed = getPlayedOpps(tourney, bye, 1, true); //get info on byes
 	let wins = 0, games = 0; //set these as new numbers to avoid references
 	for(let match in thisPlayer.runs[0].matches) {
 		let matchNo = thisPlayer.runs[0].matches[match]
@@ -6696,7 +6713,7 @@ function gameWinPercentage(tourney, player, min) { //finds a player's game win p
 	return 100*Math.max(min, p);
 }
 function oppWinPercentage(tourney, player, percentageFunction) { //find a player's OMW or OGW
-	let opps = getPlayedOpps(tourney, player, 0, true);
+	let opps = getPlayedOpps(tourney, player, 1, true);
 	let omws = [];
 	for(let opp in opps[0]) {
 		let thisOpp = opps[0][opp];
@@ -7295,12 +7312,24 @@ Client.on("message", (msg) => {
 		}
 	}
 	var codeCheck = msg.content.match(/`/);
+	let gpName, isLeague;
+	for(let t in matchDex) {
+		if(matchDex[t].hasOwnProperty('data') && matchDex[t].data.hasOwnProperty('channel')) {
+			if(matchDex[t].data.channel == msg.channel.id) {
+				gpName = t;
+				isLeague = (matchDex[gpName].data.pairing == "league");
+			}
+		}
+	}
+
 	try{
 		admincheck = checkRank(msg); //in a try/catch because it was firing on startup and crashing
 	}catch(e){
 		admincheck = [7];
 	}
-    if(!msg.author.bot && !admincheck.includes(9) && !msg.content.match(/\$ignore/i) && (!offline || admincheck.includes(0) || msg.channel.id == "755707492947722301")){ //prevents LackeyBot from responding to itself or other bots
+    if(!msg.author.bot && !admincheck.includes(9) && !msg.content.match(/\$ignore/i)){ //prevents LackeyBot from responding to itself or other bots
+		if(offline && !admincheck.includes(0))
+			return
 	//Admin Commands
 	//0 - Bot admin permissions
 	//1 - TO permssions
@@ -7312,7 +7341,7 @@ Client.on("message", (msg) => {
 		try{//admin/debugging commands
 			if(admincheck.includes(0)) { //commands limited to bot admin
 				if(msg.content.match("!devdate"))
-					updateDevDex();
+					reloadDevDex();
 				if(msg.content.match(/!remindEdit/i))
 					msg.channel.send(parseReminderEdit(msg.content));
 				if(msg.content.match(/!hookshift/i)){
@@ -7632,7 +7661,7 @@ Client.on("message", (msg) => {
 				let nulRegex = new RegExp('!null ' + tournamentNames + ' ([0-9]+)','i')
 				var nulMatch = msg.content.match(nulRegex)
 				if(hasValue(nulMatch) && (msg.author.id == cajun || msg.author.id == matchDex[nulMatch[1]].data.TO)) {
-					nulMatch(nulMatch[1], nulMatch[2]);
+					msg.channel.send(nullMatch(nulMatch[1], parseInt(nulMatch[2])));
 				}
 				let pushRegex = new RegExp('!push ?' + tournamentNames,'i')
 				let pushMatch = msg.content.match(pushRegex);
@@ -7948,8 +7977,8 @@ Client.on("message", (msg) => {
 			}
 			if(msg.channel && msg.channel.id == "755707492947722301"){
 				let out = statDexHandler.processCommands(msg, offline)
-					if(out)
-						msg.channel.send(out)
+				if(out)
+					msg.channel.send(out)
 			}
 		}catch(e){
 			console.log("Admin commands:");
@@ -9585,7 +9614,10 @@ Client.on("message", (msg) => {
 
 			//matchDex commands
 			let leagueName = "league";
-			let gpName = "gp";
+			if(gpName && isLeague)
+				leagueName = gpName;
+			if(msg.content.match(/sealed/i))
+				leagueName = 'sealed';
 			let leagueMessage = "MSEM Leagues are monthly events where you play runs of up to 5 best-of-3 matches with a single deck against different opponents. At any point you can end your league run, which can use a different deck.\nDuring each month, you earn points from your 3 best runs: 1 point for each win, and a bonus point for each perfect 5-0 run, for a max of 18 points each month. At the end of the League season (every 4 months), the player with the highest cumulative score for the season will be awarded a Champion promo card of their choice.\nTo get started with monthly Leagues, DM LackeyBot the following command and your league decklist:\n```$submit league cajun's Cat Tax\n4x Saigura Tam\n...```";
 
 			var partLeagueMatch = msg.content.match(/\$league ?(\d+)/i);
@@ -9632,40 +9664,19 @@ Client.on("message", (msg) => {
 			if(msg.content.match(/\$(block ?|standard ?|sealed ?)?matches/i)) {
 				bribes++;
 				let output = "";
-				if(matchDex[gpName].players[msg.author.id]) {
-					output += "__Your GP matches:__\n";
-					let thatMatchArray = matchDex[gpName].players[msg.author.id].runs[0].matches;
-					for(let thatMatch in thatMatchArray) {
-						let thisRecord = listRecord(matchDex[gpName].matches[thatMatchArray[thatMatch]-1]).replace(/ \(#\d\)/g,"");
-						thisRecord = thisRecord.replace("0-0","(unreported)");
-						output += thatMatchArray[thatMatch] + " — " + thisRecord + "\n";
+				for(let t in matchDex) {
+					if(matchDex[t].hasOwnProperty('players') && matchDex[t].players.hasOwnProperty(msg.author.id)) {
+						let thisRun = matchDex[t].players[msg.author.id].runs
+						if(thisRun.length) {
+							output += `__Your ${matchDex[t].data.name} matches:__\n`;
+							let thatMatchArray = matchDex[t].players[msg.author.id].runs[thisRun.length-1].matches;
+							for(let thatMatch in thatMatchArray) {
+								let thisRecord = listRecord(matchDex[t].matches[thatMatchArray[thatMatch]-1]).replace(/ \(#\d\)/g,"");
+								thisRecord = thisRecord.replace("0-0","(unreported)");
+								output += thatMatchArray[thatMatch] + " — " + thisRecord + "\n";
+							}
+						}
 					}
-				}
-				gpName = 'pie';
-				if(matchDex[gpName].players[msg.author.id]) {
-					output += "__Your PIE matches:__\n";
-					let thatMatchArray = matchDex[gpName].players[msg.author.id].runs[0].matches;
-					for(let thatMatch in thatMatchArray) {
-						let thisRecord = listRecord(matchDex[gpName].matches[thatMatchArray[thatMatch]-1]).replace(/ \(#\d\)/g,"");
-						thisRecord = thisRecord.replace("0-0","(unreported)");
-						output += thatMatchArray[thatMatch] + " — " + thisRecord + "\n";
-					}
-				}
-				gpName = 'cnm';
-				if(matchDex[gpName].players[msg.author.id]) {
-					output += "__Your CNM matches:__\n";
-					let thatMatchArray = matchDex[gpName].players[msg.author.id].runs[0].matches;
-					for(let thatMatch in thatMatchArray) {
-						let thisRecord = listRecord(matchDex[gpName].matches[thatMatchArray[thatMatch]-1]).replace(/ \(#\d\)/g,"");
-						thisRecord = thisRecord.replace("0-0","(unreported)");
-						output += thatMatchArray[thatMatch] + " — " + thisRecord + "\n";
-					}
-				}
-				if(matchDex[leagueName].players[msg.author.id] && matchDex[leagueName].players[msg.author.id].runs[0]) {
-					output += "__Your league matches:__\n";
-					let thisMatchArray = matchDex[leagueName].players[msg.author.id].runs[matchDex[leagueName].players[msg.author.id].currentRun-1].matches;
-					for(let thisMatch in thisMatchArray)
-						output += thisMatchArray[thisMatch] + " — " + listRecord(matchDex[leagueName].matches[thisMatchArray[thisMatch]-1]) + "\n";
 				}
 				output += "__Recent league matches:__\n";
 				for(let cm = Math.max(0,matchDex[leagueName].matches.length-5); cm<matchDex[leagueName].matches.length; cm++) {
@@ -9687,7 +9698,7 @@ Client.on("message", (msg) => {
 			if(gpBoardMatch) {
 				bribes++;
 				let tourneyname = gpBoardMatch[1];
-				if(matchDex[tourneyname].data.pairing == "league") {
+				if(isLeague) {
 					msg.channel.send(renderLeaderBoard(tourneyname));					
 				}else{
 					msg.channel.send(renderGPLeaderBoard(tourneyname, false))
@@ -9695,7 +9706,7 @@ Client.on("message", (msg) => {
 						.catch(e => console.log(e))
 				}
 			}
-			if(msg.content.match(/\$(block ?|standard ?|sealed ?)?(foes|vsseeker)/i)) {
+			if(msg.content.match(/\$(sealed ?)?(foes|vsseeker)/i)) {
 				bribes++;
 				msg.channel.send(vsSeeker(leagueName, msg.author.id));
 			}
@@ -9810,6 +9821,7 @@ Client.on("message", (msg) => {
 			}
 			if(msg.guild && msg.guild.id == "317373924096868353") {//MSEM Discord specific
 				//matchDex commands
+				/*
 				var reportMatch = msg.content.match(/\$report *le?a?gu?e? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
 				if(!reportMatch && msg.channel.id == login.league)
 					reportMatch = msg.content.match(/\$report *(?:le?a?gu?e?) *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
@@ -9823,58 +9835,64 @@ Client.on("message", (msg) => {
 					bribes++;
 					msg.channel.send(`${Client.users.cache.get(msg.author.id)} ${updateMatch(leagueName, player1, reportMatch[7], reportMatch[5], reportMatch[6], match)}`);
 				}
+				*/
 				
-				var reportGPMatch = msg.content.match(/\$report *gp[a-z]? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
-				if(!reportGPMatch && msg.channel.id == login.comp)
-					reportGPMatch = msg.content.match(/\$report *(?:gp[a-z]?)? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
-
-				var reportPIEMatch = msg.content.match(/\$report *(?:pie|primordial)? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
-				if(!reportPIEMatch && msg.channel.id == "743145579298816050")
-					reportPIEMatch = msg.content.match(/\$report *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
-
-				var reportCNMMatch = msg.content.match(/\$report *cn?mn? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
-				if(!reportCNMMatch && msg.channel.id == "663814604425789461")
-				var reportCNMMatch = msg.content.match(/\$report *c?n?m?n? *(match *([0-9]+))? ?([^<]*<@!?([0-9]*)>)? *([0-9]) *[-\/\|] *([0-9])[^<]*<@!?([0-9]*)/i);
-
-				var gpReported = (reportGPMatch || reportPIEMatch || reportCNMMatch)
-
-				if(gpReported && (!codeCheck || admincheck.includes(0))) {
-					if(reportPIEMatch) {
-						gpName = 'pie';
-						reportGPMatch = reportPIEMatch;
-					}
-					if(reportCNMMatch) {
-						gpName = 'cnm'
-						reportGPMatch = reportCNMMatch;
-					}
-					let matchNo = 0;
-					bribes++;
-					if(hasValue(reportGPMatch[2]))
-						matchNo = reportGPMatch[2];
-					let player1 = msg.author.id;
-					if(reportGPMatch[4] && admincheck.includes(1))
-						player1 = reportGPMatch[4];
-					if(matchNo == 0) {
-						for(let aMatch in matchDex[gpName].players[player1].awaitingMatches) {
-							let checkMatch = matchDex[gpName].matches[matchDex[gpName].players[player1].awaitingMatches[aMatch]-1];
-							if(checkMatch.p1 == reportGPMatch[7] || checkMatch.p2 == reportGPMatch[7])
-								matchNo = matchDex[gpName].players[player1].awaitingMatches[aMatch];
+				let reportGPMatch = msg.content.match(/\$report([^\n]+)/i)
+				if(reportGPMatch && !codeCheck) { //reporting matches
+					let reportLine = reportGPMatch[1];
+					let scoresMatch = reportLine.match(/(\d+)[-\/\| ]+(\d+)[-\/\| ]*(\d+)?/);
+					let matchMatch = reportLine.match(/match (\d+)/i);
+					let playersMatch = toolbox.globalCapture('<@!?([0-9]+)>', reportLine, true);
+					if(scoresMatch && playersMatch && gpName) {
+						let ids = []; //player ids
+						if(playersMatch.length > 1 && (admincheck.includes(1) || msg.author.id == matchDex[gpName].data.TO)) {
+							for(let p in playersMatch)
+								ids.push(playersMatch[p][1]);
+						}else{
+							ids = [msg.author.id, playersMatch[0][1]];
 						}
+						let matchNo = 0;
+						if(matchMatch) //if they give a match number, use that
+							matchNo = matchMatch[1];
+						if(isLeague) {
+							bribes++;
+							msg.channel.send(`${Client.users.cache.get(msg.author.id)} ${updateMatch(gpName, ids[0], ids[1], scoresMatch[1], scoresMatch[2], matchNo)}`);
+						}else{
+							if(matchNo == 0) { //if they didn't give a match number, figure out what it is
+								let refPlayer = matchDex[gpName].players[ids[0]];
+								for(let aMatch in refPlayer.awaitingMatches) {
+									let checkMatch = matchDex[gpName].matches[refPlayer.awaitingMatches[aMatch]-1];
+									if(ids.includes(checkMatch.p1) || ids.includes(checkMatch.p2))
+										matchNo = refPlayer.awaitingMatches[aMatch];
+								}
+							}
+							if(matchNo == 0) { //if we still fail, check for a match with both players
+								let run1 = matchDex[gpName].players[ids[0]].runs
+								let run2 = matchDex[gpName].players[ids[1]].runs
+								let match1 = run1[run1.length-1].matches;
+								let match2 = run2[run1.length-1].matches;
+								let pairs = toolbox.arrayDuplicates(match1, match2);
+								for(let m in pairs){
+									if(pairs[m] > matchNo)
+										matchNo = pairs[m];
+								}
+							}
+							if(matchNo == 0) { //if we *still* don't have a match, something went wrong or the players are wrong
+								msg.channel.send("Could not find match. Ensure you have pinged the correct person, or use a match number.");
+							}else{ //(tourney, p1id, p2id, p1w, p2w, match) {
+								msg.channel.send(`${Client.users.cache.get(msg.author.id)} ${updateGPMatch(gpName, ids[0], ids[1], scoresMatch[1], scoresMatch[2], matchNo)}`);
+								if(matchDex[gpName].awaitingMatches.length == 0)
+									msg.channel.send("<@!" + matchDex[gpName].data.TO + ">, All matches have been reported!");
+								bribes++;
+							}
+						}
+					}else{ //help message for malformed report commands
+						let helpMess = "Report or edit match results by pinging your opponent and using the $report commands:\n";
+						helpMess += "> $report gp YourWins-Opponent'sWins @Opponent\n> $report league YourWins-Opponent'sWins @Opponent\n";
+						helpMess += "LackeyBot will give a confirm message that includes your match number. If you need to edit the results, use that number after the tournament name, for example:\n"
+						helpMess += "> $report gp match 1 0-2 <@341937757536387072>";
+						msg.channel.send(helpMess);
 					}
-					if(matchNo == 0) {
-						msg.channel.send("Please include the match number to edit past matches. LackeyBot gives that number after reporting, or can be found using $matches. The edit command is formatted `$report gp match N X-Y @Opponent`.")
-					}else{
-						msg.channel.send(`${Client.users.cache.get(msg.author.id)} ${updateGPMatch(gpName, player1, reportGPMatch[7], reportGPMatch[5], reportGPMatch[6], matchNo)}`);
-						if(matchDex[gpName].awaitingMatches.length == 0)
-							msg.channel.send("<@!" + matchDex[gpName].data.TO + ">, All matches have been reported!");
-					}
-				}
-				if(msg.content.match(/\$report/) && !reportMatch && !reportGPMatch) { //help message for malformed report commands
-					let helpMess = "Report or edit match results by pinging your opponent and using the $report commands:\n";
-					helpMess += "> $report gp YourWins-Opponent'sWins @Opponent\n> $report league YourWins-Opponent'sWins @Opponent\n";
-					helpMess += "LackeyBot will give a confirm message that includes your match number. If you need to edit the results, use that number after the tournament name, for example:\n"
-					helpMess += "> $report gp match 1 0-2 <@341937757536387072>";
-					msg.channel.send(helpMess);
 				}
 			}
 			if(msg.guild && msg.guild.id == "205457071380889601"){ //purple server specific

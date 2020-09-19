@@ -19,7 +19,7 @@
     "canvas": "^2.6.1",
     "discord.js": "^12.3.1",
     "download-file": "^0.1.5",
-    "dropbox": "^4.0.17",
+    "dropbox": "^5.2.1",
     "ejs": "^2.6.1",
     "express": "^4.16.4",
     "extend": "^3.0.2",
@@ -36,8 +36,8 @@
     "utf-8-validate": "^5.0.2"
   },
   "engines": {
-    "node": "8.9.4",
-    "npm": "5.6.0"
+    "node": "12.13.1",
+    "npm": "6.12.1"
   },
   "devDependencies": {
     "ws": "^3.3.2"
