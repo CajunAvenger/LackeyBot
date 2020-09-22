@@ -1315,32 +1315,30 @@ function reloadMatchBase() { //loads matchdex after downloading
 }
 function reloadDevDex() { //loads matchdex after downloading
 	console.log('Reloading devDex');
-	setTimeout(function() {
-		try{
-			let test = require("./dev/devDex.json");		
-			if(test.version < versionCheck.devDex)
-			console.log("Version error in devDex.");
-			devDex = test;
-			arcana.devDex.cards = devDex.cards;
-			arcana.devDex.devData = devDex.devData;
-			arcana.devDex.setData = devDex.setData;
-			arcana.devDex.formatBribes = bribeLackeyDev;
-			arcana.devDex.printImage = psLinker;
-			arcana.devDex.version = devDex.version;
-			devDex = arcana.devDex;
-			loadArcanaSettings();
-		}catch(e){ //firing before it's supposed to? 
-			console.log(e)
-			downloadLoop.devDex++
-			console.log("devDex download failed, reattempt " + downloadLoop.devDex);
-			if(downloadLoop.devDex < 5){
-				//https://www.dropbox.com/s/hzcb14qeovfin3e/devDex.json?dl=0
-				dropboxDownload('dev/devDex.json','/lackeybot stuff/devDex.json',reloadDevDex, true)
-			}else{
-				Client.users.cache.get(cajun).send("devDex failed to reload.");
-			}
+	try{
+		let test = require("./dev/devDex.json");		
+		if(test.version < versionCheck.devDex)
+		console.log("Version error in devDex.");
+		devDex = test;
+		arcana.devDex.cards = devDex.cards;
+		arcana.devDex.devData = devDex.devData;
+		arcana.devDex.setData = devDex.setData;
+		arcana.devDex.formatBribes = bribeLackeyDev;
+		arcana.devDex.printImage = psLinker;
+		arcana.devDex.version = devDex.version;
+		devDex = arcana.devDex;
+		loadArcanaSettings();
+	}catch(e){ //firing before it's supposed to? 
+		console.log(e)
+		downloadLoop.devDex++
+		console.log("devDex download failed, reattempt " + downloadLoop.devDex);
+		if(downloadLoop.devDex < 5){
+			//https://www.dropbox.com/s/hzcb14qeovfin3e/devDex.json?dl=0
+			dropboxDownload('dev/devDex.json','/lackeybot stuff/devDex.json',reloadDevDex, true)
+		}else{
+			Client.users.cache.get(cajun).send("devDex failed to reload.");
 		}
-	}, 3000)
+	}
 }
 function reloadRoles() { //loads roles and roleRegex after downloading
 	console.log('Reloading roles');
@@ -3578,34 +3576,47 @@ function dropboxUpload (path, contents, callback) { //uploads to dropbox with op
 			console.error(error);
 		});
 }
-function dropboxDownload(path, downLink, callback, slow) { //downloads from dropbox with optional callback
-	if(downLink.match(/^http/)) {
-		dbx.sharingGetSharedLinkFile({url:downLink})
-			.then(function(data) {
-				if(slow) {
-					fs.writeFileSync(path, data.fileBinary, 'binary')
+function dropboxDownload(path, downLink, callback, big) { //downloads from dropbox with optional callback
+	if(big) {
+		dbx.filesGetTemporaryLink({path:downLink})
+			.then(function(result) {
+				download(result.link, {directory:"./", filename:path}, function(err) {
+					if(err)
+						console.log(err);
 					if(callback)
-						callback()
-				}else{
-					fs.writeFile(path, data.fileBinary, 'binary', function(err) {
-						if (err) throw err;
-						if(callback != undefined && callback != null)
-							callback();
-					});
-				}
-			})
-			.catch(function(err){console.log(err)})
-	}else{
-		dbx.filesDownload({path:downLink})
-			.then(function(data) {
-				console.log(data.fileBinary.length);
-				fs.writeFile(path, data.fileBinary, 'binary', function(err) {
-					if(err) throw err;
-					if(callback != undefined && callback != null)
 						callback();
 				});
 			})
-			.catch(function(err){console.log(err)})
+			.catch(e => console.log(e))
+	}else{
+		if(downLink.match(/^http/)) {
+			dbx.sharingGetSharedLinkFile({url:downLink})
+				.then(function(data) {
+					if(big) {
+						fs.writeFileSync(path, data.fileBinary, 'binary')
+						if(callback)
+							callback()
+					}else{
+						fs.writeFile(path, data.fileBinary, 'binary', function(err) {
+							if (err) throw err;
+							if(callback != undefined && callback != null)
+								callback();
+						});
+					}
+				})
+				.catch(function(err){console.log(err)})
+		}else{
+			dbx.filesDownload({path:downLink})
+				.then(function(data) {
+					console.log(data.fileBinary.length);
+					fs.writeFile(path, data.fileBinary, 'binary', function(err) {
+						if(err) throw err;
+						if(callback != undefined && callback != null)
+							callback();
+					});
+				})
+				.catch(function(err){console.log(err)})
+		}
 	}
 }
 function verifyDeck (path,contents) { //downloads an uploaded deck and checks if they are the same (we were having issues with unfinished uploads)
@@ -5508,6 +5519,8 @@ function resetTourney(tourney) { //archives tourney data and resets it
 			matchStats.winner = null;
 			if(leadArray[2] > leadArray[3])
 				matchStats.winner = leadArray[0];
+			if(currentMatch.round)
+				matchStats.round = currentMatch
 			leagueArchive.matches.push(matchStats);
 		}
 		let leagueText = JSON.stringify(leagueArchive);
@@ -6251,7 +6264,7 @@ function pushTourney(tourney) { //move tournament to next round, change style if
 	if(matchDex[tourney].data.pairing == 'knockout') {
 		return knockoutRound(tourney);
 	}
-	//if we're past the swiss rounds, cut to top
+	//if we're past the swiss rounds in a swiss-knockout, cut to top
 	if(matchDex[tourney].round > swissCount(numberOfHumans) && matchDex[tourney].data.pairing != 'swiss') {
 		return beginKnockoutRounds(tourney);
 	}
@@ -7321,7 +7334,6 @@ Client.on("message", (msg) => {
 			}
 		}
 	}
-
 	try{
 		admincheck = checkRank(msg); //in a try/catch because it was firing on startup and crashing
 	}catch(e){

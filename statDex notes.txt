@@ -54,7 +54,8 @@ decklists: {
 			},
 		}
 		"player":"126785105556537344",					//player id
-		"tournament":"gp_19_11"							//tournament id
+		"tournament":"gp_19_11",						//tournament id
+		"matches":[3,6,10]								//matches in that tournament its in
 	}
 },
 tournaments:{											

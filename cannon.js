@@ -1,7 +1,11 @@
 /* Cannon
  Builds the canon database using mtgjson files
+ https://mtgjson.com/api/v5/AllSetFiles.zip
 */
 
+var AllSetFilesLink = 'https://mtgjson.com/api/v5/AllPrintings.json'
+var allPrintings = {};
+const rp = require("request-promise-native");
 var fs = require('fs');
 var toolbox = require('./toolbox.js');
 var dateToNumber = toolbox.dateToNumber;
@@ -56,6 +60,35 @@ let aliases = {
 	"Mysterious Egg": "Mothra's Great Cocoon",
 	"Dirge Bat": "Battra, Dark Destroyer",
 	"Crystalline Giant": "Mechagodzilla, the Weapon"
+}
+function downloadJSON () {
+	let requestPromise = new Promise((resolve, reject) => {
+		rp({url: AllSetFilesLink, json: true}).then(body => {
+			resolve(body);
+		}, () => {
+			console.log('ono');
+		});
+	});
+	return requestPromise;
+}
+async function init() {
+	let cb = function(data) {
+		allPrintings = data
+	}
+	let beep = downloadJSON()
+		.then(data => cb(data))
+		.catch(e => console.log(e))
+	let waiting = await beep;
+	console.log(allPrintings.data["10E"].baseSetSize)
+}
+function goodLordTrimThat() { //make the file a lil more lightweight cause eeeesh
+	for(let set in allPrintings.data) {
+		let thisSet = allPrintings.data[set];
+		delete thisSet.boosters;
+		for(let card in thisSet.cards)
+			delete thisSet.cards[card].foreignData;
+		fs.writeFile('allPrintings.json', JSON.stringify(allPrintings, null, 1))
+	}
 }
 function writeArray(thisFile) {
 	let thisSet = require('./canon/setbank/' + thisFile);
@@ -155,7 +188,7 @@ function doStuff () {
 function blockBuilder(fileType) {
 	for(let fileName in fileType) {
 		console.log("Converting " + fileType[fileName]);
-		let thisSet = require('./canon/setbank/' + fileType[fileName]);
+		let thisSet = require('./canon/setbank/' + fileType[fileName]).data;
 		let set_code = thisSet.code;
 		if(set_code == "IKO")
 			applyIKOAlias(thisSet);
@@ -186,6 +219,8 @@ function blockBuilder(fileType) {
 			let nextCard = "";
 			let thisCard = "";
 			let clearedFor = "yes";
+			if(thisSet.cards[i].layout == "modal_dfc")
+				thisSet.cards[i].layout = "double-faced";
 			if(thisSet.cards[i].layout == "meld")
 				clearedFor = null;
 			if(thisSet.cards[i].hasOwnProperty('names') && thisSet.cards[i].names.includes("Who"))
@@ -241,12 +276,14 @@ function blockBuilder(fileType) {
 				let thisEntry = {};
 				thisEntry.fullName = databaseName;
 				thisEntry.cardName = thisCard.name;
+				if(thisCard.hasOwnProperty("faceName"))
+					thisEntry.cardName = thisCard.faceName;
 				if(thisCard.type.match("Vanguard"))
 					thisEntry.cardName += " Avatar";
 				if(thisCard.manaCost === undefined) {
 					thisEntry.manaCost = "";
 				}else{
-					thisEntry.manaCost = thisCard.manaCost;
+					thisEntry.manaCost = thisCard.manaCost.replace(/{H(WUBRG)}/,"{|$1}");
 				}
 				thisEntry.typeLine = thisCard.type;
 				let cardRarity = thisCard.rarity.replace("timeshifted ", "")[0].toUpperCase();
@@ -272,14 +309,14 @@ function blockBuilder(fileType) {
 				}else{
 					let cardText = thisCard.text.replace(/\(/g,"*(");
 					cardText = cardText.replace(/\)/g,")*");
-					thisEntry.rulesText = cardText + "\n";
+					thisEntry.rulesText = cardText.replace(/{H(WUBRG)}/,"{|$1}") + "\n";
 				}
 				if(thisCard.flavorText === undefined) {
 					thisEntry.flavorText = "";
 				}else{
 					thisEntry.flavorText = "*" + thisCard.flavorText + "*\n";
 				}
-				thisEntry.flavorText = flavorFix(thisEntry.flavorText, thisCard.scryfallId);
+				thisEntry.flavorText = flavorFix(thisEntry.flavorText, thisCard.identifiers.scryfallId);
 				if(thisCard.power === undefined) {
 					thisEntry.power = "";
 				}else{
@@ -300,6 +337,8 @@ function blockBuilder(fileType) {
 				}
 				if(thisCard.loyalty === undefined) {
 					thisEntry.loyalty = "";
+				}else if(thisCard.loyalty == "X") {
+					thisEntry.loyalty = "X";
 				}else{
 					thisEntry.loyalty = parseInt(thisCard.loyalty);
 					if(thisEntry.loyalty === null)
@@ -316,17 +355,19 @@ function blockBuilder(fileType) {
 				if(thisCard.types === undefined)
 					cardTypes = "";
 				thisEntry.cardType = cardTypes;
-				thisEntry.scryID = thisCard.scryfallId;
+				thisEntry.scryID = thisCard.identifiers.scryfallId;
 				if(thisCard.layout == "split" || thisCard.layout == "flip" || thisCard.layout == "double-faced" || thisCard.layout == "aftermath" || thisCard.layout === "transform" || thisCard.layout == "adventure") {
 					if(nextCard == "") {
 						i += 1;
 						nextCard = thisSet.cards[i];
 					}
 					thisEntry.cardName2 = nextCard.name;
+					if(nextCard.hasOwnProperty("faceName"))
+						thisEntry.cardName2 = nextCard.faceName;
 					if(nextCard.manaCost === undefined) {
 						thisEntry.manaCost2 = "";
 					}else{
-						thisEntry.manaCost2 = nextCard.manaCost;
+						thisEntry.manaCost2 = nextCard.manaCost.replace(/{H(WUBRG)}/,"{|$1}");
 					}
 					thisEntry.typeLine2 = nextCard.type;
 					let cardRarity = nextCard.rarity.replace("timeshifted ", "")[0].toUpperCase();
@@ -385,7 +426,7 @@ function blockBuilder(fileType) {
 					if(nextCard.types === undefined)
 						cardTypes = "";
 					thisEntry.cardType2 = cardTypes;
-				thisEntry.scryID2 = nextCard.scryfallId;
+				thisEntry.scryID2 = nextCard.identifiers.scryfallId;
 				}
 				cardRarity = thisCard.rarity.replace("timeshifted ", "");
 				if(thisCard.type.match(/Basic Land/i))
@@ -482,7 +523,7 @@ function standardize() {
 				standardSets.push(setsArray[set]);
 				sortedSetData[setsArray[set]].standard = true;
 			}
-			if(standardSets.length >= 4) { //always at least 4
+			if(standardSets.length >= 5) { //always at least 5
 				let checkMonth = String(sortedSetData[standardSets[standardSets.length-1]].release).charAt(5);
 				if(checkMonth == '9' || checkMonth == '0') //September or October release
 					return; //source of last rotation
@@ -496,7 +537,7 @@ function thenFix () {
 		canonDatabase[meld] = meld_entries[meld];
 	}
 	console.log("Meld complete");
-	var sortedSets = require('./canon/cardsSetsArray');
+	var sortedSets = require('./canon/canonSetsArray');
 	for(let set in sortedSets) {
 		if(setData.hasOwnProperty(set) || set == "BOT")
 			sortedSetData[set] = setData[set];
