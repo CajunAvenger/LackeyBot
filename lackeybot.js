@@ -331,6 +331,10 @@ function switchReacts(msg, emoteOrder, pages) { //callback that adds the switche
 		)
 		.catch(e => console.log(e))
 }
+function reactLRArrows(msg) { //callback that adds the left/right arrow reacts
+	msg.react(leftArrow)
+		.then(msg.react(rightArrow))
+}
 function buildCardFetchEmbed(outputArray, arcanaData, mainArcanaName, strings, msg, page) { //writes fetched cards and switcheroo embed
 	let wraps = [];
 	let base2 = [];
@@ -360,6 +364,9 @@ function buildCardFetchEmbed(outputArray, arcanaData, mainArcanaName, strings, m
 		searchStrings += `${arcanaData[mainArcanaName].prefix.replace(/\\+/,"")}img`;
 	if(msg.match(new RegExp(`${arcanaData[mainArcanaName].prefix}rul`,'i')))
 		searchStrings += `${arcanaData[mainArcanaName].prefix.replace(/\\+/,"")}rul`;
+	let altMatch = msg.match(/(\$|\?|!)(msem|myriad|cajun)/i);
+	if(altMatch)
+		searchStrings += "$" + altMatch[2];
 	let content = "";
 	let charCount = 0;
 	let textPages = [];
@@ -5260,7 +5267,7 @@ function remindAdder (channel, id, message, date, time, sendChannel, eventFlag) 
 		Client.channels.cache.get(channel).send("LackeyBot cannot set a reminder that far in the future.");
 	}
 }
-function remindEditor(time, slot, remindData){
+function remindEditor(time, slot, remindData){ //edits a reminder object
 	if(!reminderBase.hasOwnProperty(time) || !reminderBase[time].hasOwnProperty(slot))
 		return "Invalid reminder slot data.";
 	let thisReminder = reminderBase[time][slot];
@@ -5287,6 +5294,46 @@ function remindEditor(time, slot, remindData){
 		logReminders();
 	}
 	return "Reminder updated";
+}
+function buildReminderListEmbed(userID, startFrom, embedFlag) { //builds the reminderlist and if necessary its page turner embed
+	let i = 0;
+	reminderCell[userID] = {};
+	reminderCell[userID][0] = {};
+	for(let remindTime in reminderBase) {
+		for(let ent in reminderBase[remindTime]) {
+			if(reminderBase[remindTime][ent].message != "" && (reminderBase[remindTime][ent].id == userID || (reminderBase[remindTime][ent].hasOwnProperty('cc') && reminderBase[remindTime][ent].cc.includes(userID)))) {
+				reminderCell[userID][i] = {};
+				reminderCell[userID][i].message = reminderBase[remindTime][ent].message;
+				reminderCell[userID][i].time = remindTime;
+				reminderCell[userID][i].index = ent;
+				reminderCell[userID][i].deleted = 0;
+				i++;
+			}
+		}
+	}
+	if(!reminderCell[userID][0].time) {
+		return ["You don't have any reminders right now.", false];
+	}else{
+		let reminderPost = "Your reminders:\n";
+		let currenttime = new Date().getTime();
+		currenttime = Math.trunc(currenttime / 60000) * 60000;
+		let overflow = 0, embedded = null, remLength = Object.keys(reminderCell[userID]).length;
+		for(i = startFrom; i< remLength; i++) {
+			let testEnt = i + " — " + timeConversion(reminderCell[userID][i].time - currenttime, 1) + " from now: " + reminderCell[userID][i].message + "\n";
+			if(reminderPost.length + testEnt.length < 1920) {
+				reminderPost += testEnt
+			}else{
+				break;
+			}
+		}
+		if(i < remLength-1 || embedFlag) {
+			embedded = new Discord.MessageEmbed()
+				.setFooter(`Reminders ${startFrom} - ${i-1}/${remLength-1} for ${userID}`)
+		}
+		reminderPost += "\nPost `$reminderdelete <number>` to delete a reminder.";
+		bribes++;
+		return [reminderPost, embedded];
+	}
 }
 function hookShift(currentTime, newTime){
 	let i = 0, delArray = [];
@@ -9466,34 +9513,13 @@ Client.on("message", (msg) => {
 				}	
 			}
 			if(msg.content.match(/\$reminderlist/i)) {
-				let userID = msg.author.id;
-				let i = 0;
-				reminderCell[userID] = {};
-				reminderCell[userID][0] = {};
-				for(let remindTime in reminderBase) {
-					for(let ent in reminderBase[remindTime]) {
-						if(reminderBase[remindTime][ent].message != "" && (reminderBase[remindTime][ent].id == userID || (reminderBase[remindTime][ent].hasOwnProperty('cc') && reminderBase[remindTime][ent].cc.includes(userID)))) {
-							reminderCell[userID][i] = {};
-							reminderCell[userID][i].message = reminderBase[remindTime][ent].message;
-							reminderCell[userID][i].time = remindTime;
-							reminderCell[userID][i].index = ent;
-							reminderCell[userID][i].deleted = 0;
-							i++;
-						}
-					}
-				}
-				if(!reminderCell[userID][0].time) {
-					msg.channel.send("You don't have any reminders right now.");
+				let embedData = buildReminderListEmbed(msg.author.id, 0);
+				if(embedData[1]){
+					msg.channel.send(embedData[0], embedData[1])
+						.then(mess => mess.react(rightArrow))
+						.catch(e => console.log(e))
 				}else{
-					let reminderPost = "Your reminders:\n";
-					let currenttime = new Date().getTime();
-					currenttime = Math.trunc(currenttime / 60000) * 60000;
-					for(let entry in reminderCell[userID]) {
-						reminderPost += entry + " — " + timeConversion(reminderCell[userID][entry].time - currenttime, 1) + " from now: " + reminderCell[userID][entry].message + "\n";
-					}
-					reminderPost += "\nPost `$reminderdelete <number>` to delete a reminder.";
-					msg.channel.send(reminderPost);
-					bribes++;
+					msg.channel.send(embedData[0]);
 				}
 			}
 			var remdelmatch = msg.content.match(/\$reminderdelete <?([0-9]+)>?/i);
@@ -10319,11 +10345,11 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 							}
 						}
 						//embeds that depend on footer data
-						if(embedData.footer.text == "MSEM Patch Info") {
+						if(embedData.footer.text == "MSEM Patch Info") { 	//msem patch embed
 							let embedBuild = function() {return buildPatchEmbed(textFlag)[0]};
 							turnEmbedPage(msg, [0,1,1], embedBuild, update, textFlag);
 						}
-						if(embedData.footer.text.match(/^Previous/)) {
+						if(embedData.footer.text.match(/^Previous/)) {		//cr embed
 							if(emittedEmote == leftArrow) {
 								let crCheck = embedData.footer.text.match(/Previous ([^\n]+)/);
 								if(crCheck) {
@@ -10342,7 +10368,7 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 							}
 							cullReacts(msg, [Client.user.id])
 						}
-						if(emittedEmote == plainText && embedData.footer.text == collectToPlainMsg) {
+						if(emittedEmote == plainText && embedData.footer.text == collectToPlainMsg) { //plain text link collections
 							let trimmedEmbed = new Discord.MessageEmbed(embedData)
 								.setFooter(plainToCollectMsg)
 								.setDescription('')
@@ -10358,7 +10384,7 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 								.setFooter(collectToPlainMsg)
 							msg.edit('', filledEmbed);
 						}
-						if(embedData.footer.text.match(/Reminder slot/)){
+						if(embedData.footer.text.match(/Reminder slot/)){	//ping me too reminders
 							if(emittedEmote == pingStar) {
 								let reminderslot = embedData.footer.text.match(/Reminder slot (\d+)\[(\d+)/);
 								let remTime = reminderslot[1];
@@ -10388,6 +10414,20 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 								}
 							}else{
 								cullReacts(msg, [Client.user.id]);
+							}
+						}
+						if(embedData.footer.text.match(/Reminders/)) {		//reminderlist
+							let numData = embedData.footer.text.match(/(\d+) - (\d+)\/(\d+) for (\d+)/);
+							if(numData) {
+								let oldStart = numData[1];
+								let oldEnd = parseInt(numData[2]);
+								let remLength = parseInt(numData[3]);
+								let userID = numData[4];
+								let reacted = cullReacts(msg, [Client.user.id]);
+								if(reacted.includes(userID)) {
+									let embedded = buildReminderListEmbed(userID, (oldEnd+1)%(remLength+1), true)
+									msg.edit(embedded[0], embedded[1]);
+								}
 							}
 						}
 						
@@ -10428,6 +10468,19 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 								if(arcanaSettings[grab][shape].data.bigname == currentLib)
 									oldPre = arcanaSettings[grab][shape].prefix;
 							}
+							if(!name) //if its not saved, it's a swapped square
+								name = "square";
+							if(name == "square" && searchString.match(/\$(myriad|cajun|msem)/)) {
+								if(searchString.match(/\$myriad/))
+									library = arcana.myriad;
+								if(searchString.match(/\$cajun/))
+									library = arcana.cajun_standard;
+								if(searchString.match(/\$msem/))
+									library = arcana.msem;
+								if(oldPre != "$")
+									newPre = "$";
+							}
+							//check if on $ and swap to $msem/$myriad if it's cached too
 							if(oldPre && newPre)
 								searchString = searchString.replace(new RegExp('(ϕ|'+oldPre+')', 'g'), newPre.replace(/\\+/,""))
 							let matches = toolbox.globalCapture("(?:\\{|\\[|<)(?:\\{|\\[|<)([^\\]\\}>]+)(?:\\]|\\}|>)(?:\\]|\\}|>)", searchString);
