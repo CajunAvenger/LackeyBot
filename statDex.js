@@ -549,6 +549,8 @@ function playerComboCard(dex, player, card, filters) { 					//finds winrate of a
 						if(thisPlayer.id != player) {				//if this is someone else
 							inputScore = othersScore;
 						}
+						if(thisPlayer.id == player)
+							console.log(thisPlayer.list);	
 						if(refMatch.winner == thisPlayer.id) {		//if this is the winner
 							inputScore.matches++;					//tick up their matches and wins
 							inputScore.wins++;
@@ -1734,7 +1736,7 @@ function playrateReporter(info) {										//sorts and reports playRate data
 	});
 	return cards;
 }
-//console.log(processCommands({content:"stapleMaker filter after:2002 min:25 represent:2 count:50 nonbasic", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
+//console.log(processCommands({content:"pips playerComboCard[Exeunt] filter after:2006 filter type:league", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
 //console.log(leagueFourOhs('league_20_08'))
 //exports for live
 exports.initialize = initialize

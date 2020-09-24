@@ -1200,10 +1200,7 @@ var statDexFull = require('./statDex.json');
 var arcanaSettings = {};
 loadArcanaSettings();
 
-function matchDexTesting() {
-	if(matchDex.hasOwnProperty('testingGround'))
-		delete matchDex["testingGround"]
-}
+function matchDexTesting() {}
 async function readVersionControl(){
 	let vc = await Client.channels.cache.get(config.versionControlChannel).messages.fetch(config.versionControlPost)
 	vc = vc.content;
@@ -2183,10 +2180,14 @@ function buildGeneralEmbed(array, header, page, perPage, textFlag) { //converts 
 
 	return [embedInfo, pages];
 }
-function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag) { //moves to the left or right page of a 1d embed
+function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, altIndex) { //moves to the left or right page of a 1d embed
 	let emoteArray = msg.reactions.cache.array();
-	let thisPage = parseInt(pageCheck[1])-1;
-	let lastPage = parseInt(pageCheck[2])-1;
+	let thisPage = parseInt(pageCheck[1]);
+	let lastPage = parseInt(pageCheck[2]);
+	if(!altIndex){
+		thisPage--;
+		lastPage--;
+	}
 	let userIDs = [];
 	let saveArray = [];
 	let go = false;
@@ -2209,6 +2210,8 @@ function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag) { //moves t
 					if(thisPage < 0)
 						thisPage = lastPage;
 				}
+				if(altIndex && thisPage == 0)
+					thisPage = altIndex;
 				for(let id in userIDs) {
 					if(!saveArray.includes(emote) && userIDs[id] != Client.user.id)
 						emoteArray[anEmote].users.remove(userIDs[id]);
@@ -5512,7 +5515,11 @@ function generateBracketSeeds (powers) { //generate bracket with 2^input pairs
 }
 function resetTourney(tourney) { //archives tourney data and resets it
 		let leagueArchive = {};
-		let flag = {gp:0,league:0};
+		let flag = {};
+		for(let t in matchDex) {
+			if(t != "version")
+				flag[t] = 0;
+		}
 		leagueArchive.matches = [];
 		leagueArchive.players = {};
 		let trolearray = {league: '638181322325491744', gp: '588781514616209417'}
@@ -5948,18 +5955,86 @@ function invalidMatch (tourney, p1id, p2id) { //true if match is illegal
 	let opCurrentRun = matchDex[tourney].players[p2id].currentRun;
 	let opRematchCounter = 0; //number of matches these runs have had
 	for(let thisOpp in oppArrays[0]) { //for each opponent
-		if(oppArrays[1][thisOpp] == opCurrentRun)	//if their current run
+		if(oppArrays[0][thisOpp] == p2id && oppArrays[1][thisOpp] == opCurrentRun)	//if their current run
 			opRematchCounter++;
 	}
 	let remLimit = matchDex[tourney].data.rematch;
 	if(!remLimit)
-		remLimit = 0;
-	if(opRematchCounter > remLimit)
-		return `Invalid match: These two runs have already played each other${(remLimit > 0 ? " the maximum number of times" : "")}.`
+		remLimit = 1;
+	if(opRematchCounter >= remLimit)
+		return `Invalid match: These two runs have already played each other${(remLimit > 1 ? " the maximum number of times" : "")}.`
 	return 0;
 }
-function reportRecord (tourney, id, lookback) { // the $league info command
+function buildLeagueInfoRecord(tourney, id, lookback) {
+	let oppString = "", runRecords = "";
+	let thisPlayer = matchDex[tourney].players[id];
+	let thisRun = thisPlayer.currentRun;
+	var opps = null;
+	let playRuns = thisPlayer.runs;
+	let mScore = thisPlayer.month;
+	let sScore = parseInt(thisPlayer.month+thisPlayer.season);
+	let lScore = parseInt(thisPlayer.month+thisPlayer.season+thisPlayer.lifetime);
+	let title = `${pullUsername(id)} League Info`;
+	if(tourney != 'league')
+		title += ` - ${matchDex[tourney].data.name}`
+	let desc = `You are on run #${thisRun}: ${thisPlayer.runs[thisRun-1].deckName}`
+	if(thisPlayer.runs[thisRun-1].matches.length >= matchDex[tourney].data.runLength)
+		desc += ". This run has ended, be sure to submit a new deck before playing more League games";
+	if(hasValue(lookback) && lookback < thisRun && lookback != 0) {
+		thisRun = lookback;
+		desc = `This is your ended run #${thisRun}: ${thisPlayer.runs[lookback-1].deckName}.`
+		desc += `\nThis run's record was ${getRecord(tourney, id, thisRun)[0]}`;
+	}
+	if(matchDex[tourney].players[id].runs[0] && matchDex[tourney].players[id].runs[thisRun-1] && matchDex[tourney].players[id].runs[thisRun-1].matches)
+		opps = getPlayedOpps(tourney, id, thisRun);
+	if(opps) {
+		let bestRun = bestRecord(tourney, id);
+		lScore = parseInt(thisPlayer.lifetime + bestRun[4]);
+		for(let i=0; i<opps[0].length; i++) {
+			let anOpp = pullUsername(opps[0][i]);
+			let refMatch = matchDex[tourney].matches[opps[2][i]-1];
+			let refData = renderSelfRecord(refMatch, id);
+			if(matchDex[tourney].players[opps[0][i]].currentRun > opps[1][i]){
+				oppString += matchDex[tourney].players[opps[0][i]].runs[opps[1][i]-1].deckName
+			}else{
+				oppString += anOpp;
+			}
+			oppString += " (#" + opps[1][i] + ", ";
+			oppString += refData[0][1] + "-" + refData[1][1];
+			oppString += ")"
+			if(i != opps[0].length-1)
+				oppString += "\n";
+		}
+		if(oppString == "")
+			oppString = "no one";
+		if(playRuns.length == 0) {
+			runRecords += "You have no runs yet.";
+		}else{
+			for(let i=1; i<playRuns.length+1; i++) {
+				runRecords += getRecord(tourney, id, i)[0];
+				runRecords += " (" + thisPlayer.runs[i-1].deckName +")";
+				if(i != playRuns.length) {
+					runRecords += "\n";
+				}
+			}
+		}
+	}
+	let embedded = new Discord.MessageEmbed()
+		.setTitle(title)
+		.setDescription(desc)
+		.addField('Scores', `Month: ${mScore}\nSeason: ${sScore}\nLifetime: ${lScore}`, true)
+		//.addField('Month Score', mScore, true)
+		//.addField('Season Score', sScore, true)
+		//.addField('Lifetime Score', lScore, true)
+		.addField(`Your Run Record${(playRuns.length == 1 ? " is" : "s are")}`, runRecords, true)
+		.addField('Matches This Run', oppString, true)
+		.setFooter(`${tourney} run data ${thisRun}/${thisPlayer.currentRun}`)
+	return [embedded, (thisPlayer.currentRun != 1)]
+}
+function reportRecord (tourney, id, lookback, textFlag) { // the $league info command
 	let output = "";
+	if(!textFlag)
+		return buildLeagueInfoRecord(tourney, id, lookback);
 	if(matchDex[tourney].players[id]) {
 		let oppString = "";
 		let thisPlayer = matchDex[tourney].players[id];
@@ -5967,7 +6042,7 @@ function reportRecord (tourney, id, lookback) { // the $league info command
 		if(hasValue(lookback) && lookback < thisRun && lookback != 0)
 			thisRun = lookback;
 		let bestRun = bestRecord(tourney, id);
-		output += pullUsername(id) + ", you are on run #" + thisRun;
+		output += pullUsername(id) + ", you are on run #" + thisRun + ":" + thisPlayer.runs[thisRun-1].deckName;
 		if(thisPlayer.runs[thisRun-1].matches.length >= matchDex[tourney].data.runLength)
 			output += ". This run has ended, be sure to submit a new deck before playing more League games";
 		if(hasValue(lookback) && lookback < thisRun && lookback != 0) {
@@ -5975,11 +6050,17 @@ function reportRecord (tourney, id, lookback) { // the $league info command
 			output += ".\nThis run's record was " + getRecord(tourney, id, thisRun)[0];			
 		}
 		output += ".\n";
+		let neTitle = `${pullUsername(id)} League Info`;
+		if(tourney != 'league')
+			neTitle += ` - ${matchDex[tourney].data.name}`
+		var nullEmbed = new Discord.MessageEmbed()
+			.setTitle(neTitle)
+			.setFooter(`${tourney} run data ${thisRun}/${thisPlayer.currentRun}`)
 		if(matchDex[tourney].players[id].runs[0] && matchDex[tourney].players[id].runs[thisRun-1] && matchDex[tourney].players[id].runs[thisRun-1].matches) {
 			var opps = getPlayedOpps(tourney, id, thisRun);
 		}else{
 			output += "You have not played any matches this run.\nYour league score this month is " + thisPlayer.month + ". Your league score this season is " + parseInt(thisPlayer.month+thisPlayer.season) + ". Your lifetime league score is " + parseInt(thisPlayer.month+thisPlayer.lifetime) + ".";
-			return output;
+			return [[output, nullEmbed], (thisPlayer.currentRun != 1)];
 		}
 		let lifescore = parseInt(thisPlayer.lifetime + bestRun[4]);
 		for(let i=0; i<opps[0].length; i++) {
@@ -6015,10 +6096,10 @@ function reportRecord (tourney, id, lookback) { // the $league info command
 		}
 		output += "This run you have played against " + oppString + ".\n";
 		output += "Your league score this month is " + bestRun[4] + ". Your league score this season is " + parseInt(bestRun[4]+thisPlayer.season) + ". Your lifetime league score is " + lifescore + ".";
+		return [[output, nullEmbed], (thisPlayer.currentRun != 1)];
 	}else{
-		output = "Error: You are not signed up for this league.";
+		return ["Error: You are not signed up for this league."];
 	}
-	return output;
 }
 function vsSeeker (tourney, id) { //finds players the command user can play in the league
 	let players = matchDex[tourney].players;
@@ -7409,11 +7490,6 @@ Client.on("message", (msg) => {
 				}
 				if(msg.content.match("!react")) //reacts to a post
 					reactMsg(msg);
-				/*if(msg.content.match("!setuptheroles")) {
-					let colorRoles = [".White","Lurrus Enthusiast","6000j Color","Aggresive Pink","Alphasp","Apex Green","Bloody Hell","Chosen of Endings","The P stands for prestigious","Burnt Orange","Bright Blue","Blue Abadeedah","Bright Red","Cawotte","Child of Alara","Coral","Cyan","Daft Pink","Dark Pink","Dark Purple","Deepest Jank Blue","dope curtains","Eclectic Red","Essence of Tumbles","Forest Teal","Four Horsemen","Giant Rat Who Makes All of the Rules","Glee Incarnate","Hunka Hunka Burning Orange","Iced C0ffee","I Like Chaotic Temur So This Is Red Okay?","Inverted Blue","lazy yellow","Lego blue","Light Purple","Lime","Llanowar AA00FF","Lyca Green","Lyman Looks Better in a Real Tight Sweater","Mango Orange","Maroon 5","Mint","Minty","Moccaccino","MTG.Design","n Smith","neon blue","Not Green","Not-quite Pant-Suit Green","Occo","Orange Orange","Pant-Suit Green","pInkmoth's Burf Pink","Pink","Pink Lily","pinky","Playing with 800000","Pretty Much White","Pretty Pretty Princess","Psionic Skyline","Regular Old Light Blue","Light Red Not Pink","Safir Blue","Sea Foam","SLIMY","Snow","Solid Red","Somber Blue","(Mx) Steel (ya gurl)","Stuff","Sunrise","Tap to Add Teal-ish Green","Teal?","terrible idea red","Thatdamnrole","The Superior Pink","Timey-wimey bluw","Too Ice, Got Stuck","Too purple","Topaz","Tuition Fee Titanium","TubmledMTG","Urshad","Very Committal Yellow","Wind Attribute","Wheat","Whiolet","Yellow How Can I Help You?","Zangy's Zan-Tea","Static Yellow","Pepper Jack","Lilac","gosh darn light mode","bb0a13reasonswhy"];
-					for(let color in colorRoles)
-						newAssignableRole("205457071380889601", colorRoles[color], "", "", "Color")
-				}*/
 				if(msg.content.match("!status!")){ //changes game on the fly
 					let newstat = msg.content.toString();
 					let twostat = newstat.split("!");
@@ -7692,11 +7768,11 @@ Client.on("message", (msg) => {
 					var skirmCheck = msg.content.match(/!skirmish/i);
 					if(skirmCheck !== null || gpUpdateCheck !== null)
 						gpUpdate(msg);
-					var archiveMatch = msg.content.match(/!end (league|gp|pie)/i);
-					var killMatch = msg.content.match(/!delete (league|gp|pie)/i);
+					var archiveMatch = msg.content.match(/!end ?(.*)/i);
+					var killMatch = msg.content.match(/!delete ?(.*)/i);
 					if(killMatch) {
 						if(gpCell[0] && gpCell[0][killMatch[1]]) {
-							if(killMatch[1] == 'gp' || killMatch[1] == 'pie')
+							if(killMatch[1] != 'league')
 								msg.channel.send(deleteTourney(killMatch[1]));
 							if(killMatch[1] == 'league')
 								msg.channel.send(rolloverTourney('league',1));
@@ -9657,16 +9733,20 @@ Client.on("message", (msg) => {
 			if(msg.content.match(/sealed/i))
 				leagueName = 'sealed';
 			let leagueMessage = "MSEM Leagues are monthly events where you play runs of up to 5 best-of-3 matches with a single deck against different opponents. At any point you can end your league run, which can use a different deck.\nDuring each month, you earn points from your 3 best runs: 1 point for each win, and a bonus point for each perfect 5-0 run, for a max of 18 points each month. At the end of the League season (every 4 months), the player with the highest cumulative score for the season will be awarded a Champion promo card of their choice.\nTo get started with monthly Leagues, DM LackeyBot the following command and your league decklist:\n```$submit league cajun's Cat Tax\n4x Saigura Tam\n...```";
-
-			var partLeagueMatch = msg.content.match(/\$league ?(\d+)/i);
-			if(msg.content.match(/\$league/i)) {
+			var partLeagueMatch = msg.content.match(/\$(sealed ?)?league ?(\d+)/i);
+			if(msg.content.match(/\$(sealed ?)?league/i)) {
 				bribes++;
-				if(matchDex[leagueName].players[msg.author.id] && hasValue(matchDex[leagueName].players[msg.author.id].runs) && !msg.content.match(/\$leaguehelp/i)) {
-					if(partLeagueMatch && partLeagueMatch[1] != undefined) {
-						msg.channel.send(reportRecord(leagueName, msg.author.id, partLeagueMatch[1]));
-					}else{
-						msg.channel.send(reportRecord(leagueName, msg.author.id));
-					}
+				let player = msg.author.id;
+				if(matchDex[leagueName].players[player] && hasValue(matchDex[leagueName].players[player].runs) && !msg.content.match(/\$leaguehelp/i)) {
+					let lookback = 0;
+					if(partLeagueMatch)
+						lookback = partLeagueMatch[2];
+					msg.channel.send(reportRecord(leagueName, player, lookback)[0])
+					.then(function(mess) {
+						mess.react(leftArrow)
+							.then(() => mess.react(rightArrow))
+								.then(() => mess.react(plainText))})
+					.catch(e => console.log(e))
 				}else{
 					msg.channel.send(leagueMessage);
 				}
@@ -9699,7 +9779,7 @@ Client.on("message", (msg) => {
 						.catch(function(err){console.log(err)})
 				}
 			}
-			if(msg.content.match(/\$(block ?|standard ?|sealed ?)?matches/i)) {
+			if(msg.content.match(/\$(sealed ?)?matches/i)) {
 				bribes++;
 				let output = "";
 				for(let t in matchDex) {
@@ -10238,6 +10318,18 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 									let nameArray = namesPull[1].split(", ");
 									let embedBuild = function(thisPage) {return buildPSEmbed(nameArray, thisPage, psBotTurn[1], closestCanon, textFlag, imageFlag)[0]};
 									turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag);
+								}
+							}
+							let leagueTurn = embedData.title.match(/^(.*) League Info/);
+							if(leagueTurn) { //flips pages for league data embed
+								let thisUser = leagueTurn[1];
+								let userID = Client.users.cache.find(val => val.username == thisUser).id;
+								let invalidUser = cullReacts(msg, [userID, Client.user.id]).length;
+								if(!invalidUser) {
+									let pageCheck = embedData.footer.text.match(/run data (\d+)\/(\d+)/);
+									let tourney = embedData.footer.text.match(/^(.*) run data/)[1];
+									let embedBuild = function(thisPage) {return reportRecord(tourney, userID, thisPage, textFlag)[0]}
+									turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, 1)
 								}
 							}
 						}
