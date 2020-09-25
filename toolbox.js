@@ -69,6 +69,19 @@ function cloneObj(obj){ 										//clone an object to prevent javascript refere
 		cloned[key] = obj[key];
 	return cloned;
 }
+function objSort(obj) {											//sorts an object alphabetically
+	let list = Object.keys(obj);
+	for(let thisKey in list) {
+		list[thisKey] += "_numcorr"
+	}
+	list.sort();
+	let newObj = {};
+	for(let thisKey in list) {
+		list[thisKey] = list[thisKey].replace(/_numcorr$/, "");
+		newObj[list[thisKey]] = obj[list[thisKey]]
+	}
+	return newObj;
+}
 function spliceArray(info){ 									//i always forget how to use Array.splice() so i made my own {array:[], index:#, replace:bool#, insert:elementToInsert}
 	let array = info.array;
 	let index = info.index;
@@ -127,6 +140,10 @@ function timeSince(startTime) { 								//get milliseconds from now to given tim
 	let checkTime = new Date().getTime();
 	return checkTime - startTime;
 }
+function setTheDate (splitter) {								//creates a YY.MM.DD format with a given divider
+	let the_time = new Date();
+	return the_time.getYear()-100 + splitter + (the_time.getMonth() < 10 ? "0" + the_time.getMonth() : the_time.getMonth()) + splitter + (the_time.getDate() < 10 ? "0" + the_time.getDate() : the_time.getDate());
+}
 //formatting text
 function arrayTheDate (the_time) { 								//creates a [YY,MM,DD,HH,MM]] array
 	if(!hasValue(the_time))
@@ -179,6 +196,14 @@ function ordinalize(num) { 										//converts number (1, 2, 3, etc) into ordin
 	if(parseInt(test3) < ordArray.length)
 		return string + ordArray[parseInt(test3)]; //return 0 to 13 directly
 	return string + ordArray[test1]; //else return ord of last digit
+}
+function writeIndexes (array) {									//write the indexes for an array
+	let i = 0, output = "";
+	for(let thing in array) {
+		output += i + ": " + array[thing] + "\n";
+		i++;
+	}
+	return output;
 }
 //playing with numbers
 function convertNumbers (number) { 								//converts numbers +-999,999,999,999 to number words

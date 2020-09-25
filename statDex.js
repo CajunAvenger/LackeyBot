@@ -549,8 +549,6 @@ function playerComboCard(dex, player, card, filters) { 					//finds winrate of a
 						if(thisPlayer.id != player) {				//if this is someone else
 							inputScore = othersScore;
 						}
-						if(thisPlayer.id == player)
-							console.log(thisPlayer.list);	
 						if(refMatch.winner == thisPlayer.id) {		//if this is the winner
 							inputScore.matches++;					//tick up their matches and wins
 							inputScore.wins++;
@@ -828,13 +826,28 @@ function tourneyFilter(tourneyName, filters) {	 						//returns if tourney passe
 function matchFilter(match, player, filters) {							//returns if match passes match filters
 	if(player == "both" && filters.hasOwnProperty('player')) {
 		for(let aPlayer in match.players) {
-			if(filters.player.includes(match.players[aPlayer].id))
+			if(filters.player.includes(match.players[aPlayer].id)) {
+				//bugFinder(match, player);
 				return false;
+			}
 		}
 	}else if(filters.hasOwnProperty('player') && filters.player.includes(player)) {
+		//bugFinder(match);
 		return false;
 	}
 	return true;
+}
+function bugFinder(match, id) {
+	for(let player in match.players) {
+		let decklist = statDexPreBuilt.decklists[match.players[player].list.replace('.txt', '.json')].cards;
+		if(decklist.hasOwnProperty("Intrepid_WAY")) {
+			if(match.players[player].id == id)
+				console.log("yeeeee")
+			if(match.players[player].id != id)
+				console.log("nooooo")
+		}
+	}
+	console.log()
 }
 function buildUsernameData(dex) {										//returns an array of usernames in the dex
 	let array = [];
@@ -1179,7 +1192,7 @@ function instigatorPlayrateCoder(listOfNames, key){						//prints an is:key filt
 }
 //process commands from Discord
 function processFilters(dex, input) {									//process filters into filter objects
-	let filters = baseFilters;
+	let filters = toolbox.cloneObj(baseFilters);
 	let message = "";
 	if(input.match(/filter:? ?all/i))
 		return [{}, " without filters"];
@@ -1208,8 +1221,10 @@ function processFilters(dex, input) {									//process filters into filter obje
 		message += " in " + filters.type + " tournaments";
 	if(filters.hasOwnProperty('type'))
 		message += " in " + filters.type + " tournaments";
-	if(filters.hasOwnProperty('player'))
-		message += " and skipping Pip and skipping Egg";
+	if(pipFilter)
+		message += " and skipping Pip";
+	if(eggFilter)
+		message += " and skipping Egg";
 	return [filters, message];
 }
 function processCommands(msg, offline) { 								//processes commands from Discord posts
@@ -1367,8 +1382,10 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 						}
 					}
 				}
-				for(let player in miniDex)
-					miniDex[player] = playerComboCard(dex, player, card, filters)[0];
+				for(let player in miniDex) {
+					if(matchFilter(null, player, filters))
+						miniDex[player] = playerComboCard(dex, player, card, filters)[0];
+				}
 				let comp = function(dex, name, filters) {
 					return miniDex[name];
 				}
@@ -1619,7 +1636,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 			if(setsMatch){
 				let setsNab = setsMatch[2].match(/([A-Z0-9_]{1,7})/g);
 				let cond = defaultConditional(setsNab, exc);
-				let wrData = statFromSet(dex, minMatches, filters, skipThese, cond);
+				let wrData = statFromSet(dex, minMatch, filters, skipThese, cond);
 				let array = wrData[0];
 				let wrObj = wrData[1];
 				let topN = grabTop(array, input, 20);
@@ -1736,7 +1753,7 @@ function playrateReporter(info) {										//sorts and reports playRate data
 	});
 	return cards;
 }
-//console.log(processCommands({content:"pips playerComboCard[Exeunt] filter after:2006 filter type:league", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
+//console.log(processCommands({content:"cardWin[Lucien] filter out:pip filter out:egg", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
 //console.log(leagueFourOhs('league_20_08'))
 //exports for live
 exports.initialize = initialize

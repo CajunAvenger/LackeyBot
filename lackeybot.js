@@ -43,12 +43,11 @@ server.listen(port, () => console.log(`Listening on ${port}`));
 var Server = require('ws').Server;
 const wss = new Server({ server });*/
 
-const commandNo = 40; //MSEM non-cards "cards" in the database, TODO remove the need for this
 const token = process.env.TOKEN;
 const rp = require("request-promise-native");
 var disarm = null, smsNo = 0, errorNo = 0, downloadCount = 0
 let downloadLoop = {devDex: 0, reminderBase: 0};
-var pinDisarm = [false, null, null] //disarmed?, last pinned, last unpinned
+var pinDisarm = [false, null, null] //pin info for desgingames; disarmed?, last pinned, last unpinned
 var logLater = { //some files may be updated several times very quickly, this puts a delay on them
 	'reminder': false
 }
@@ -75,7 +74,7 @@ var yeet = console.log; //use for temp logs to make them easy to differentiate f
 const boop = "boop"; //boop
 
 //load modules
-var discClient = require('./discClient.js')			//handles discord client
+var discClient = require('./discClient.js')		//handles discord client
 var arcana = require('./arcana.js');			//handles all the card databases
 const fuzzy = require('./fuzzy.js');			//handles the general search engine
 const mod_magic = require('./magic.js');		//handles Magic-specific coding
@@ -92,6 +91,36 @@ statDexHandler.initialize({arcana:arcana});
 discClient.initialize();
 const Client = discClient.sendClient();
 
+//Startup
+//global variables and defaults
+var cards = {}, legal = {}, oracle = {}, msemSetData = {}
+var canon = {}, canonOracle = {}, magicSetData = {};
+var devDex = {};
+var stats = {}, countingCards = null, bribes = null, explosions = null, draftStarts = null, crackedPacks = null, reminderSet = null, reminderDone = null;
+var allRoles = {}, roleCall = {}, fightGuilds = {}, roleRegex = {};
+var reminderData = {}, reminderBase = {}, reminderCell = {};
+var packInfo = {}, packStash = {};
+var admincheck = [7];
+var allpacks = {}, draft = {}
+var arttemp = {};
+var creatureTypeArray = [];
+var decklist = {};
+var extras = {}, mechanics = {}, nicks = {}, prompts = {}, sms = [];
+var imgCache = {lastString: [], msem: [], magic: [], devDex: [], myriad:[]};
+var instData = {};
+var matchDex = {}, gpbase = {}, gpCell = [];
+var playerArray = [];
+var playtime = 0;
+var ruleJson = {};
+var scryRegex = [];
+var switcherooCache = {};
+var tempSetsArray = {};
+var bribeBoost = 0, cardBoost = 0;
+var lastID = 0;
+var looping = 0;
+var holdingCell = {}, bankedChannel = [];
+var arcanaSettings = {};
+loadArcanaSettings();
 
 /*website test
 server.set('view engine', 'ejs');
@@ -156,7 +185,7 @@ setInterval(() => { //this will check the reminderBase every minute
 	}
 }, 60000);	
 //Search Engine
-function searchCards(library,searchstring,msg) {  //main search function	
+function searchCards(library,searchstring,msg) {			//main search function	
 	if(msg && library == arcana.devDex) {
 		let needleScript = function(card){
 			let score = (msg.author.id == arcana.devDex.setData[card.setID].leadID) ? 2 : 0;
@@ -168,7 +197,7 @@ function searchCards(library,searchstring,msg) {  //main search function
 	}
 	return fuzzy.searchCards(library, searchstring)
 }
-function extractFetches(fetchMatches, library, msg) { //grabs the card names for a fetch message
+function extractFetches(fetchMatches, library, msg) {		//grabs the card names for a fetch message
 	let outputArray = [];
 	let stringMatchesArray = [];
 	for(let matchArray in fetchMatches) {
@@ -189,7 +218,7 @@ function extractFetches(fetchMatches, library, msg) { //grabs the card names for
 	return [outputArray, stringMatchesArray];
 }
 //Format Cards
-function priceCheck(outputArray,library,msg) { //checks each card is unique and sends it to the proper bribe function
+function priceCheck(outputArray,library,msg) { 				//checks each card is unique and sends it to the proper bribe function
 	let output = [];
 	for(let card in outputArray)
 		output.push(library.formatBribes(outputArray[card],msg));
@@ -310,7 +339,7 @@ function buildPSEmbed(nameArray, page, searchString, closestCanon, textFlag, img
 	}
 	return [exampleEmbed, pages];
 }
-function switchReacts(msg, emoteOrder, pages) { //callback that adds the switcheroo reacts
+function switchReacts(msg, emoteOrder, pages) { 			//callback that adds the switcheroo reacts
 	let arrows = function() {
 		if(pages>1) {
 			msg.react(leftArrow)
@@ -331,7 +360,7 @@ function switchReacts(msg, emoteOrder, pages) { //callback that adds the switche
 		)
 		.catch(e => console.log(e))
 }
-function reactLRArrows(msg) { //callback that adds the left/right arrow reacts
+function reactLRArrows(msg) { 								//callback that adds the left/right arrow reacts
 	msg.react(leftArrow)
 		.then(msg.react(rightArrow))
 }
@@ -416,7 +445,7 @@ function buildCardFetchEmbed(outputArray, arcanaData, mainArcanaName, strings, m
 		.setFooter(footerText)
 	return [content, searchStrings, textPages.length]
 }
-function postBigArray (outputArray, channel, callback) { //breaks up big arrays into discord-sized messages
+function postBigArray (outputArray, channel, callback) { 	//breaks up big arrays into discord-sized messages
 	let output = outputArray[0];
 	let sendPart = function(output) {
 		if(callback) {
@@ -453,7 +482,7 @@ function postBigArray (outputArray, channel, callback) { //breaks up big arrays 
 		}
 	}
 }
-function arrayifyBigMessage(input) { //breaks up big strings into discord-sized messages
+function arrayifyBigMessage(input) { 						//breaks up big strings into discord-sized messages
 	if(input.length < 1990) {
 		return [input];
 	}
@@ -473,7 +502,7 @@ function arrayifyBigMessage(input) { //breaks up big strings into discord-sized 
 	}
 	return outputArray;
 }
-function postBigRule(input,channel, callback) { //breaks up big strings into discord-sized messages
+function postBigRule(input,channel, callback) { 			//breaks up big strings into discord-sized messages
 	let sendPart = function(output) {
 		if(callback) {
 			channel.send(output)
@@ -509,7 +538,7 @@ function postBigRule(input,channel, callback) { //breaks up big strings into dis
 		}
 	}
 }
-function cacheImages(channel, card_array, destination) { //saves lastCards for $img and $rul
+function cacheImages(channel, card_array, destination) { 	//saves lastCards for $img and $rul
 	if(!imgCache.hasOwnProperty(channel)) {
 		imgCache[channel] = {lastString: [], msem:[], magic: [], devDex: [], myriad:[]};
 	}
@@ -522,7 +551,7 @@ function cacheStrings(channel, string_array, destination) { //saves searchstring
 	imgCache[channel].lastString = string_array;
 	imgCache.lastString = string_array;
 }
-function cachePost(msg, string) { //saves some data for switcheroo embeds
+function cachePost(msg, string) { 							//saves some data for switcheroo embeds
 	if(!switcherooCache.hasOwnProperty(msg.channel.id))			//if we don't have this channel
 		switcherooCache[msg.channel.id] = {order:[]};			//create it
 	if(!switcherooCache[msg.channel.id].hasOwnProperty(msg.id)){//if we don't have this message
@@ -536,7 +565,7 @@ function cachePost(msg, string) { //saves some data for switcheroo embeds
 		switcherooCache[msg.channel.id].order = toolbox.spliceArray({array:ordered, index:0, replace:1})
 	}
 }
-function printImages(card_array, library, first) { //generates link from proper site
+function printImages(card_array, library, first) { 			//generates link from proper site
 	if(card_array == [])
 		return;
 	let printString = "";
@@ -545,7 +574,7 @@ function printImages(card_array, library, first) { //generates link from proper 
 	}
 	return printString.replace(/\n$/,"");
 }
-function buildSearchLink(library, searchString) { //generates search link from proper site
+function buildSearchLink(library, searchString) { 			//generates search link from proper site
 	let output = "<http://msem-instigator.herokuapp.com/card?q=";
 	let site = "Instigator search"
 	let endOfLink = false;
@@ -609,7 +638,7 @@ function buildSearchEmbed(searchString, library, page, imgFlag, textFlag) { //bu
 		return [embedded, hits];
 	}
 	if(hits > 1)
-		count = hits + ' hits found, showing the '+ordinalize(bumpedPage)+':'
+		count = hits + ' hits found, showing the '+toolbox.ordinalize(bumpedPage)+':'
 	if(page == -1) {
 		count = count.replace(/found[^\n]+/i, "found. Check the link, or react to preview.")
 	}
@@ -644,7 +673,7 @@ function buildSearchEmbed(searchString, library, page, imgFlag, textFlag) { //bu
 	}
 	return [embedded, hits];
 }
-function generateStats(library, thisSet) { //generates $stats messages
+function generateStats(library, thisSet) { 					//generates $stats messages
 	let setInfo;
 	if(thisSet == "MSEM" && library == arcana.msem) {
 		setInfo = {longname: "MSE Modern", masterpiece: false, msem: true};
@@ -780,7 +809,7 @@ function generateStats(library, thisSet) { //generates $stats messages
 	return statput;
 }
 //Custom Cards
-function bribeLackeyBot(cardName,msg){ //card-specific bribes for the custom database
+function bribeLackeyBot(cardName,msg){ 						//card-specific bribes for the custom database
 	countingCards++;
 	let thisCard = this.cards[cardName];
 	let fullCard = this.writeCard(cardName);
@@ -825,7 +854,7 @@ function bribeLackeyBot(cardName,msg){ //card-specific bribes for the custom dat
 	return fullCard;
 };
 //Canon Cards
-function bribeLackeyCanon(cardName,msg){ //card-specific bribes for the canon database
+function bribeLackeyCanon(cardName,msg){ 					//card-specific bribes for the canon database
 	countingCards++;
 	let thisCard = this.cards[cardName];
 	let fullCard = this.writeCard(cardName);
@@ -856,7 +885,7 @@ function bribeLackeyCanon(cardName,msg){ //card-specific bribes for the canon da
 	if(banArray.length > 0)
 		banMessage += "Banned (";
 	for(var i = 0; i<banArray.length; i++) {
-		banMessage += toTitleCase(banArray[i]);
+		banMessage += toolbox.toTitleCase(banArray[i]);
 		if(i != banArray.length-1)
 			banMessage += ", ";
 		if(i == banArray.length-1)
@@ -879,7 +908,7 @@ function bribeLackeyCanon(cardName,msg){ //card-specific bribes for the canon da
 	return fullCard;
 };
 //Dev Cards
-function bribeLackeyDev(cardName, msg) { //card-specific bribes for the project database
+function bribeLackeyDev(cardName, msg) { 					//card-specific bribes for the project database
 	let thisCard = this.cards[cardName];
 	let fullCard = this.writeCard(cardName);
 	if(fullCard == mod_magic.writeCardError)
@@ -891,12 +920,12 @@ function bribeLackeyDev(cardName, msg) { //card-specific bribes for the project 
 	}
 	return fullCard;
 }
-function psLinker(cardName) { //links from planesculptors
+function psLinker(cardName) { 								//links from planesculptors
 	let thisCard = this.cards[cardName];
 	return "http://www.planesculptors.net/upload/" + arcana.devDex.setData[thisCard.setID].psLink + "/" + encodeURIComponent(thisCard.cardName.replace(/[',!\?’“”]/g,"")) + arcana.devDex.setData[thisCard.setID].psSuffix;
 }
 //Myriad Cards
-function bribeLackeyMyriad(cardName, msg) { //card-specific bribes for the project database
+function bribeLackeyMyriad(cardName, msg) { 				//card-specific bribes for the project database
 	let thisCard = this.cards[cardName];
 	let fullCard = this.writeCard(cardName);
 	if(fullCard == mod_magic.writeCardError)
@@ -914,7 +943,7 @@ function bribeLackeyMyriad(cardName, msg) { //card-specific bribes for the proje
 	return fullCard;
 }
 //cstandard
-function bribeLackeyCS(cardName, msg) { //card-specific bribes for the cajun-standard database
+function bribeLackeyCS(cardName, msg) { 					//card-specific bribes for the cajun-standard database
 	let thisCard = this.cards[cardName];
 	let fullCard = this.writeCard(cardName);
 	if(fullCard == mod_magic.writeCardError)
@@ -926,22 +955,22 @@ function bribeLackeyCS(cardName, msg) { //card-specific bribes for the cajun-sta
 	}
 	return fullCard;
 }
-function csLinker(cardName) { //links from planesculptors/msem
+function csLinker(cardName) { 								//links from planesculptors/msem
 	let thisCard = this.cards[cardName];
 	if(thisCard.hasOwnProperty('prints') && thisCard.prints.includes("L"))
 		return `http://mse-modern.com/msem2/images/L/${thisCard.cardID}.jpg`;
 	return "http://www.planesculptors.net/upload/" + arcana.cajun_standard.setData[thisCard.setID].psLink + "/" + encodeURIComponent(thisCard.cardName.replace(/[',!\?’“”]/g,"")) + arcana.cajun_standard.setData[thisCard.setID].psSuffix;
 }
 //Convert databases
-function convertCardTo(library, searchString, msg) { //TODO using last string in channel
+function convertCardTo(library, searchString, msg) { 		//TODO using last string in channel
 	let card_name = searchCards(library, searchString, msg)
 	msg.edit(showCard);
 }
 //random card
-function anyRandom(randBase) { //gets a random card from the given database
+function anyRandom(randBase) {								//gets a random card from the given database
 	let cull = 0;
 	if(randBase == arcana.msem)
-		cull = commandNo;
+		cull = 1; //don't let it roll LackeyBot
 	let cardnames =  Object.keys(randBase.cards)
 	let cardCount = cardnames.length;
 	cardCount = cardCount - cull;
@@ -950,7 +979,7 @@ function anyRandom(randBase) { //gets a random card from the given database
 	return rando;
 }
 
-function findExclusive(boolArray) { //checks array for boolean true, returns [boolean, [indexes of trues]]
+function findExclusive(boolArray) {							//checks array for boolean true, returns [boolean, [indexes of trues]]
 	let index1 = boolArray.indexOf(true);
 	let index2 = boolArray.lastIndexOf(true);
 	if(index1 == -1)
@@ -965,7 +994,7 @@ function findExclusive(boolArray) { //checks array for boolean true, returns [bo
 	return [false, boolOutput];
 }
 //Bot Management
-function editVersions() { //version control post
+function editVersions() {									//version control post
 	if(botname == "TestBot" || offline)
 		return;
 	if(reminderData.version === undefined || matchDex.version === undefined || allRoles.version === undefined || gpbase.version === undefined || draft.version === undefined || (devDex.version === undefined && versionCheck.devDex === undefined)){
@@ -997,7 +1026,7 @@ function editVersions() { //version control post
 	newwords += "\ndraft: " + draft.version;
 	editMsg(config.versionControlChannel, config.versionControlPost, newwords);
 }
-function logStats() { //updates stats.json
+function logStats() {										//updates stats.json
 	if(botname == "TestBot")
 		return;
 	/*stats.version++;
@@ -1032,14 +1061,14 @@ function logStats() { //updates stats.json
 	statPost += "\nexplode: " + explosions;
 	editMsg(config.versionControlChannel, "747541293219184700", statPost);
 }
-function logInst() { //updates instdata.json
+function logInst() {										//updates instdata.json
 	if(botname == "TestBot")
 		return;
 	fs.writeFile('msem/instdata.json', JSON.stringify(instData), (err) => {
 		if (err) throw err;
 		});
 }
-function logReminders() { //updates reminderlist.json
+function logReminders() {									//updates reminderlist.json
 	if(botname == "TestBot")
 		return;
 	reminderData.version++;
@@ -1058,10 +1087,10 @@ function logReminders() { //updates reminderlist.json
 		.catch(e => console.log(e))
 	});
 }
-function echoReminders() { //stop breaking for the love of 
+function echoReminders() {									//stop breaking for the love of 
 	console.log(JSON.stringify(reminderBase));
 }
-function logMatch() { //updates matchDex.json
+function logMatch() {										//updates matchDex.json
 	matchDex.version++;
 	editVersions();
 	let matchWords = JSON.stringify(matchDex);
@@ -1082,7 +1111,7 @@ function logMatch() { //updates matchDex.json
 		dropboxUpload('/lackeybot stuff/matchDex.json',matchWords);
 	}
 }
-function logDev(id) { //updates devDex.json
+function logDev(id) {										//updates devDex.json
 	console.log("Change to project database by " + pullUsername(id));
 	devDex.version++;
 	editVersions();
@@ -1100,7 +1129,7 @@ function logDev(id) { //updates devDex.json
 	loadArcanaSettings();
 	dropboxUpload('/lackeybot stuff/devDex.json',JSON.stringify(partialDex).replace(/},"/g,"},\r\n\""));
 }
-function logRole(guildID) { //updates roles.json
+function logRole(guildID) {									//updates roles.json
 	allRoles.version++;
 	for(let guild in allRoles.guilds)
 		if(!allRoles.guilds[guild].hasOwnProperty('excluded'))
@@ -1109,22 +1138,22 @@ function logRole(guildID) { //updates roles.json
 	dropboxUpload('/lackeybot stuff/roles.json',JSON.stringify(allRoles, null, 3));
 }
 
-function speech(msg) { //handles the LackeyBot AI
+function speech(msg) {										//handles the LackeyBot AI
 	let channelMatch = msg.content.match(/channel: ?<?#?([0-9]+)/i);
 	let messageMatch = msg.content.match(/message: ?([\s\S]+)/i);
 	Client.channels.cache.get(channelMatch[1]).send(messageMatch[1]);
 }
-function deleteMsg(channel,message) { //deletes a given LackeyBot post
+function deleteMsg(channel,message) {						//deletes a given LackeyBot post
 	Client.channels.cache.get(channel).messages.fetch(message)
 		.then(message => message.delete())
 		.catch(console.error)
 }
-function editMsg(channel,message,newwords) { //edits a given LackeyBot post
+function editMsg(channel,message,newwords) {				//edits a given LackeyBot post
 	Client.channels.cache.get(channel).messages.fetch(message)
 		.then(msg => msg.edit(newwords))
 		.catch(console.error);
 }
-function reactMsg(msg) { //reacts to a given post
+function reactMsg(msg) {									//reacts to a given post
 	let reactCheck = msg.content.match(/!react https:\/\/discordapp.com\/channels\/[0-9]+\/([0-9]+)\/([0-9]+)/i);
 	let emotesCheck = msg.content.match(/\n([^ ]+)/g);
 	let channel = reactCheck[1];
@@ -1142,7 +1171,7 @@ function reactMsg(msg) { //reacts to a given post
 			.catch(console.error);
 	}
 }
-function checkRank(msg) { //checks the rank of a poster
+function checkRank(msg) {									//checks the rank of a poster
 	let user = msg.author.id;
 	let rank = [7]; //general
 	if(config.admin.hasOwnProperty(user)) { //admin permissions
@@ -1167,41 +1196,10 @@ function checkRank(msg) { //checks the rank of a poster
 	return rank; 
 }
 
-//Startup
-//global variables and defaults
-var cards = {}, legal = {}, oracle = {}, msemSetData = {}
-var canon = {}, canonOracle = {}, magicSetData = {};
-var devDex = {};
-var stats = {}, countingCards = null, bribes = null, explosions = null, draftStarts = null, crackedPacks = null, reminderSet = null, reminderDone = null;
-var allRoles = {}, roleCall = {}, fightGuilds = {}, roleRegex = {};
-var reminderData = {}, reminderBase = {}, reminderCell = {};
-var packInfo = {}, packStash = {};
-var admincheck = [7];
-var allpacks = {}, draft = {}
-var arttemp = {};
-var creatureTypeArray = [];
-var decklist = {};
-var extras = {}, mechanics = {}, nicks = {}, prompts = {}, sms = [];
-var imgCache = {lastString: [], msem: [], magic: [], devDex: [], myriad:[]};
-var instData = {};
-var matchDex = {}, gpbase = {}, gpCell = [];
-var playerArray = [];
-var playtime = 0;
-var ruleJson = {};
-var scryRegex = [];
-var switcherooCache = {};
-var tempSetsArray = {};
-var bribeBoost = 0, cardBoost = 0;
-var lastID = 0;
-var looping = 0;
-var holdingCell = {}, bankedChannel = [];
 
-var statDexFull = require('./statDex.json');
-var arcanaSettings = {};
-loadArcanaSettings();
 
-function matchDexTesting() {}
-async function readVersionControl(){
+function matchDexTesting() {}								//testing matchDex things, currently blank
+async function readVersionControl(){						//read versions from Discord
 	let vc = await Client.channels.cache.get(config.versionControlChannel).messages.fetch(config.versionControlPost)
 	vc = vc.content;
 	versionCheck.remind = parseInt(vc.match(/remind: (\d+)/)[1]);
@@ -1212,7 +1210,7 @@ async function readVersionControl(){
 	versionCheck.draft = parseInt(vc.match(/draft: (\d+)/)[1]);
 	return "Done";
 }
-async function startUpFunctions() { //all the start up functions for nicer async
+async function startUpFunctions() {							//all the start up functions for nicer async
 	let mun = Math.floor(Math.random()*extras.games.length); //sets a random game
 	let newGame = extras.games[mun];
 	Client.user.setPresence( { activity: {name: newGame}});
@@ -1253,7 +1251,7 @@ async function startUpFunctions() { //all the start up functions for nicer async
 		console.log("HQ server disconnected. " + botname + " has connected.");
 	}
 }
-function downloadReminders(attachURL) { //downloads reminderBase after Dropbox betrayed us
+function downloadReminders(attachURL) {						//downloads reminderBase after Dropbox betrayed us
 	download(attachURL, {directory:"./", filename:"reminderBase.json"}, function(err) {
 		if(err) {
 			Client.users.cache.get(cajun).send("reminderBase failed to reload.");
@@ -1262,21 +1260,21 @@ function downloadReminders(attachURL) { //downloads reminderBase after Dropbox b
 		}
 	});
 }
-function reloadDraft() { //loads draft after downloading
+function reloadDraft() {									//loads draft after downloading
 	console.log('Reloading draft');
 	let test = require('./draft/draft.json');
 	if(test.version < versionCheck.draft)
 	console.log("Version error in draft.");
 	draft = test;
 }
-function reloadGPBase() { //loads gpbase after downloading
+function reloadGPBase() {									//loads gpbase after downloading
 	console.log('Reloading gpbase');
 	let test = require("./msem/gpbase.json");
 	if(test.version < versionCheck.gpbase)
 	console.log("Version error in gpbase.");
 	gpbase = test;
 }
-function reloadRemind(attachURL) { //loads reminderBase after downloading
+function reloadRemind(attachURL) {							//loads reminderBase after downloading
 	console.log('Reloading reminderBase');
 	setTimeout(function(){ //won't stop firing early, try/catch isn't helping, time for aggressive measures
 		try{
@@ -1299,7 +1297,7 @@ function reloadRemind(attachURL) { //loads reminderBase after downloading
 		}
 	},500*(2*downloadLoop.reminderBase));
 }
-function reloadMatchBase() { //loads matchdex after downloading
+function reloadMatchBase() {								//loads matchdex after downloading
 	console.log('Reloading matchDex');
 	let test;
 	if(botname == "TestBot") {
@@ -1317,7 +1315,7 @@ function reloadMatchBase() { //loads matchdex after downloading
 	tournamentNames = matchString;
 	matchDexTesting()
 }
-function reloadDevDex() { //loads matchdex after downloading
+function reloadDevDex() {									//loads matchdex after downloading
 	console.log('Reloading devDex');
 	try{
 		let test = require("./dev/devDex.json");		
@@ -1344,7 +1342,7 @@ function reloadDevDex() { //loads matchdex after downloading
 		}
 	}
 }
-function reloadRoles() { //loads roles and roleRegex after downloading
+function reloadRoles() {									//loads roles and roleRegex after downloading
 	console.log('Reloading roles');
 	let test = require("./roles.json");
 	if(test.version < versionCheck.roles)
@@ -1354,7 +1352,7 @@ function reloadRoles() { //loads roles and roleRegex after downloading
 	fightGuilds = allRoles.fightGuilds;
 	roleRegex = buildRoleRegex();
 }
-async function reloadStats() { //loads stats after downloading
+async function reloadStats() {								//loads stats after downloading
 	console.log('Reloading stats');
 	/*let test = require("./stats/stats.json");
 	if(test.version < versionCheck.stats)
@@ -1384,7 +1382,7 @@ async function reloadStats() { //loads stats after downloading
 	reminderSet = stats.reminderSet;
 	reminderDone = stats.reminderDone;
 }
-function loadArcanaSettings() { //loads the arcana settings for the card databases
+function loadArcanaSettings() {								//loads the arcana settings for the card databases
 	arcanaSettings = {
 		defaults: {
 			square: {
@@ -1528,7 +1526,7 @@ function loadArcanaSettings() { //loads the arcana settings for the card databas
 		}
 	}
 }
-function reloadData() { //loads all the other .jsons on startup
+function reloadData() {										//loads all the other .jsons on startup
 	//arttemp = require("./msem/arttemp.json");
 	arcana.msem.formatBribes = bribeLackeyBot;
 	cards = arcana.msem.cards;
@@ -1564,19 +1562,19 @@ function reloadData() { //loads all the other .jsons on startup
 }
 
 //server/user stuff
-function pullRoles(guildID) { //grabs list of roles of a server
+function pullRoles(guildID) {								//grabs list of roles of a server
 	let theRoles = Client.guilds.cache.find(val => val.id == guildID).roles.array();
 	for(let role in theRoles) {
 		if(!allRoles.guilds[guildID].roles.hasOwnProperty(theRoles[role].name))
 			console.log(theRoles[role].name)
 	}
 }
-function nameGuilds() { //grabs list of servers LB is on
+function nameGuilds() {										//grabs list of servers LB is on
 	let theGuilds = Client.guilds.array();
 	for(let guild in theGuilds)
 		console.log(theGuilds[guild].name);
 }
-function buildUserEmbed(guildID, userID, textFlag, avatarLink) { //plaintext $userinfo
+function buildUserEmbed(guildID, userID, textFlag, avLink) {//$userinfo
 	let user = Client.guilds.cache.find(val => val.id == guildID).members.cache.find(val => val.id == userID);
 	if(textFlag) {
 		let servDate = new Date(user.joinedTimestamp);
@@ -1592,14 +1590,14 @@ function buildUserEmbed(guildID, userID, textFlag, avatarLink) { //plaintext $us
 		let nullEmbed = new Discord.MessageEmbed()
 			.setFooter('$userinfoplain for plaintext.')
 			.setColor(user.roles.cache.find(val => val.color != 0).color)
-		if(avatarLink)
-			nullEmbed.setThumbnail(avatarLink);
+		if(avLink)
+			nullEmbed.setThumbnail(avLink);
 		let color = user.roles.cache.find(val => val.color != 0)
 		if(color)
 			userEmbed.setColor(color.color)
 		return [output, nullEmbed]
 	}else{
-		let avatarLink = user.user.avatarURL({format: 'png', dynamic: true})
+		let avLink = user.user.avatarURL({format: 'png', dynamic: true})
 		let servDate = new Date(user.joinedTimestamp);
 		let servDateFull = `${servDate.getFullYear()}/${servDate.getMonth()+1}/${servDate.getDate()} ${servDate.getHours()}:${toolbox.fillLength(servDate.getMinutes(), 2, "0")}`;
 		let discDate = new Date(user.user.createdTimestamp);
@@ -1611,7 +1609,7 @@ function buildUserEmbed(guildID, userID, textFlag, avatarLink) { //plaintext $us
 			.addField('Roles', user.roles.cache.array().length-1, true)
 			.addField('Joined server', servDateFull, true)
 			.addField('Joined Discord', discDateFull, true)
-			.setThumbnail(avatarLink)
+			.setThumbnail(avLink)
 			.setFooter('$userinfoplain for plaintext.')
 		let color = user.roles.cache.find(val => val.color != 0)
 		if(color)
@@ -1619,7 +1617,7 @@ function buildUserEmbed(guildID, userID, textFlag, avatarLink) { //plaintext $us
 		return userEmbed;
 	}
 }
-function buildServerEmbed(server, textFlag, avatarLink) {
+function buildServerEmbed(server, textFlag, avLink) {		//$serverinfo
 	if(textFlag) {
 		let servDate = new Date(server.createdAt);
 		let servDateFull = `${servDate.getFullYear()}/${servDate.getMonth()+1}/${servDate.getDate()} ${servDate.getHours()}:${toolbox.fillLength(servDate.getMinutes(), 2, "0")}`;
@@ -1636,11 +1634,11 @@ function buildServerEmbed(server, textFlag, avatarLink) {
 		output += "\n__Emojis:__ " + server.emojis.cache.array().length;
 		let nullEmbed = new Discord.MessageEmbed()
 			.setFooter('$serverinfoplain for plaintext.')
-		if(avatarLink)
-			nullEmbed.setThumbnail(avatarLink);
+		if(avLink)
+			nullEmbed.setThumbnail(avLink);
 		return [output, nullEmbed];
 	}else{
-		let avatarLink = server.iconURL({format: 'png', dynamic: true})
+		let avLink = server.iconURL({format: 'png', dynamic: true})
 		let servDate = new Date(server.createdAt);
 		let servDateFull = `${servDate.getFullYear()}/${servDate.getMonth()+1}/${servDate.getDate()} ${servDate.getHours()}:${toolbox.fillLength(servDate.getMinutes(), 2, "0")}`;
 		let user = server.members.cache.find(val => val.id == server.ownerID).user;
@@ -1656,12 +1654,12 @@ function buildServerEmbed(server, textFlag, avatarLink) {
 			.addField('Region', server.region, true)
 			.addField('Roles', server.roles.cache.array().length, true)
 			.addField('Emojis', server.emojis.cache.array().length, true)
-			.setThumbnail(avatarLink)
+			.setThumbnail(avLink)
 			.setFooter('$serverinfoplain for plaintext.')
 		return serverEmbed;
 	}
 }
-function postAvatar(msg, otherid) { //$serverinfo callback after avatar is downloaded
+function postAvatar(msg, otherid) {							//$avatar
 	let id = msg.author.id;
 	let avid = msg.author.avatar;
 	if(otherid) {
@@ -1678,7 +1676,7 @@ function postAvatar(msg, otherid) { //$serverinfo callback after avatar is downl
 		}
 	});
 }
-function postEmote(msg, emoteSnag, bigFlag) { //$emote and $bigemote
+function postEmote(msg, emoteSnag, bigFlag) {				//$emote and $bigemote
 	let bigCheck = emoteSnag.match(/<:[^:]+:[0-9]+>/)
 	if(bigCheck)
 		bigFlag = true;
@@ -1698,7 +1696,7 @@ function postEmote(msg, emoteSnag, bigFlag) { //$emote and $bigemote
 		});
 	}
 }
-function generateHangman (diff) { //generate canon hangman
+function generateHangman (diff) {							//generate canon hangman
 	let cardNames = Object.keys(canon);
 	let rando = Math.floor(Math.random()*cardNames.length-1)+1;
 	//rando = 5439; //Man-o'-war for debugging purposes
@@ -1745,7 +1743,7 @@ function generateHangman (diff) { //generate canon hangman
 		embedded.setColor('000002')
 	return embedded;
 }
-function hangmanCallback (msg, channel) {
+function hangmanCallback (msg, channel) {					//sets up hangman collector for name guesses
 	msg.react(plainText)
 	const collFilter = m => m.content.match(/guess:/i)
 	const collector = channel.createMessageCollector(collFilter, {time:5*60*1000});
@@ -1757,7 +1755,7 @@ function hangmanCallback (msg, channel) {
 	});*/
 
 }
-function hangmanParser(msg, embedData, emittedEmote, textFlag, guess, collector){
+function hangmanParser(msg, embedData, emittedEmote, textFlag, guess, collector){ //translates guess or react into hangman data
 	let hangText = msg.content;
 	if(hangText == "")
 		hangText = embedData.description
@@ -1932,7 +1930,7 @@ function updateHangman (hangMan, newLetter, guessedLetters, diff, textFlag, gues
 	return embedded;
 }
 //price scripts
-function scryCard(cardName) { //get scryfall data for a card
+function scryCard(cardName) { 								//get scryfall data for a card
 	let cardStuff = arcana.magic.cards[cardName];
 	let testurl = "https://api.scryfall.com/cards/" + cardStuff.scryID;
 	let requestPromise;
@@ -1947,7 +1945,7 @@ function scryCard(cardName) { //get scryfall data for a card
 	});
 	return requestPromise;
 }
-async function priceCanon (name) { //get the price data
+async function priceCanon (name) {							//get the price data
 	//name = "Fold into Aether_5DN";
 	let priceStuff = '';
 	let callback = function (data) {
@@ -1959,7 +1957,7 @@ async function priceCanon (name) { //get the price data
 	let pricewait = await beep;
 	return priceStuff;
 }
-async function asyncPriceData (cardName, page) { //convert price to string
+async function asyncPriceData (cardName, page) {			//convert price to string
 	if(embedStash.prices.hasOwnProperty(cardName)) {
 		buildPriceEmbed(cardName, page)
 	}else{
@@ -1980,13 +1978,13 @@ async function asyncPriceData (cardName, page) { //convert price to string
 		return priceString;
 	}
 }
-function priceCard (test, prints) { //testing msem price engine
+function priceCard (test, prints) {							//testing msem price engine
 	let card = arcana.msem.cards[searchCards(arcana.msem, test)];
 	let base = packInfo.bases[card.rarity];
 	let prm = 1;
 	let prmc = 1;
 	let wr = 0.3;
-	statDex = statDexFull;
+	statDex = require('./statDex.json');;
 	if(statDex.cards.hasOwnProperty(card.fullName) && !card.typeLine.match("Basic")) {
 		let stats = statDex.cards[card.fullName];
 		prmc = stats.mainCount + stats.sideCount;
@@ -2035,7 +2033,7 @@ function priceCard (test, prints) { //testing msem price engine
 		price = 0.1 * price;
 	return price;
 }
-function priceCustom(test) { //testing msem price engine
+function priceCustom(test) {								//testing msem price engine
 	let card = arcana.msem.cards[searchCards(arcana.msem, test)];
 	//let prints = mod_magic.findReprints(card.fullName, card.setID, arcana.msem.cards);
 	let thisPrice = 0;
@@ -2057,7 +2055,7 @@ function priceCustom(test) { //testing msem price engine
 	return thisPrice;
 }
 //Misc Embeds
-function buildSetsEmbed (setsDatabase, page, textFlag) { //build $codes embed
+function buildSetsEmbed (setsDatabase, page, textFlag) {	//build $codes embed
 	let helpout = "";
 	let desc = "MSEM Set Codes";
 	if(setsDatabase == magicSetData)
@@ -2117,7 +2115,7 @@ function buildSetsEmbed (setsDatabase, page, textFlag) { //build $codes embed
 	let reportPages = Math.ceil(lines.length / 20); //set the arrows in case of plaintexting
 	return [embedded, reportPages];
 }
-function buildPackDocs(page, textFlag) { //build $packdocs embed
+function buildPackDocs(page, textFlag) {					//build $packdocs embed
 	let docs = packgen.docs[0];
 	if(textFlag) {
 		docs = packgen.docs[1];
@@ -2139,7 +2137,7 @@ function buildPackDocs(page, textFlag) { //build $packdocs embed
 		embedInfo.addField(docs[page].header3, docs[page].page3)
 	return [embedInfo, docs.length];
 }
-function buildPatchEmbed(textFlag, thisPage) { //builds the embed for MSEM patches
+function buildPatchEmbed(textFlag, thisPage) {				//builds the embed for MSEM patches
 	let linksArray = [
 		{name: "Lackey Beta Plugin", link:"https://www.dropbox.com/s/nuzm4268v87vylg/msebeta.zip?dl=0"},
 		{name: "Cockatrice Beta Allcards", link:"https://cdn.discordapp.com/attachments/500175869084565525/701633901897973761/AllSets.json"},
@@ -2160,6 +2158,25 @@ function buildPatchEmbed(textFlag, thisPage) { //builds the embed for MSEM patch
 		.setDescription(output)
 		.setFooter('MSEM Patch Info')
 	return [embedInfo]
+}
+function cullReacts (msg, legalIDs) {						//removes reactions from everyone not in legalIDs
+	let emoteArray = msg.reactions.cache.array();
+	let userIDs = [];
+	let removals = [];
+	for(let anEmote in emoteArray) {
+		for(let user in emoteArray[anEmote].users.cache.array()) {
+			if(!legalIDs.includes(emoteArray[anEmote].users.cache.array()[user].id))
+				userIDs.push(emoteArray[anEmote].users.cache.array()[user].id);
+		}
+		let emote = emoteArray[anEmote]._emoji.name;
+		for(let id in userIDs) {
+			if(userIDs[id] != "" && userIDs[id] != Client.user.id) {
+				emoteArray[anEmote].users.remove(userIDs[id]);
+				removals.push(userIDs[id]);
+			}
+		}
+	}
+	return removals;
 }
 function buildGeneralEmbed(array, header, page, perPage, textFlag) { //converts an array into a basic paginated embed
 	let pages = Math.ceil(array.length / perPage);
@@ -2231,28 +2248,10 @@ function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, altIndex) {
 		//	.catch(function(e){console.log(e)})
 	}
 }
-function cullReacts (msg, legalIDs) { //removes reactions from everyone not in legalIDs
-	let emoteArray = msg.reactions.cache.array();
-	let userIDs = [];
-	let removals = [];
-	for(let anEmote in emoteArray) {
-		for(let user in emoteArray[anEmote].users.cache.array()) {
-			if(!legalIDs.includes(emoteArray[anEmote].users.cache.array()[user].id))
-				userIDs.push(emoteArray[anEmote].users.cache.array()[user].id);
-		}
-		let emote = emoteArray[anEmote]._emoji.name;
-		for(let id in userIDs) {
-			if(userIDs[id] != "" && userIDs[id] != Client.user.id) {
-				emoteArray[anEmote].users.remove(userIDs[id]);
-				removals.push(userIDs[id]);
-			}
-		}
-	}
-	return removals;
-}
+
 
 //Draft Engine
-function startDraft(owner, roundArray, playerArray) { //initializes the draft object
+function startDraft(owner, roundArray, playerArray) {		//initializes the draft object
 	draftStarts++;
 	roundArray[0] = 1;
 	var status = "progress";
@@ -2265,7 +2264,7 @@ function startDraft(owner, roundArray, playerArray) { //initializes the draft ob
 	draft = draft1
 	beginRound();
 }
-function getSeating(playerArray) { //sets random seating for players
+function getSeating(playerArray) {							//sets random seating for players
 	var players = {};
 	var firstPlayer = playerArray.pop();
 	var lastPlayer = firstPlayer;
@@ -2300,7 +2299,7 @@ function getSeating(playerArray) { //sets random seating for players
 	players[firstPlayer].passFrom = thisPlayer;
 	return players
 }
-function beginRound() { //adds new packs and advances round
+function beginRound() {										//adds new packs and advances round
 	let draft1 = draft;
 	draft1.numPlayers = 0;
 	for(let user in draft1.players) {
@@ -2334,7 +2333,7 @@ function beginRound() { //adds new packs and advances round
 		givePack(player);
 	}
 }
-function draftPick(user, pack, cardname) { //moves picked card from pack to pool
+function draftPick(user, pack, cardname) {					//moves picked card from pack to pool
 	let draft1 = draft;
 	let toggle = "";
 	draft1.players[user].cardpool.push(cardname);
@@ -2369,7 +2368,7 @@ function draftPick(user, pack, cardname) { //moves picked card from pack to pool
 	if(toggle != "")
 		endCheck();
 }
-function endCheck() { //checks if round needs started
+function endCheck() {										//checks if round needs started
 	if (draft.packsEmpty === draft.numPlayers) {
 		if (draft.roundArray[0] + 1 === draft.roundArray.length) {
 			endDraft();
@@ -2391,7 +2390,7 @@ function endCheck() { //checks if round needs started
 		}
 	}
 }
-function endDraft() { //final message
+function endDraft() {										//final message
 	//Blaze Devastator
 	for (var player in draft.players) {
 		pullPing(player).send("The draft has ended. Nice work!");
@@ -2402,7 +2401,7 @@ function endDraft() { //final message
 	finishDraftData(draft)
 }
 //Draft Interface
-function writePool(user) { //prints final pool
+function writePool(user) {									//prints final pool
 	let pool = draft.players[user].cardpool;
 	if(pool !== null) {
 		let poolText = "<deck version=\"0.8\">\n";
@@ -2434,7 +2433,7 @@ function writePool(user) { //prints final pool
 			});
 	}
 }
-function writeDraftData (draftbase) { //updates draft.json
+function writeDraftData (draftbase) {						//updates draft.json
 	draftbase.version++;
 	editVersions(); //todo
 	let fulltext = JSON.stringify(draftbase)
@@ -2448,7 +2447,7 @@ function writeDraftData (draftbase) { //updates draft.json
 	});*/
 	dropboxUpload('/lackeybot stuff/draft.json',fulltext);
 }
-function finishDraftData(draftbase) { //write the draft backup and resets draft.json
+function finishDraftData(draftbase) {						//write the draft backup and resets draft.json
 	let name = "draft" + draftStarts + ".json"
 	let fulltext = JSON.stringify(draftbase)
 	fulltext = fulltext.replace(/,"/g,",\n\"");
@@ -2458,7 +2457,7 @@ function finishDraftData(draftbase) { //write the draft backup and resets draft.
 	draft = require("./draft/draftnull.json");
 	writeDraftData(draft);
 }
-function showPack(user) { //shows current pack to given user
+function showPack(user) {									//shows current pack to given user
 	if(draft.players[user] !== null) {
 		var pack = draft.players[user].currentPack;
 		if (pack !== null) {
@@ -2486,7 +2485,7 @@ function showPack(user) { //shows current pack to given user
 		pullPing(user).send("There are no packs waiting for you right now. I'll let you know when your next pack is ready.");
 	}
 }
-function showPool(user) { //shows current pool to given user
+function showPool(user) {									//shows current pool to given user
 	let pool = draft.players[user].cardpool;
 	whiteCount = 0;
 	blueCount = 0;
@@ -2535,11 +2534,11 @@ function showPool(user) { //shows current pool to given user
 		pullPing(user).send(tempPool);
 	}
 }
-function givePack(user) { //sends new pack to players
+function givePack(user) {									//sends new pack to players
 	pullPing(user).send("You've got a pack!\nLackeyBot will ask you to pick once all cards are shown.");
 	showPack(user);
 }
-function showTable(user) { //sends list of players and packs they have
+function showTable(user) {									//sends list of players and packs they have
     let draft1 = draft;
     for (let player in draft1.players) {
         draft1.players[player].numPacks = 0;
@@ -2578,7 +2577,7 @@ function showTable(user) { //sends list of players and packs they have
     pullPing(user).send(tableString);
 }
 //Pack Generator
-function shuffleArray(array) { //shuffles arrays for packs and seating
+function shuffleArray(array) {								//shuffles arrays for packs and seating
     let counter = array.length;
     while (counter > 0) { 								// While there are elements in the array
         let index = Math.floor(Math.random() * counter);// Pick a random index
@@ -2589,7 +2588,7 @@ function shuffleArray(array) { //shuffles arrays for packs and seating
     }
     return array;
 }
-function testPackFilters(packSlots, setID) {
+function testPackFilters(packSlots, setID) {				//tests pack filters are valid for devDex
 	let library = devDex;
 	if(setID == "")
 		return "packSlots have still been saved, but LackeyBot doesn't have set data, so can't test pack filters.";
@@ -2615,7 +2614,7 @@ function testPackFilters(packSlots, setID) {
 		return "packSlots have still been saved, but the following filters match no cards. This may result in packs missing cards:\n" + borkLine;
 	return null;
 }
-function generatePack(set, library, sealedCourtesy) { //generates a pack given a set code
+function generatePack(set, library, sealedCourtesy) {		//generates a pack given a set code
 	let database = library.cards;
 	let setDatabase = library.setData;
 	var newPack = [];
@@ -2679,13 +2678,13 @@ function generatePack(set, library, sealedCourtesy) { //generates a pack given a
 	}
 	return newPack;
 }
-function makeFoil(string){ //adds ★ to a card name
+function makeFoil(string){									//adds ★ to a card name
 	return "★ " + string;
 }
-function unFoil(string){ //removes ★ from a card name
+function unFoil(string){									//removes ★ from a card name
 	return string.replace("★ ", "");
 }
-function isFoil(string){ //checks if card name has a ★ 
+function isFoil(string){									//checks if card name has a ★ 
 	return string.match("★ ");
 }
 function buildPackEmbed(library, packCards, expansion, user, page, textFlag) { //build $open embed
@@ -2776,7 +2775,7 @@ function buildPickEmbed(library, packCards, expansion, textFlag) { //build $p1p1
 }
 
 //Draft Management
-function dropPlayer(droppedPlayer) { //drops a player during a draft
+function dropPlayer(droppedPlayer) {						//drops a player during a draft
 	let draft1 = draft
 	var nextPlayer = draft1.players[droppedPlayer].passTo;
 	var prevPlayer = draft1.players[droppedPlayer].passFrom;
@@ -2797,14 +2796,14 @@ function dropPlayer(droppedPlayer) { //drops a player during a draft
 	delete draft1.players[droppedPlayer];
 	writeDraftData(draft1)
 	}	
-function addPack(setcode) { //adds a round of a given set
+function addPack(setcode) {									//adds a round of a given set
 	let draft1 = draft;
 	draft1.roundArray.push(setcode);
 	writeDraftData(draft1)
 	let draftname = generateDraftName();
 	pullPing(draft1.owner).send("You have added a round of " + setcode + " to your draft.\nYour draft is now " + draftname)
 }
-function generateDraftName() { //uses roundArray to name the draft
+function generateDraftName() {								//uses roundArray to name the draft
 	var draftname = "";
 	for(var i = 1; i < draft.roundArray.length; i++) {
 		draftname += draft.roundArray[i]
@@ -2813,7 +2812,7 @@ function generateDraftName() { //uses roundArray to name the draft
 	}
 	return draftname
 }
-function showDraftHelp(user,msg) { //sends draft help and draft owner help
+function showDraftHelp(user,msg) {							//sends draft help and draft owner help
 	let helpout = ""
 	if(user === draft.owner) {
 		helpout += "Your current draft is " + generateDraftName() + "\n";
@@ -2836,7 +2835,7 @@ function showDraftHelp(user,msg) { //sends draft help and draft owner help
 	helpout += "`$drafthelp` for this message.\n";
 	msg.channel.send(helpout);
 }
-function generateSetCodes() { //makes a list of valid drafting set codes
+function generateSetCodes() {								//makes a list of valid drafting set codes
 	var output = ""
 	for(let set in allpacks) {
 		if(allpacks[set].hidden = 0){
@@ -2972,7 +2971,7 @@ function draftRemove(user, pack, cardname) { //removes a card from the draft
 }
 
 //Fancy Decklist Engine
-function fancification (deckString, user, deckName) { //fancy engine handler
+function fancification (deckString, user, deckName) {		//fancy engine handler
 	giveFancyDeck(deckString, user, deckName, 1, ['msem']);
 	user.send("Here is your fancified decklist!", { //sends a user a HTML formatted decklist
 		files:[{attachment:"fancyDeck.txt"}]
@@ -2980,7 +2979,7 @@ function fancification (deckString, user, deckName) { //fancy engine handler
 	if(deckName == undefined)
 		user.send("Don't forget to replace DECK NAME AND TITLE HERE with your deck's name.");
 }
-function giveSealedDeck (count, deckChecking) {
+function giveSealedDeck (count, deckChecking) {				//give sealed deck of given code
 	let pool = {};
 	for(let i=0; i<count; i++) {
 		let pack = generatePack(deckChecking[1], arcana.msem);
@@ -3081,7 +3080,7 @@ function makeFancyDeck (deckString, deckName, toggle, deckChecking) { //HTML ass
 	let legal = checkLegal(deckObject, deckChecking);
 	return [fancyOutput, legal];
 }
-function makeCardArray(cardString) { //turns a decklist into an array of cards and their useful information
+function makeCardArray(cardString) {						//turns a decklist into an array of cards and their useful information
 	var numbersAndNames = cardString.match(/([0-9]+)x?[ ]+([^\n]+)(\n|$)/ig);
 	var leng = numbersAndNames.length;
 	var cardArray = {};
@@ -3102,7 +3101,7 @@ function makeCardArray(cardString) { //turns a decklist into an array of cards a
 	}
 	return cardArray
 }
-function sortMainArray(cardArray) { //sorts mainArray by type and converted mana cost
+function sortMainArray(cardArray) {							//sorts mainArray by type and converted mana cost
 	landArray = {};
 	creatureArray = {};
 	planeswalkerArray = {};
@@ -3217,7 +3216,7 @@ function makeFancySetup (mainArray, sideArray, commandArray, deckName) { //sets 
 	fancyOutput = topString + fancyOutput;
 	return fancyOutput;
 }
-function makeFancyBlock (cardArray, name, totalCount) { //turns a card array into fancy HTML output
+function makeFancyBlock (cardArray, name, totalCount) {		//turns a card array into fancy HTML output
 	var fancyBlock = "";
 	let typeNumber = 0;
 	for (let thisCard in cardArray) {
@@ -3233,7 +3232,7 @@ function makeFancyBlock (cardArray, name, totalCount) { //turns a card array int
 	fancyBlock += "		<br/>\r\n";
 	return [fancyBlock, totalCount];
 }
-function makeFancyString (card, i) { //turns a single card into its image link
+function makeFancyString (card, i) {						//turns a single card into its image link
 	let cardName = arcana.msem.cards[card.name].cardName;
 	let letter = "";
 	if(arcana.msem.cards[card.name].shape == "split") {
@@ -3250,7 +3249,7 @@ function makeFancyString (card, i) { //turns a single card into its image link
 	}
 	return [fancyString, i];
 }
-function checkLegal (deckObject, deckChecking) { //checks if deck is legal in given format
+function checkLegal (deckObject, deckChecking) {			//checks if deck is legal in given format
 	let format = deckChecking[0];
 	let secondaryCheck = deckChecking[1];
 	let legal = [];
@@ -3343,7 +3342,7 @@ function checkLegal (deckObject, deckChecking) { //checks if deck is legal in gi
 	}
 	return [legal, warning];
 }
-function writeLegal(legalArray, deckChecking) { //writes the deckcheck warnings
+function writeLegal(legalArray, deckChecking) {				//writes the deckcheck warnings
 	var illegalString = "";
 	if(legalArray[0] !== []) {
 		for(let thisLegal in legalArray[0]) {
@@ -3365,7 +3364,7 @@ function writeLegal(legalArray, deckChecking) { //writes the deckcheck warnings
 	legalString = legalString.replace("\n\n", "\n");
 	return legalString;
 }
-function checkBasic (thisCard) { //checks if a card is basic or has a Relentless Rats clause
+function checkBasic (thisCard) {							//checks if a card is basic or has a Relentless Rats clause
 	let basic = 0;
 	if(!thisCard.hasOwnProperty("fullName"))
 		thisCard = arcana.msem.cards[thisCard]
@@ -3375,7 +3374,7 @@ function checkBasic (thisCard) { //checks if a card is basic or has a Relentless
 		basic = 1;
 	return basic;
 }
-function checkBanned (thisCard, format) { //checks if a card is banned in a given format
+function checkBanned (thisCard, format) {					//checks if a card is banned in a given format
 	let banned = 0;
 	if(legal.modernBan.includes(thisCard))
 		banned = 1;
@@ -3383,20 +3382,20 @@ function checkBanned (thisCard, format) { //checks if a card is banned in a give
 		banned = 2;
 	return banned;
 }
-function triceListTrimmer(list) { //preformats cocktrice decklists
+function triceListTrimmer(list) {							//preformats cocktrice decklists
 	if(list.match(/SB: /)){ //annotated
 		list = list.replace(/\/\/ \d+ [^\n]+\n/g, "");
 		list = list.replace(/\n\n/g, "\n");
 		list = list.replace(/SB: /, "Sideboard:\n"); //expand first SB
 		list = list.replace(/SB: /g, ""); //remove the rest
-	}else if(list.match(list.match(/\n\n/) && !list.match(/Sideboard/))) { //unannotated
+	}else if(list.match(/\n\n/) && !list.match(/Sideboard/)) { //unannotated
 		list = list.replace(/\n\n/, "\nSideboard:\n");
 	}else{ //probably lackey
 		//do nothing
 	}
 	return list;
 }
-function extractPlain (cardString) { //converts HTML deck back to plain text
+function extractPlain (cardString) {						//converts HTML deck back to plain text
 	let deckFile = "";
 	cardString = cardString.replace("<div><b><i>Sideboard","<div 0x Sideboard</div>");
 	let cardMatch = cardString.match(/<div [^<]*<\/div>/g);
@@ -3408,7 +3407,7 @@ function extractPlain (cardString) { //converts HTML deck back to plain text
 	deckFile = deckFile.replace("0x Sideboard","\nSideboard:");
 	return deckFile;
 }
-function makeJsonSetup (mainArray, sideArray, deckInfo) { //writes the json decklists for the stats function
+function makeJsonSetup (mainArray, sideArray, deckInfo) {	//writes the json decklists for the stats function
 	var jsonOutput = '{\r\n	"mainboard": {\r\n'
 	for(let thisCard in mainArray) {
 		jsonOutput += '		"' + arcana.msem.cards[thisCard].fullName + '": {"count": ' + mainArray[thisCard].amountPlayed + '},\r\n'
@@ -3423,7 +3422,7 @@ function makeJsonSetup (mainArray, sideArray, deckInfo) { //writes the json deck
 	return jsonOutput;
 }
 //Lackey dek Writers
-function dekBuilder (cardString, thisSet, user) { //generates a Lackey .dek file
+function dekBuilder (cardString, thisSet, user) {			//generates a Lackey .dek file
 	let poolText = "<deck version=\"0.8\">\r\n";
 	poolText += "	<meta>\r\n";
 	poolText += "		<game>msemagic</game>\r\n";
@@ -3454,7 +3453,7 @@ function dekBuilder (cardString, thisSet, user) { //generates a Lackey .dek file
 			});
 	}, 3000);		
 }
-function dekBlockWriter(thisBlock, thisSet) { //writes card data
+function dekBlockWriter(thisBlock, thisSet) {				//writes card data
 	let temptext = "";
 	var theseCards = thisBlock.match(/([0-9]+)x?[ ]+([^\n]+)(\n|$)/ig);
 	var leng = theseCards.length;
@@ -3480,12 +3479,12 @@ function dekBlockWriter(thisBlock, thisSet) { //writes card data
 	}
 	return temptext;
 }
-function dekLineWriter(thisNo,thisName,thisSet) { //writes lackey readable card data
+function dekLineWriter(thisNo,thisName,thisSet) {			//writes lackey readable card data
 	let temptext = "		<card><name id=\"" + thisNo;
 	temptext += "\">" + thisName.replace(/('|’)/g, "&apos;") + "</name><set>" + thisSet + "</set></card>\r\n";
 	return temptext;
 }
-function promoCheck (thisName) { //attempts to convert to promo frames
+function promoCheck (thisName) {							//attempts to convert to promo frames
 	let tempName = thisName.replace(".","");
 	if(thisName != tempName){
 		thisName = thisName.replace(".","_PRO");
@@ -3502,7 +3501,7 @@ function promoCheck (thisName) { //attempts to convert to promo frames
 	}
 	return thisName;
 }//Ophorio dek Fixer
-function opoBlockFixer (cardString) { //fixes card strings containing defunct OPO cards
+function opoBlockFixer (cardString) {						//fixes card strings containing defunct OPO cards
 	let temptext = "";
 	var setsAndNames = cardString.match(/		<card><name id="([0-9a-z]+)">([^\n]+)<\/name><set>([^\n]+)<\/set><\/card>(\r\n|$)/ig);
 	var leng = setsAndNames.length;
@@ -3524,7 +3523,7 @@ function opoBlockFixer (cardString) { //fixes card strings containing defunct OP
 	}
 	return temptext
 }
-function ophorioCheck (thisCard, thisSet, promo) { //checks if card is from defunct OPO set
+function ophorioCheck (thisCard, thisSet, promo) {			//checks if card is from defunct OPO set
 	if(thisSet != "OPO") {
 		thisName = thisCard + "_" + thisSet;
 		return thisName
@@ -3549,7 +3548,7 @@ function ophorioCheck (thisCard, thisSet, promo) { //checks if card is from defu
 		}
 	}
 }
-function opoFix (cardString, user, filename) { //fixes decklists containing defunct OPO cards
+function opoFix (cardString, user, filename) {				//fixes decklists containing defunct OPO cards
 	let blockString = cardString.match(/	<superzone name="([A-Z]+)">\r\n(		<card><name id="([0-9a-z]+)">([^\n]+)<\/name><set>([^\n]+)<\/set><\/card>(\r\n|$))+/ig);
 	let poolText = "<deck version=\"0.8\">\r\n";
 	poolText += "	<meta>\r\n";
@@ -3575,7 +3574,7 @@ function opoFix (cardString, user, filename) { //fixes decklists containing defu
 }
 
 //Dropbox
-function dropboxUpload (path, contents, callback) { //uploads to dropbox with optional callback
+function dropboxUpload (path, contents, callback) {			//uploads to dropbox with optional callback
 	dbx.filesUpload({ path: path, contents: contents, mode: 'overwrite'})
         .then(function (response) {
 			console.log("dropboxUpload(): " + path + " uploaded to Dropbox");
@@ -3586,7 +3585,7 @@ function dropboxUpload (path, contents, callback) { //uploads to dropbox with op
 			console.error(error);
 		});
 }
-function dropboxDownload(path, downLink, callback, big) { //downloads from dropbox with optional callback
+function dropboxDownload(path, downLink, callback, big) {	//downloads from dropbox with optional callback
 	if(big) {
 		dbx.filesGetTemporaryLink({path:downLink})
 			.then(function(result) {
@@ -3629,7 +3628,7 @@ function dropboxDownload(path, downLink, callback, big) { //downloads from dropb
 		}
 	}
 }
-function verifyDeck (path,contents) { //downloads an uploaded deck and checks if they are the same (we were having issues with unfinished uploads)
+function verifyDeck (path,contents) {						//downloads an uploaded deck and checks if they are the same (we were having issues with unfinished uploads)
 	dbx.filesDownload({path:path})
 		.then(function(data) {
 			fs.writeFile('./decks'+path, data.fileBinary, 'binary', function(err) {
@@ -3663,7 +3662,7 @@ function verifyDeck (path,contents) { //downloads an uploaded deck and checks if
 //Database Builders
 //allpacks
 //gpbase, stat updates
-function gpUpdate(msg) { //updates the gpbase live
+function gpUpdate(msg) {									//updates the gpbase live
 	if(!gpbase.hasOwnProperty('gpa1')) {
 		msg.author.send("LackeyBot has just restarted and has not reloaded the GP database yet. Please wait a moment and retry the command.");
 		return;
@@ -3710,7 +3709,7 @@ function gpUpdate(msg) { //updates the gpbase live
 		msg.author.send(thisGP + " updated");
 	}
 }
-function statUpdate(msg) { //updates the stats live
+function statUpdate(msg) {									//updates the stats live
 	if(!stats.hasOwnProperty('cardCount')){
 		msg.author.send("LackeyBot has just restarted and has not reloaded the stats database yet. Please wait a moment and retry the command.");
 		return;
@@ -3745,7 +3744,7 @@ function statUpdate(msg) { //updates the stats live
 	msg.channel.send("Stats updated.");
 }
 //plugin
-function pullTokenSet(card, setbase) { //determines what set a token belongs to
+function pullTokenSet(card, setbase) {						//determines what set a token belongs to
 	for(let set in setbase) {
 		if(card.cardID.match(set))
 			return set;
@@ -3756,7 +3755,7 @@ function pullTokenSet(card, setbase) { //determines what set a token belongs to
 	return "MSEMAR";
 }
 //roles.json
-function buildRoleRegex(server) { //builds roleRegex on startup to reduce computation
+function buildRoleRegex(server) {							//builds roleRegex on startup to reduce computation
 	let servArray = [];
 	if(server) {
 		servArray = [server]
@@ -3773,22 +3772,22 @@ function buildRoleRegex(server) { //builds roleRegex on startup to reduce comput
 	}
 	return roleRegex;
 }
-function newGuild(guildID){ //adds a new role server to LB
+function newGuild(guildID){									//adds a new role server to LB
 	if(!roleCall.hasOwnProperty(guildID)){
 		roleCall[guildID] = {banned:[], prefix:"", roles:{}, groups:["General","Colors"], exclusive:[], excluded:{}};
 		return "LackeyBot has initialized this server.";
 	}
 	return "Server is already established."
 }
-function newGroup(guildID, groupName) { //adds a new role group
+function newGroup(guildID, groupName) {						//adds a new role group
 	let len = roleCall[guildID].groups.length;
 	if(groupName == "")
 		groupName = len;
-	groupName = toTitleCase(groupName)
+	groupName = toolbox.toTitleCase(groupName)
 	roleCall[guildID].groups.push(groupName);
 	return "Group " + groupName + " added at position " + len + ".";
 }
-function renameRole(guildID, oldName, newName) { //renames a role
+function renameRole(guildID, oldName, newName) {			//renames a role
 	oldName = oldName.replace(/ $/, "").toLowerCase();
 	newName = newName.toLowerCase();
 	let response = ""
@@ -3810,10 +3809,10 @@ function renameRole(guildID, oldName, newName) { //renames a role
 	buildRoleRegex(guildID);
 	return response;
 }
-function renameGroup(guildID, groupIndex, groupName) { //renames a role group
+function renameGroup(guildID, groupIndex, groupName) {		//renames a role group
 	if(groupName == "")
 		groupName = groupIndex;
-	groupName = toTitleCase(groupName);
+	groupName = toolbox.toTitleCase(groupName);
 	let oldName = roleCall[guildID].groups[groupIndex];
 	let exIndex = roleCall[guildID].exclusive.indexOf(oldName);
 	if(exIndex != -1)
@@ -3825,14 +3824,14 @@ function renameGroup(guildID, groupIndex, groupName) { //renames a role group
 	roleCall[guildID].groups[groupIndex] = groupName;
 	return "Renamed group index " + groupIndex + " to " + groupName + ".";
 }
-function moveGroup(guildID, groupIndex, newGroupIndex) { //moves a role group
+function moveGroup(guildID, groupIndex, newGroupIndex) {	//moves a role group
 	if(groupIndex == newGroupIndex)
 		return "That is the same index.";
 	let currentIndex = "Group " + roleCall[guildID].groups[groupIndex]
-	roleCall[guildID].groups = reassignIndex(roleCall[guildID].groups, groupIndex, newGroupIndex);
+	roleCall[guildID].groups = toolbox.reassignIndex(roleCall[guildID].groups, groupIndex, newGroupIndex);
 	return currentIndex + " moved to index " + newGroupIndex + ".";
 }
-function removeGroup(guildID, groupIndex) { //removes a role group
+function removeGroup(guildID, groupIndex) {					//removes a role group
 	let currentIndex = "Group " + roleCall[guildID].groups[groupIndex];
 	for(let role in allRoles.guilds[guildID].roles){
 		if(allRoles.guilds[guildID].roles[role].group == roleCall[guildID].groups[groupIndex])
@@ -3841,8 +3840,8 @@ function removeGroup(guildID, groupIndex) { //removes a role group
 	roleCall[guildID].groups.splice(groupIndex, 1);
 	return currentIndex + " removed.";
 }
-function makeExclusiveGroup(guildID, groupName) { //adds an exclusive group, for things like color roles
-	groupName = toTitleCase(groupName);
+function makeExclusiveGroup(guildID, groupName) {			//adds an exclusive group, for things like color roles
+	groupName = toolbox.toTitleCase(groupName);
 	let currentGroups = allRoles.guilds[guildID].groups;
 	let currentExclu = allRoles.guilds[guildID].exclusive;
 	if(currentGroups.includes(groupName)) {
@@ -3859,7 +3858,7 @@ function makeExclusiveGroup(guildID, groupName) { //adds an exclusive group, for
 		return "Exclusive group " + groupName + " added.";
 	}
 }
-function reGroup(guildID, groupIndex, roleName) {//resets a role's group
+function reGroup(guildID, groupIndex, roleName) {			//resets a role's group
 	if(groupIndex >= allRoles.guilds[guildID].groups.length)
 		return "Index not found."
 	let groupName = allRoles.guilds[guildID].groups[groupIndex];
@@ -3874,7 +3873,7 @@ function reGroup(guildID, groupIndex, roleName) {//resets a role's group
 }
 function newAssignableRole(guildID, roleName, giveMessage, takeMessage, group) { //adds a new role to LB
 	roleName = roleName.replace(/ $/, "")
-	group = toTitleCase(group);
+	group = toolbox.toTitleCase(group);
 	if(!allRoles.guilds[guildID].groups.includes(group))
 		group = allRoles.guilds[guildID].groups[0];
 	let roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
@@ -3883,7 +3882,7 @@ function newAssignableRole(guildID, roleName, giveMessage, takeMessage, group) {
 		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null) {
-		roleName = toTitleCase(roleName);
+		roleName = toolbox.toTitleCase(roleName);
 		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null)
@@ -3902,7 +3901,7 @@ function newAssignableRole(guildID, roleName, giveMessage, takeMessage, group) {
 	buildRoleRegex(guildID);
 	return roleName + " added as self assignable role.";
 }
-function newCountableRole(guildID, roleName) { //adds a new countable role to LB
+function newCountableRole(guildID, roleName) {				//adds a new countable role to LB
 	roleName = roleName.replace(/ $/, "")
 	let roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	if(roleID == null) {
@@ -3910,7 +3909,7 @@ function newCountableRole(guildID, roleName) { //adds a new countable role to LB
 		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null) {
-		roleName = toTitleCase(roleName);
+		roleName = toolbox.toTitleCase(roleName);
 		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null)
@@ -3923,14 +3922,14 @@ function newCountableRole(guildID, roleName) { //adds a new countable role to LB
 }
 function newGivenRole(guildID, roleName, giveMessage, takeMessage, group) { //adds a new give-only role to LB
 	roleName = roleName.replace(/ $/, "")
-	group = toTitleCase(group);
+	group = toolbox.toTitleCase(group);
 	let roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	if(roleID == null) {
 		roleName = roleName.toLowerCase();
 		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null) {
-		roleName = toTitleCase(roleName);
+		roleName = toolbox.toTitleCase(roleName);
 		roleID = Client.guilds.cache.find(val => val.id == guildID).roles.cache.find(val => val.name == roleName);
 	}
 	if(roleID == null)
@@ -3948,7 +3947,7 @@ function newGivenRole(guildID, roleName, giveMessage, takeMessage, group) { //ad
 		allRoles.guilds[guildID].givable[roleMini].take = "You no longer have the " + roleName + " role.";
 	return roleName + " added as mod-givable role.";
 }
-function unassignRole(guildID, roleName) { //removes a role from LB
+function unassignRole(guildID, roleName) {					//removes a role from LB
 	roleName = roleName.replace(/ $/, "").toLowerCase();
 	let response = ""
 	if(roleCall[guildID].roles.hasOwnProperty(roleName)) {
@@ -3966,7 +3965,7 @@ function unassignRole(guildID, roleName) { //removes a role from LB
 	buildRoleRegex(guildID);
 	return response;
 }
-function excludeRole(guildID, flag, userID, roleName){ //bans a user from having a self-assignabe role
+function excludeRole(guildID, flag, userID, roleName){		//bans a user from having a self-assignabe role
 	let thisGuild = roleCall[guildID];
 	roleName = roleName.replace(/ $/, "").toLowerCase();
 	let thisRole;
@@ -3992,7 +3991,7 @@ function excludeRole(guildID, flag, userID, roleName){ //bans a user from having
 		return `${thatMember.user.username} can now assign ${roleName} again.`;
 	}
 }
-function toggleFightRole(guildID, fightID) { //toggles if a server uses the $fight/$unfight commands
+function toggleFightRole(guildID, fightID) {				//toggles if a server uses the $fight/$unfight commands
 	if(allRoles.fightGuilds.hasOwnProperty(guildID)) {
 		delete allRoles.fightGuilds[guildID];
 		return "Server no longer has a fight role."
@@ -4022,11 +4021,11 @@ function createNewRole(guildID, roleName, roleColor, hoist, mention, group, chan
 		.then(role => callback(role))
 		.catch(e => console.log(e))
 }
-function changeRolePrefix(guildID, prefix) { //doesn't work yet
+function changeRolePrefix(guildID, prefix) {				//TODO doesn't work yet
 	allRoles.guilds[guildID].prefix = prefix;
 	buildRoleRegex(guildID);
 }
-function sortGuildRoles(guildRoles) { //sorts the guilds roles by group number, then alphabetically
+function sortGuildRoles(guildRoles) {						//sorts the guilds roles by group number, then alphabetically
 	let theseGroups = guildRoles.groups;
 	let theseRoles = guildRoles.roles;
 	let roleArray = Object.keys(theseRoles);
@@ -4054,7 +4053,7 @@ function sortGuildRoles(guildRoles) { //sorts the guilds roles by group number, 
 	}
 	return newroleArray;
 }
-function writeRoleStack(guildID, page, textFlag) { //writes the stack of roles and their group number
+function writeRoleStack(guildID, page, textFlag) {			//writes the stack of roles and their group number
 	let theseRoles = allRoles.guilds[guildID].roles;
 	let theseNames = sortGuildRoles(allRoles.guilds[guildID]);
 	let allArray = [[]];
@@ -4082,7 +4081,7 @@ function writeRoleStack(guildID, page, textFlag) { //writes the stack of roles a
 		outputArray.push(allArray[pageArray[page]])
 	return [outputArray, theseNames.length, Math.ceil(allArray.length/3)];
 }
-function buildRoleEmbed(guildID, page, textFlag) { //builds a page of the roles embed for a guild
+function buildRoleEmbed(guildID, page, textFlag) {			//builds a page of the roles embed for a guild
 	let rolestuff = writeRoleStack(guildID, page, textFlag);
 	let roleArrays = rolestuff[0];
 	let pages = rolestuff[2];
@@ -4118,7 +4117,7 @@ function buildRoleEmbed(guildID, page, textFlag) { //builds a page of the roles 
 	}
 	return [exampleEmbed, pages];
 }
-function buildInRoleEmbed(guild, roleName, page, textFlag) { //build inrole embed
+function buildInRoleEmbed(guild, roleName, page, textFlag) {//build inrole embed
 	roleName = roleName.replace(/ $/, "")
 	let members;
 	if(allRoles.guilds[guild.id].roles.hasOwnProperty(roleName)) { //exact role
@@ -4163,7 +4162,7 @@ function buildInRoleEmbed(guild, roleName, page, textFlag) { //build inrole embe
 	embedded.setTitle("List of users in " + roleName + " role - " + members.length);
 	return [embedded, embedInfo[1]];
 }
-function isExcluded(guild, role, user) {
+function isExcluded(guild, role, user) {					//checks if a user has been excluded from assigning a role
 	if(guild.excluded.hasOwnProperty(role)) {
 		if(guild.excluded[role].includes(user))
 			return true;
@@ -4193,7 +4192,7 @@ function adjustRoles(littleName, thisGuild, member, base, forceRemove){ //adds/r
 	}
 }
 //mtgjson/instigator
-function mtgjsonSetsBuilder(user) { //build jsons for instigator or trice
+function mtgjsonSetsBuilder(user) {							//build jsons for instigator or trice
 	let ASA = {};//require('./triceFiles/AllCanonSets.json');
 	for(let set in msemSetData) {
 		ASA[set] = mtgjsonBuilder(set,user,1)
@@ -4218,7 +4217,7 @@ function mtgjsonSetsBuilder(user) { //build jsons for instigator or trice
 		});
 	});*/
 }
-function mtgjsonBuilder (thisSet, user, skip, library) { //builds an mtgjson file for the given set
+function mtgjsonBuilder (thisSet, user, skip, library) {	//builds an mtgjson file for the given set
 	let cardsArray = [];
 	let leng = 0;
 	if(!library)
@@ -4267,7 +4266,7 @@ function mtgjsonBuilder (thisSet, user, skip, library) { //builds an mtgjson fil
 	}
 
 }
-function mtgjsonCardsBuilder(nameArray, skip, library) { //creates the cards array for a set's mtgjson file
+function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards array for a set's mtgjson file
 	let leng = nameArray.length;
 	let thisCardArray = [];
 	nameArray.sort();
@@ -4440,7 +4439,7 @@ function mtgjsonCardsBuilder(nameArray, skip, library) { //creates the cards arr
 	}
 	return thisCardArray;
 }
-function arrayifyColors(theseColors) { //creates the color array for mtgjson
+function arrayifyColors(theseColors) {						//creates the color array for mtgjson
 	let colormatch = theseColors.match(/[{]([A-Z]+)\/?([A-Z]+)?\/?([A-Z]+)?\/?([A-Z]+)?\/?([A-Z]+)?\/?[}]/i);
 	let colorArray = [];
 	for(var c = 1; c < 6; c++) {
@@ -4449,7 +4448,7 @@ function arrayifyColors(theseColors) { //creates the color array for mtgjson
 	}
 	return colorArray;
 }
-function flipColors(thisColor) { //converts Blue <-> U etc
+function flipColors(thisColor) {							//converts Blue <-> U etc
 	let refArray = ["W", "U", "B", "R", "G"];
 	let nameArray = ["White", "Blue", "Black", "Red", "Green"];
 	let index = refArray.indexOf(thisColor); //check if WUBRG
@@ -4462,7 +4461,7 @@ function flipColors(thisColor) { //converts Blue <-> U etc
 		return refArray[index];		  //otherwise send its letter
 	}
 }
-function calculateColorIdentity(card) { //creates the color identity array from card data
+function calculateColorIdentity(card) {						//creates the color identity array from card data
 	let refArray = ["W", "U", "B", "R", "G"];
 	let nameArray = ["White", "Blue", "Black", "Red", "Green"];
 	let baseColors = arrayifyColors(card.color);
@@ -4487,7 +4486,7 @@ function calculateColorIdentity(card) { //creates the color identity array from 
 	}
 	return baseColors;
 }
-function arrayifyLegal (thisName, library) { //creates the legality array for mtgjson
+function arrayifyLegal (thisName, library) {				//creates the legality array for mtgjson
 	let legalArray = [];
 	let legalEntry = {};
 	if(library == arcana.myriad){
@@ -4520,7 +4519,7 @@ function arrayifyLegal (thisName, library) { //creates the legality array for mt
 	}
 	return legalArray;
 }
-function arrayifyRulings (thisName) { //creates the legality array for mtgjson
+function arrayifyRulings (thisName) { 						//creates the legality array for mtgjson
 	let theseRules = oracle[thisName];
 	let rulMatch = theseRules.match(/([^_]+)(_ |$)/ig);
 	let leng = rulMatch.length;
@@ -4534,7 +4533,7 @@ function arrayifyRulings (thisName) { //creates the legality array for mtgjson
 	}
 	return ruleArray;
 }
-function arrayifyTypes (theseTypes) { //creates type arrays for mtgjson
+function arrayifyTypes (theseTypes) {						//creates type arrays for mtgjson
 	let subtypeMatch = theseTypes.match(/([A-Z][a-z]+)( |$)/g)
 	let subtypeArray = [];
 	if(subtypeMatch !== null) {
@@ -4546,12 +4545,12 @@ function arrayifyTypes (theseTypes) { //creates type arrays for mtgjson
 	}
 	return subtypeArray;
 }
-function checkPromo(dataName, cardData) { //checks if a card is a skipped promo
+function checkPromo(dataName, cardData) {					//checks if a card is a skipped promo
 	if(dataName.match(/_PRO/) && !cardData.typeLine.match(/Basic/))
 		return false;
 	return true;
 }
-function makeMultiverse() { //creates an instigatorID for each card in cards
+function makeMultiverse() {									//creates an instigatorID for each card in cards
 	let releaseArray = [];
 	let allSets = {};
 	let allPromos = {};
@@ -4629,7 +4628,7 @@ function makeMultiverse() { //creates an instigatorID for each card in cards
 		});
 
 }
-function instigate(thisSet) { //creates an instigatorID for each card in a given set
+function instigate(thisSet) {								//creates an instigatorID for each card in a given set
 	let allCards = [];
 	let allPromos = [];
 	let allTokens = [];
@@ -4689,7 +4688,7 @@ function instigate(thisSet) { //creates an instigatorID for each card in a given
 		});
 }
 //MSE
-function namelistBuilder(database) { //creates a list of names for the Name Exporter
+function namelistBuilder(database) {						//creates a list of names for the Name Exporter
 	let namelistArray = [];
 	let nameString = "";
 	for(let thisCard in database) {
@@ -4718,7 +4717,7 @@ function namelistBuilder(database) { //creates a list of names for the Name Expo
 }
 
 //Old Database functions that have been left for reference/backup
-function checkNewStuff() { //checks if each card has an artist and an instigatorID
+function checkNewStuff() {									//checks if each card has an artist and an instigatorID
 	for(let thisCard in arcana.msem.cards) {
 		if(arcana.msem.cards[thisCard].setID != "BOT") {
 			if(arcana.msem.cards[thisCard].artist == undefined)
@@ -4729,7 +4728,7 @@ function checkNewStuff() { //checks if each card has an artist and an instigator
 	}
 	console.log("Done checking new stuff");
 }
-function addArtists() { //adds artist characteristic to existing cards
+function addArtists() {										//adds artist characteristic to existing cards
 	for(let thisCard in arttemp) {
 		console.log(thisCard);
 		arcana.msem.cards[thisCard].artist = arttemp[thisCard].artist;
@@ -4745,7 +4744,7 @@ function addArtists() { //adds artist characteristic to existing cards
 
 //toy mechanics
 //Timeline
-function buildTime (year, starting, ending) { //the timeline handler
+function buildTime (year, starting, ending) {				//the timeline handler
 	let output = year + starting;
 	if(year == "0" && (starting == "NKY" || starting == "OKY"))
 		year = "-1"
@@ -4783,7 +4782,7 @@ function buildTime (year, starting, ending) { //the timeline handler
 	}
 	return output;
 }
-function convertAR (year, starting) { //first convert to AR
+function convertAR (year, starting) {						//first convert to AR
 	//convert to AR
 	switch(starting) {
 		case "VY":
@@ -4837,7 +4836,7 @@ function convertAR (year, starting) { //first convert to AR
 	}
 	return year;
 }
-function convertCalendar (year, ending, floatNo) {//convert to other calendar
+function convertCalendar (year, ending, floatNo) {			//then convert to other calendar
 	switch(ending) {
 		case "DAT":
 			year -= 4354;
@@ -4891,11 +4890,11 @@ function convertCalendar (year, ending, floatNo) {//convert to other calendar
 	return [year, ending];
 }
 //Dice
-function roll(faces) { //roll die with N faces
+function roll(faces) {										//roll die with N faces
 	let myNumber = Math.floor(Math.random()*Math.min(faces, 100))+1;
 	return myNumber;
 }
-function rollMaster (diceString) { //writes the results
+function rollMaster (diceString) {							//writes the results
 	let results = rollout(diceString);
 	let mathmatch = results.match(/(-?[0-9]+)/g);
 	let math = 0;
@@ -4912,7 +4911,7 @@ function rollMaster (diceString) { //writes the results
 	}
 	return message;
 }
-function rollout(diceCommand) { //the $roll handler
+function rollout(diceCommand) {								//the $roll handler
 	let thisDie = diceCommand.match(/(- ?)?([0-9]*)d([0-9]+)(kh\d+|kl\d+|e)?( ?- ?\d+($|[^d])| ?\+ ?\d+($|[^d]))?/i);
 	let quant = 1;
 	let faces = 20;
@@ -4977,7 +4976,7 @@ function rollout(diceCommand) { //the $roll handler
 	}
 	return message;
 }
-function rollExplode (faces, i) { //the explode function
+function rollExplode (faces, i) {							//the explode function
 	if(faces < 2)
 		return faces;
 	if(faces * i > 9000)
@@ -4987,7 +4986,7 @@ function rollExplode (faces, i) { //the explode function
 		rolledNumber += rollExplode(faces);
 	return rolledNumber;
 }
-function maxArray (thisArray, iterations) { //get the N highest values of a given array
+function maxArray (thisArray, iterations) {					//get the N highest values of a given array
 	var maxedArray = [];
 	for(var i = 0; i < iterations; i++) {
 		var bestArray = [0,0];
@@ -5000,7 +4999,7 @@ function maxArray (thisArray, iterations) { //get the N highest values of a give
 	}
 	return maxedArray;
 }
-function minArray (thisArray, iterations) { //get the N lowest values of a given array
+function minArray (thisArray, iterations) {					//get the N lowest values of a given array
 	var minedArray = [];
 	for(var i = 0; i < iterations; i++) {
 		var bestArray = [999999999999999,0];
@@ -5014,7 +5013,7 @@ function minArray (thisArray, iterations) { //get the N lowest values of a given
 	return minedArray;
 }
 //Minesweeper
-function sweeper(width, bombs) { //minesweeper generator
+function sweeper(width, bombs) {							//minesweeper generator
 	let total = width * width;
 	let rows = [];
 	let board = [];
@@ -5101,7 +5100,7 @@ function sweeper(width, bombs) { //minesweeper generator
 	return str;
 }
 //cipher
-function rotCrypt (message, rotNo) { //ciphers messages using the lackeybot rotation
+function rotCrypt (message, rotNo) {						//ciphers messages using ROTX or the lackeybot rotation
 	let alphaArray = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
 	let miniAlphaArray = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 	let lackeycypher = ["l","a","c","k","e","y","b","o","t","s","i","p","h","r","u","w","v","m","q","x","n","z","j","f","g","d"];
@@ -5143,7 +5142,7 @@ function rotCrypt (message, rotNo) { //ciphers messages using the lackeybot rota
 	return rotMessage
 }
 //namegen
-function pickRandomCharacter(seed,last) { //picks random characters for namegen
+function pickRandomCharacter(seed,last) {					//picks random characters for namegen
 	let vowelArray = ["a","e","i","o","u","a","e"];
 	let consArray = ["b","c","d","f","g","h","k","l","m","n","p","r","s","t","b","c","d","f","h","l","m","n","p","r","s","t","m","n","t","r","s","st","ch","th","sh","tr","j","q","x","y","z","v","w"];
 	let specArray = [" ","'","-"," "," "];
@@ -5183,7 +5182,7 @@ function pickRandomCharacter(seed,last) { //picks random characters for namegen
 }
 
 //Reminder engine
-function reminderEmotes(msg) { //adds the snooze emotes
+function reminderEmotes(msg) {								//adds the snooze emotes
 	msg.react(hourEmote)
 		.then(() => msg.react(dayEmote)
 			.then(() => msg.react(weekEmote)
@@ -5191,7 +5190,7 @@ function reminderEmotes(msg) { //adds the snooze emotes
 			)
 		)
 }
-function remindScript (ent, refDate, intendDate) { //sends reminders
+function remindScript (ent, refDate, intendDate) {			//sends reminders
 	//if(botname == "TestBot")
 	//	return
 	for(let ping in ent) {
@@ -5270,7 +5269,7 @@ function remindAdder (channel, id, message, date, time, sendChannel, eventFlag) 
 		Client.channels.cache.get(channel).send("LackeyBot cannot set a reminder that far in the future.");
 	}
 }
-function remindEditor(time, slot, remindData){ //edits a reminder object
+function remindEditor(time, slot, remindData){				//edits a reminder object
 	if(!reminderBase.hasOwnProperty(time) || !reminderBase[time].hasOwnProperty(slot))
 		return "Invalid reminder slot data.";
 	let thisReminder = reminderBase[time][slot];
@@ -5298,7 +5297,7 @@ function remindEditor(time, slot, remindData){ //edits a reminder object
 	}
 	return "Reminder updated";
 }
-function buildReminderListEmbed(userID, startFrom, embedFlag) { //builds the reminderlist and if necessary its page turner embed
+function buildReminderListEmbed(userID,startFrom,embedFlag){//builds the reminderlist and if necessary its page turner embed
 	let i = 0;
 	reminderCell[userID] = {};
 	reminderCell[userID][0] = {};
@@ -5338,7 +5337,7 @@ function buildReminderListEmbed(userID, startFrom, embedFlag) { //builds the rem
 		return [reminderPost, embedded];
 	}
 }
-function hookShift(currentTime, newTime){
+function hookShift(currentTime, newTime){					//shifts when a $reminder event fires
 	let i = 0, delArray = [];
 	if(reminderBase.hasOwnProperty(newTime)) {
 		i = Object.keys(reminderBase[newTime]).length;
@@ -5361,7 +5360,7 @@ function hookShift(currentTime, newTime){
 	sortReminders();
 	logReminders();
 }
-function parseReminderEdit(command){
+function parseReminderEdit(command){						//converts a Discord post into a remindEditor() function
 	let time, slot;
 	let remindData = {};
 	let slotMatch = command.match(/slot: ?(\d+)\[(\d+)\]/i);
@@ -5388,7 +5387,7 @@ function parseReminderEdit(command){
 		return "Reminder slot must be included.";
 	}
 }
-function sortReminders() { //sorts reminders by time
+function sortReminders() {									//sorts reminders by time
 	let timesArray = Object.keys(reminderBase);
 	timesArray.sort(function(a, b){return a-b});
 	let tempreminders = {};
@@ -5397,7 +5396,7 @@ function sortReminders() { //sorts reminders by time
 	}
 	reminderBase = tempreminders;
 }
-function timeConversion(milliseconds,precision) { //converts milliseconds to X years, X days, etc.
+function timeConversion(milliseconds,precision) {			//converts milliseconds to X years, X days, etc.
 	let years = Math.trunc(milliseconds / 31556952000);
 	milliseconds -= years*31556952000;
 	let days = Math.trunc(milliseconds / 86400000);
@@ -5431,7 +5430,7 @@ function timeConversion(milliseconds,precision) { //converts milliseconds to X y
 	}
 	return wordTime;
 }
-function setTimeDistance(number, distance, direction) { //creates a date object for (number) (distance) from now
+function setTimeDistance(number, distance, direction) {		//creates a date object for (number) (distance) from now
 	let wholeNumber = Math.trunc(number);
 	let currenttime = new Date();
 	let pingYear = 0;
@@ -5484,7 +5483,7 @@ function setTimeDistance(number, distance, direction) { //creates a date object 
 
 	return new Date(pingYear, pingMonth, pingDay, pingHour, pingMinute, 0, 0);
 }
-function bombard(id, channel, date, message, time) { //send a message in many channels (broken)
+function bombard(id, channel, date, message, time) {		//send a message in many channels (broken)
 	setTimeout(function () {
 		try{
 			Client.channels.cache.get(channel).send(date + " ago " + Client.users.cache.get(id) + " set a reminder: " + message);
@@ -5495,7 +5494,7 @@ function bombard(id, channel, date, message, time) { //send a message in many ch
 }
 //MatchDex
 //general scripts
-function generateBracketSeeds (powers) { //generate bracket with 2^input pairs
+function generateBracketSeeds (powers) {					//generate bracket with 2^input pairs
 	var primeArray = [[1,2]];
 	for(i=0; i<powers; i++) {
 		let nextMax = 2*parseInt(primeArray[0][1])+1;
@@ -5513,7 +5512,7 @@ function generateBracketSeeds (powers) { //generate bracket with 2^input pairs
 	}
 	return primeArray;
 }
-function resetTourney(tourney) { //archives tourney data and resets it
+function resetTourney(tourney) {							//archives tourney data
 		let leagueArchive = {};
 		let flag = {};
 		for(let t in matchDex) {
@@ -5578,7 +5577,7 @@ function resetTourney(tourney) { //archives tourney data and resets it
 			leagueArchive.matches.push(matchStats);
 		}
 		let leagueText = JSON.stringify(leagueArchive);
-		let archName = tourney+"_"+setTheDate("_")+'_archive.json'
+		let archName = tourney+"_"+toolbox.setTheDate("_")+'_archive.json'
 		fs.writeFile('./msem/'+archName, leagueText, (err) => {
 			if(err) console.log(err);
 		});
@@ -5587,19 +5586,42 @@ function resetTourney(tourney) { //archives tourney data and resets it
 		flag[tourney] = 1;
 	return [flag, "The " + tourney + " database has been archived. If the tournament is over, send !delete " + tourney + " to reset its database or `!continue league` to start a new month in the same season."];
 }
-function deleteTourney (tourney) { //ends a tourney
+function deleteTourney (tourney) {							//resets a tourney to nothing/base data
 		matchDex[tourney] = {};
-		matchDex[tourney].matches = [];
-		matchDex[tourney].players = {};
-		matchDex[tourney].round = 0;
-		if(tourney == "gp") {
+		matchDex[tourney].matches = [];													//blank matches
+		matchDex[tourney].players = {};													//blank players
+		let oldName = tourney;															//save name
+		if(matchDex[tourney].data.name)
+			oldName = matchDex[tourney].data.name;										//then reset the data
+		matchDex[tourney].data = {TO: login.TO, channel:login.comp, pairing:"league", runLength:null, rematch:null, name:oldName};
+		matchDex[tourney].round = 0;													//and the round
+		if(tourney == "gp") {															//change the data defaults for recurring tournaments
 			matchDex[tourney].data.pairing = "swiss-knockout";
 			matchDex[tourney].awaitingMatches = [];
+			let gpLetter = matchDex[tourney].data.name.match(/GP[A-Z]/i);				//figure out the next GP letter
+			if(gpLetter){
+				gpLetter = gpLetter[1].toLowerCase();
+				let gpIndex = azArray.indexOf(gpLetter);
+				gpIndex++;
+				gpIndex = gpIndex%azArray.length;
+				gpLetter = azArray[gpIndex].toUpperCase();
+				matchDex[tourney].data.name = "GP" + gpLetter;
+			}
+		}else if(tourney == "league") {
+			matchDex[tourney].data.channel = login.league;
+			matchDex[tourney].runLength = 5;
+		}else if(tourney == "cnm") {
+			matchDex[tourney].data.pairing = "swiss";
+			matchDex[tourney].data.channel = login.cnm;
+			matchDex[tourney].awaitingMatches = [];
+		}else if(tourney == "sealed") {
+			matchDex[tourney].data.channel = login.sealed;
+			matchDex[tourney].data.rematch = 2;
 		}
 		logMatch();
 	return "The " + tourney + " database has been reset.";
 }
-function rolloverTourney (tourney, cullID) { //continues a multi-month tourney
+function rolloverTourney (tourney, cullID) {				//continues a multi-month tourney
 	matchDex[tourney].matches = [];
 	for(let player in matchDex[tourney].players) {
 		if(cullID == 0)
@@ -5616,7 +5638,7 @@ function rolloverTourney (tourney, cullID) { //continues a multi-month tourney
 		return "The league season has ended."
 	return "The league month has rolled over.";
 }
-function archivePlayer(tourney, id, wins, losses, run) { //saves player data for a match
+function archivePlayer(tourney, id, wins, losses, run) {	//saves player data for a match
 	let partRun = matchDex[tourney].players[id].runs[run-1];
 	let archPlay = {};
 	archPlay.id = id;
@@ -5632,11 +5654,11 @@ function archivePlayer(tourney, id, wins, losses, run) { //saves player data for
 	}
 	return archPlay
 }
-function addLackeyBot(tourney){
+function addLackeyBot(tourney){								//adds LackeyBot to a tournament for testing
 	addNewPlayer(tourney, '341937757536387072', false);
 	addNewRun(tourney, '341937757536387072', 'idk', 'idk');
 }
-function addNewPlayer (tourney, id, midFlag) { //adds new player to given tourney
+function addNewPlayer (tourney, id, midFlag) {				//adds new player to given tourney
 	if(matchDex[tourney].players[id]) {
 		return "";
 	}else{
@@ -5658,7 +5680,7 @@ function addNewPlayer (tourney, id, midFlag) { //adds new player to given tourne
 		return "You have been added to " + tourney + ".";
 	}
 }
-function getPlayedOpps (tourney, id, thisRun, knockFlag) { //returns [ [opponent ids], [opponent runs], [opponent matches] ]
+function getPlayedOpps (tourney, id, thisRun, knockFlag) {	//returns [ [opponent ids], [opponent runs], [opponent matches] ]
 	if(!matchDex[tourney].players.hasOwnProperty(id))
 		return [[],[],[]];
 	let matchArray = [];
@@ -5671,7 +5693,7 @@ function getPlayedOpps (tourney, id, thisRun, knockFlag) { //returns [ [opponent
 		if(!matchDex[tourney].matches[0]) {
 			return [[],[],[]];
 		}else{
-			if(matchDex[tourney].matches[matchArray[thisMatch]-1] && !(hasValue(knockFlag) && matchDex[tourney].matches[matchArray[thisMatch]-1].hasOwnProperty('knockout') && matchDex[tourney].matches[matchArray[thisMatch]-1].knockout == 1)) {
+			if(matchDex[tourney].matches[matchArray[thisMatch]-1] && !(toolbox.hasValue(knockFlag) && matchDex[tourney].matches[matchArray[thisMatch]-1].hasOwnProperty('knockout') && matchDex[tourney].matches[matchArray[thisMatch]-1].knockout == 1)) {
 				oppMatchArray.push(matchArray[thisMatch]);
 				if(matchDex[tourney].matches[matchArray[thisMatch]-1].p1 == id) {
 					oppArray.push(matchDex[tourney].matches[matchArray[thisMatch]-1].p2);
@@ -5685,7 +5707,7 @@ function getPlayedOpps (tourney, id, thisRun, knockFlag) { //returns [ [opponent
 	}
 	return [oppArray, oppRunArray, oppMatchArray];
 }
-function getRecord (tourney, id, run) { //returns given ['W - L', tournament score, monthly points]
+function getRecord (tourney, id, run) {						//returns given player's ['W - L', tournament score, monthly points]
 	let matchArray = matchDex[tourney].players[id].runs[run-1].matches;
 	let wins = 0;
 	let loss = 0;
@@ -5714,7 +5736,7 @@ function getRecord (tourney, id, run) { //returns given ['W - L', tournament sco
 		points++;
 	return [winString, score, points];
 }
-function bestRecord (tourney, id) { //returns best ['W - L', tournament score, monthly points, run number, total monthly points]
+function bestRecord (tourney, id) {							//returns best ['W - L', tournament score, monthly points, run number, total monthly points]
 	let bestScore = ["",0,0,0]; //string, score, points, run, total
 	let scoreArray = [];
 	for(let i=1; i<matchDex[tourney].players[id].runs.length+1; i++) {
@@ -5733,12 +5755,12 @@ function bestRecord (tourney, id) { //returns best ['W - L', tournament score, m
 	bestScore[3]++;
 	return bestScore;
 }
-function renderRecord(p1, p2, p1w, p2w, p1r, p2r) { //returns [winner.id, loser.id, winner.wins, loser.wins, winner.run, loser.run]
+function renderRecord(p1, p2, p1w, p2w, p1r, p2r) {			//returns [winner.id, loser.id, winner.wins, loser.wins, winner.run, loser.run]
 	if(p1w < p2w)
 		return [p2, p1, p2w, p1w, p2r, p1r];
 	return [p1, p2, p1w, p2w, p1r, p2r];
 }
-function playerMatchResults(aMatch, playerID) { //given a match object, returns the given player's [wins, losses, draws, boolean(win?)]
+function playerMatchResults(aMatch, playerID) {				//given a match object, returns the given player's [wins, losses, draws, boolean(win?)]
 	let returnArray = [];
 	let noMatches = 3; //max number of matches for future Bo5+ support
 	if(playerID == aMatch.p1) {
@@ -5760,7 +5782,7 @@ function playerMatchResults(aMatch, playerID) { //given a match object, returns 
 	}
 	return returnArray;
 }
-function renderSelfRecord(match, id) { //returns [[player.id, player.wins, player.run],[opp.id, opp.wins, opp.run]]
+function renderSelfRecord(match, id) {						//returns [[player.id, player.wins, player.run],[opp.id, opp.wins, opp.run]]
 	let thisPlayer = [];
 	let thatPlayer = [];
 	if(match.p1 == id) {
@@ -5772,12 +5794,12 @@ function renderSelfRecord(match, id) { //returns [[player.id, player.wins, playe
 	}
 	return [thisPlayer, thatPlayer]
 }
-function listRecord(match) { //returns Winner vs Loser (WW - LW)
+function listRecord(match) {								//returns Winner vs Loser (WW - LW)
 	let rendArray = renderRecord(match.p1, match.p2, match.p1w, match.p2w, match.p1r, match.p2r);
 	return pullUsername(rendArray[0]) + " (#" + rendArray[4] + ") vs " + pullUsername(rendArray[1]) + " (#" + rendArray[5] + ") — " + rendArray[2] + "-" + rendArray[3];
 }
 //league specific scripts
-function renderLeaderBoard(tourney, user, flag) { //creates the list of players sorted by best seasonal record
+function renderLeaderBoard(tourney, user, flag) {			//creates the list of players sorted by best seasonal record
 	let scoresArray = [];
 	let playersArray = [];
 	let indexArray = [];
@@ -5825,7 +5847,7 @@ function renderLeaderBoard(tourney, user, flag) { //creates the list of players 
 		output = "Chikyu Sealed " + output;
 	return output;
 }
-function nullMatch (tourney, number) { //nullifies a league match
+function nullMatch (tourney, number) {						//nullifies a league match
 	let thisMatch = matchDex[tourney].matches[number-1];
 	//remove it from runs match array
 	let errIndex = matchDex[tourney].players[thisMatch.p1].runs[thisMatch.p1r-1].matches.indexOf(number)
@@ -5842,12 +5864,12 @@ function nullMatch (tourney, number) { //nullifies a league match
 	logMatch();
 	return "Nulled match " + number + " from " + tourney; 
 }
-function addNewRun (tourney, id, dropLink, deckName) { //adds new league run
+function addNewRun (tourney, id, dropLink, deckName) {		//adds new league run
 	let newRun = {};
 	newRun.matches = [];
 	newRun.dropLink = dropLink;
 	newRun.deckName = deckName;
-	if(matchDex[tourney].players[id].currentRun == 0 || hasValue(matchDex[tourney].players[id].runs[matchDex[tourney].players[id].currentRun-1].matches)) { //replace if last run is empty, else push
+	if(matchDex[tourney].players[id].currentRun == 0 || toolbox.hasValue(matchDex[tourney].players[id].runs[matchDex[tourney].players[id].currentRun-1].matches)) { //replace if last run is empty, else push
 		matchDex[tourney].players[id].runs.push(newRun);
 		matchDex[tourney].players[id].currentRun++;
 	}else{
@@ -5855,7 +5877,7 @@ function addNewRun (tourney, id, dropLink, deckName) { //adds new league run
 	}
 	return "You have started a new league run.";
 }
-function updateMatch (tourney, p1id, p2id, p1w, p2w, match) { //creates or edits a league match
+function updateMatch (tourney, p1id, p2id, p1w, p2w, match){//creates or edits a league match
 	let sendString = "";
 	if(match) {
 		if(matchDex[tourney].matches[match-1].p1 != p1id && matchDex[tourney].matches[match-1].p2 != p1id)
@@ -5918,7 +5940,7 @@ function updateMatch (tourney, p1id, p2id, p1w, p2w, match) { //creates or edits
 	logMatch();
 	return sendString;
 }
-function auditMatches(tourney, id) { //ensures score is correct and alerts that run has ended
+function auditMatches(tourney, id) {						//ensures score is correct and alerts that run has ended
 	let temp = bestRecord(tourney, id);
 	matchDex[tourney].players[id].month = temp[4];
 	if(matchDex[tourney].data.runLength != null && matchDex[tourney].players[id].runs[matchDex[tourney].players[id].currentRun-1].matches.length >= matchDex[tourney].data.runLength) {
@@ -5928,7 +5950,7 @@ function auditMatches(tourney, id) { //ensures score is correct and alerts that 
 	}
 	return "";
 }
-function invalidMatch (tourney, p1id, p2id) { //true if match is illegal
+function invalidMatch (tourney, p1id, p2id) {				//true if match is illegal
 	let errors = "";
 	if(p1id == p2id)
 		errors += "Error: Both players are the same."
@@ -5965,7 +5987,7 @@ function invalidMatch (tourney, p1id, p2id) { //true if match is illegal
 		return `Invalid match: These two runs have already played each other${(remLimit > 1 ? " the maximum number of times" : "")}.`
 	return 0;
 }
-function buildLeagueInfoRecord(tourney, id, lookback) {
+function buildLeagueInfoRecord(tourney, id, lookback) {		//the $league embed
 	let oppString = "", runRecords = "";
 	let thisPlayer = matchDex[tourney].players[id];
 	let thisRun = thisPlayer.currentRun;
@@ -5980,7 +6002,7 @@ function buildLeagueInfoRecord(tourney, id, lookback) {
 	let desc = `You are on run #${thisRun}: ${thisPlayer.runs[thisRun-1].deckName}`
 	if(thisPlayer.runs[thisRun-1].matches.length >= matchDex[tourney].data.runLength)
 		desc += ". This run has ended, be sure to submit a new deck before playing more League games";
-	if(hasValue(lookback) && lookback < thisRun && lookback != 0) {
+	if(toolbox.hasValue(lookback) && lookback < thisRun && lookback != 0) {
 		thisRun = lookback;
 		desc = `This is your ended run #${thisRun}: ${thisPlayer.runs[lookback-1].deckName}.`
 		desc += `\nThis run's record was ${getRecord(tourney, id, thisRun)[0]}`;
@@ -6031,7 +6053,7 @@ function buildLeagueInfoRecord(tourney, id, lookback) {
 		.setFooter(`${tourney} run data ${thisRun}/${thisPlayer.currentRun}`)
 	return [embedded, (thisPlayer.currentRun != 1)]
 }
-function reportRecord (tourney, id, lookback, textFlag) { // the $league info command
+function reportRecord (tourney, id, lookback, textFlag) {	//the $league info command
 	let output = "";
 	if(!textFlag)
 		return buildLeagueInfoRecord(tourney, id, lookback);
@@ -6039,13 +6061,13 @@ function reportRecord (tourney, id, lookback, textFlag) { // the $league info co
 		let oppString = "";
 		let thisPlayer = matchDex[tourney].players[id];
 		let thisRun = thisPlayer.currentRun
-		if(hasValue(lookback) && lookback < thisRun && lookback != 0)
+		if(toolbox.hasValue(lookback) && lookback < thisRun && lookback != 0)
 			thisRun = lookback;
 		let bestRun = bestRecord(tourney, id);
 		output += pullUsername(id) + ", you are on run #" + thisRun + ":" + thisPlayer.runs[thisRun-1].deckName;
 		if(thisPlayer.runs[thisRun-1].matches.length >= matchDex[tourney].data.runLength)
 			output += ". This run has ended, be sure to submit a new deck before playing more League games";
-		if(hasValue(lookback) && lookback < thisRun && lookback != 0) {
+		if(toolbox.hasValue(lookback) && lookback < thisRun && lookback != 0) {
 			output = pullUsername(id) + ", this is your ended run #" + thisRun;
 			output += ".\nThis run's record was " + getRecord(tourney, id, thisRun)[0];			
 		}
@@ -6101,7 +6123,7 @@ function reportRecord (tourney, id, lookback, textFlag) { // the $league info co
 		return ["Error: You are not signed up for this league."];
 	}
 }
-function vsSeeker (tourney, id) { //finds players the command user can play in the league
+function vsSeeker (tourney, id) {							//finds players the command user can play in the league
 	let players = matchDex[tourney].players;
 	let thisPlayer = players[id]
 	let oppArray = getPlayedOpps(tourney, id, thisPlayer.currentRun); //TODO League customization rematches
@@ -6127,19 +6149,19 @@ function vsSeeker (tourney, id) { //finds players the command user can play in t
 		output = output.replace(": and", ":");
 	return output;
 }
-function getCurrentPlayers (tourney) { //finds players than can play in the tourney
+function getCurrentPlayers (tourney) {						//finds all players than can play in the tourney
 	let players = matchDex[tourney].players;
 	let openArray = [];
 	for(let player in players) {
 		let currentRun = players[player].currentRun;
-		if(hasValue(currentRun) && (matchDex[tourney].data.runLength == null || players[player].runs[currentRun-1].matches.length < matchDex[tourney].data.runLength)) {
+		if(toolbox.hasValue(currentRun) && (matchDex[tourney].data.runLength == null || players[player].runs[currentRun-1].matches.length < matchDex[tourney].data.runLength)) {
 			let oppArray = [player, currentRun];
 			openArray.push(oppArray)
 		}
 	}
 	return openArray;
 }
-function changeDeckName (tourney, id, name, run) { //changes a tourney deck's name
+function changeDeckName (tourney, id, name, run) {			//changes a tourney deck's name
 	let thisPlayer = matchDex[tourney].players[id];
 	if(thisPlayer == undefined)
 		return "You are not in this tournament.";
@@ -6149,7 +6171,7 @@ function changeDeckName (tourney, id, name, run) { //changes a tourney deck's na
 	return "Run " + run + "'s deck name changed to " + name;
 	
 }
-function fourWinPoster(tourney, id, runInfo) { //posts decks that go 4-1 or better
+function fourWinPoster(tourney, id, runInfo) {				//posts decks that go 4-1 or better
 	let runScore = getRecord(tourney, id, matchDex[tourney].players[id].currentRun);
 	if(runScore[2] >= 4 && !runInfo.hasOwnProperty('printed')) {
 		let pullLink = runInfo.dropLink;
@@ -6174,7 +6196,7 @@ function fourWinPoster(tourney, id, runInfo) { //posts decks that go 4-1 or bett
 	}
 }
 //gp specific scripts
-function renderGPLeaderBoard (tourney, showBreakers) { //renders the gp leaderboard
+function renderGPLeaderBoard (tourney, showBreakers) {		//renders the gp leaderboard
 	let players = Object.keys(matchDex[tourney].players);
 	let sortedArray = sortWithBreakers(tourney, players);
 	let infoArray = [];
@@ -6234,13 +6256,13 @@ function renderGPLeaderBoard (tourney, showBreakers) { //renders the gp leaderbo
 		}
 	}
 	for(i=0; i<infoArray.length; i++) {
-		output += fillLength(infoArray[i][0] + ": " + infoArray[i][1], longestString, "", " ") + " | "; //add rank and name, fill with spaces to keep first column even
+		output += toolbox.fillLength(infoArray[i][0] + ": " + infoArray[i][1], longestString, "", " ") + " | "; //add rank and name, fill with spaces to keep first column even
 		output += infoArray[i][2] + "-" + infoArray[i][3] + "-" + infoArray[i][4] + " | "; 				//add W-L-T
 		if(showBreakers) {
 			output += " " + infoArray[i][5].toFixed(1) + " " + " | "; 										//add Score
-			output += fillLength(infoArray[i][6].toFixed(2), 5, " ", "") + " | "; 							//add OM%
-			output += fillLength(infoArray[i][7].toFixed(2), 5, " ", "") + " | "; 							//add GW%
-			output += fillLength(infoArray[i][8].toFixed(2), 5, " ", "") + " |"; 							//add OG%
+			output += toolbox.fillLength(infoArray[i][6].toFixed(2), 5, " ", "") + " | "; 							//add OM%
+			output += toolbox.fillLength(infoArray[i][7].toFixed(2), 5, " ", "") + " | "; 							//add GW%
+			output += toolbox.fillLength(infoArray[i][8].toFixed(2), 5, " ", "") + " |"; 							//add OG%
 		}
 		if(i<sortedArray.length-1)
 			output += "\n";
@@ -6248,13 +6270,13 @@ function renderGPLeaderBoard (tourney, showBreakers) { //renders the gp leaderbo
 	let headers = " | W-L-T |";
 	if(showBreakers)
 		headers += " Score |  OMP  |  GWP  |  OGP  |"
-	output = nameLine + "```" + fillLength("Players", longestString, "", " ") + headers + "\n" + output + "```";
+	output = nameLine + "```" + toolbox.fillLength("Players", longestString, "", " ") + headers + "\n" + output + "```";
 	output = output.replace(/\|  0\.00 \|/g, "|  0.0  |");
 	output = output.replace(/\| 100\.00 \|/g, "| 100.0 |");
 	output += matchesRemaining;
 	return output;
 }
-function dropTourneyPlayer (tourney, id, playing) { //removes or adds player from tourney, adds or removes bye as needed
+function dropTourneyPlayer (tourney, id, playing) {			//removes or adds player from tourney, adds or removes bye as needed
 	let output = "";
 	let awaitHold = ""
 	if(playing == 0 && matchDex[tourney].round == 0) { //if they are dropping and the tournament hasn't started
@@ -6286,7 +6308,7 @@ function dropTourneyPlayer (tourney, id, playing) { //removes or adds player fro
 	}
 	return output
 }
-function writePlayerIndexes (tourney) { //writes the player indexes for dropping players
+function writePlayerIndexes (tourney) {						//writes the player indexes for dropping players
 	let output = "";
 	let i = 0;
 	for(let player in matchDex[tourney].players) {
@@ -6301,7 +6323,7 @@ function writePlayerIndexes (tourney) { //writes the player indexes for dropping
 	output += "Send `!drop <tournament> player 0` etc to drop player 0. Use `!undrop <tournament> player 0` if you need to add them back."
 	return output;
 }
-function newGPMatch (tourney, p1, p2, knockout) { //creates new gp match, auto-scores byes
+function newGPMatch (tourney, p1, p2, knockout) {			//creates new gp match, auto-scores byes
 	let newMatch = {};
 	if(p1 == bye || p2 == bye) {
 		if(p1 == bye) {
@@ -6359,7 +6381,7 @@ function newGPMatch (tourney, p1, p2, knockout) { //creates new gp match, auto-s
 	ping = ping.replace(/<@!?343475440083664896>/,"Bye");
 	return ping;
 }
-function startTourney(tourney) { //begin swiss pairing
+function startTourney(tourney) {							//begin swiss pairing
 	if(matchDex[tourney].data.pairing == "knockout" || matchDex[tourney].data.pairing == "double-elimination") //if knockout tourney go straight to that
 		return beginKnockoutRounds(tourney)
 	//else swiss it
@@ -6369,7 +6391,7 @@ function startTourney(tourney) { //begin swiss pairing
 		addNewPlayer(tourney, bye);
 	return swissPair(tourney)
 }
-function pushTourney(tourney) { //move tournament to next round, change style if needed
+function pushTourney(tourney) {								//move tournament to next round, change style if needed
 	if(matchDex[tourney].awaitingMatches.length) { //if there are awaiting matches, alert the TO instead of pushing
 		let warnMessage = "The following matches are still awaiting reports. The tournament can't proceed until they have been finished or dropped.\n";
 		for(let match in matchDex[tourney].awaitingMatches) {
@@ -6399,7 +6421,7 @@ function pushTourney(tourney) { //move tournament to next round, change style if
 	//otherwise, swiss it
 	return swissPair(tourney);
 }
-function postTourney(tourney, message, author, channel) { //posts the gp matchups and sets a reminder to check them in three days
+function postTourney(tourney, message, author, channel) {	//posts the gp matchups and sets a reminder to check them in three days
 	let gpChan = matchDex[tourney].data.channel;
 	Client.channels.cache.get(gpChan).send(message)
 		.then(thatMess => asyncSwapPins(thatMess, {author:Client.user.id}, 1))
@@ -6407,7 +6429,7 @@ function postTourney(tourney, message, author, channel) { //posts the gp matchup
 	let pingTime = setTimeDistance(3, "day");
 	remindAdder(channel, author, "Check the round " + matchDex[tourney].round + " gp matches.", "3 days", pingTime.getTime())
 }
-function pingTourney(tourney) { //pings everyone with awaiting matches
+function pingTourney(tourney) {								//pings everyone with awaiting matches
 	let pingParty = "";
 	let awaiting = matchDex[tourney].awaitingMatches;
 	for(let match in awaiting) {
@@ -6420,7 +6442,7 @@ function pingTourney(tourney) { //pings everyone with awaiting matches
 	}
 	return pingParty;
 }
-function updateGPMatch (tourney, p1id, p2id, p1w, p2w, match) {	//edits a gp match
+function updateGPMatch (tourney, p1id, p2id, p1w, p2w, match) {//edits a gp match
 	let sendString = "";
 	let recOrCorr = "reported";
 	if(matchDex[tourney].matches[match-1].p1 != p1id && matchDex[tourney].matches[match-1].p2 != p1id)
@@ -6463,7 +6485,7 @@ function updateGPMatch (tourney, p1id, p2id, p1w, p2w, match) {	//edits a gp mat
 	logMatch();
 	return recOrCorr + " match " + match + ": " + winString + ".";
 }
-function gpLeaderBoard (tourney) { //creates the list of players sorted by best gp record
+function gpLeaderBoard (tourney) {							//creates the list of players sorted by best gp record
 	let players = matchDex[tourney].players;
 	let playersArray = Object.keys(players);
 	if(playersArray.length == 0)
@@ -6475,20 +6497,20 @@ function gpLeaderBoard (tourney) { //creates the list of players sorted by best 
 	}
 	return output;
 }
-function auditGPMatches (tourney, id) { //ensures the GP scores stay correct
+function auditGPMatches (tourney, id) {						//ensures the GP scores stay correct
 	let theMatches = matchDex[tourney].players[id].runs[0].matches;
 	let wins = 0;
 	let loss = 0;
 	let draw = 0;
 	let awaiting = [];
 	for(let theMatch in theMatches) {
-		if(matchDex[tourney].matches[theMatches[theMatch]-1].winner == id && !hasValue(matchDex[tourney].matches[theMatches[theMatch]-1].knockout)) {
+		if(matchDex[tourney].matches[theMatches[theMatch]-1].winner == id && !toolbox.hasValue(matchDex[tourney].matches[theMatches[theMatch]-1].knockout)) {
 			wins++;
 		}else if(matchDex[tourney].matches[theMatches[theMatch]-1].winner == "") {
 			awaiting.push(theMatches[theMatch])
-		}else if(matchDex[tourney].matches[theMatches[theMatch]-1].winner == null && !hasValue(matchDex[tourney].matches[theMatches[theMatch]-1].knockout)) {
+		}else if(matchDex[tourney].matches[theMatches[theMatch]-1].winner == null && !toolbox.hasValue(matchDex[tourney].matches[theMatches[theMatch]-1].knockout)) {
 			draw++;
-		}else if(matchDex[tourney].matches[theMatches[theMatch]-1].winner != id && !hasValue(matchDex[tourney].matches[theMatches[theMatch]-1].knockout)) {
+		}else if(matchDex[tourney].matches[theMatches[theMatch]-1].winner != id && !toolbox.hasValue(matchDex[tourney].matches[theMatches[theMatch]-1].knockout)) {
 			loss++;
 		}
 	}
@@ -6498,7 +6520,7 @@ function auditGPMatches (tourney, id) { //ensures the GP scores stay correct
 	matchDex[tourney].players[id].awaitingMatches = awaiting;
 	
 }
-function swissCount (num) { //number of swiss rounds for num players
+function swissCount (num) {									//number of swiss rounds for num players
 	if(num < 4)
 		return 0
 	if(num < 9)
@@ -6507,7 +6529,7 @@ function swissCount (num) { //number of swiss rounds for num players
 		return 4
 	return 5
 }
-function swissPair (tourney) { //pairs players swiss style
+function swissPair (tourney) {								//pairs players swiss style
 	let playerIDArray = [];
 	let pingParty = "";
 	let byeTemp = "";
@@ -6670,7 +6692,7 @@ function swissEngine (tourney, playRecArray, pairUpArray, pairDownArray, loopcou
 		return swissEngine (tourney, playRecArray, pairUpArray, pairDownArray, loopcount+1)
 	return null;
 }
-function beginKnockoutRounds(tourney) { //pairs players seeded bracket style
+function beginKnockoutRounds(tourney) {						//pairs players seeded bracket style
 	let topArray = [];
 	let tName = matchDex[tourney].data.name;
 	if(!tName)
@@ -6701,7 +6723,7 @@ function beginKnockoutRounds(tourney) { //pairs players seeded bracket style
 	logMatch();
 	return pingParty;
 }
-function arrayDuplicates(array1, array2) {//returns array of duplicate elements between two arrays
+function arrayDuplicates(array1, array2) {					//returns array of duplicate elements between two arrays
 	let shortArray = [];
 	let longArray = [];
 	let dupeArray = [];
@@ -6718,7 +6740,7 @@ function arrayDuplicates(array1, array2) {//returns array of duplicate elements 
 	}
 	return dupeArray;
 }
-function buchholz(tourney, id, cull) { //buchholz or modified buchholz scoring
+function buchholz(tourney, id, cull) {						//buchholz or modified buchholz scoring
 	let players = matchDex[tourney].players;
 	let opps = getPlayedOpps(tourney, id, 1, true)[0];
 	let scores = [];
@@ -6735,24 +6757,24 @@ function buchholz(tourney, id, cull) { //buchholz or modified buchholz scoring
 	let mbs = scores.reduce(function(total, num) {return total + num;}); //add them up
 	return mbs;
 }
-function tiedBreaker(tourney, id) { //number of wins against tied opponents
+function tiedBreaker(tourney, id) {							//number of wins against tied opponents
 	let wins = 0;
 	let matches = matchDex[tourney].matches;
 	let players = matchDex[tourney].players;
 	let refScore = players[id].gpWin + 0.5*players[id].gpDraw;
 	for(let player in players) {
-		if(player != id && hasValue(players[id].runs) && hasValue(players[player].runs[0])) {
+		if(player != id && toolbox.hasValue(players[id].runs) && toolbox.hasValue(players[player].runs[0])) {
 			let oppMatches = arrayDuplicates(players[id].runs[0].matches, players[player].runs[0].matches);
 			for(let match in oppMatches) {
 				let thisScore = players[player].gpWin + 0.5*players[player].gpDraw;
-				if(!hasValue(matches[oppMatches[match]-1].knockout) && thisScore == refScore && matches[oppMatches[match]-1].winner == id)
+				if(!toolbox.hasValue(matches[oppMatches[match]-1].knockout) && thisScore == refScore && matches[oppMatches[match]-1].winner == id)
 					wins++
 			}
 		}
 	}
 	return wins;
 }
-function matchDiff(tourney, playerID) { //points difference
+function matchDiff(tourney, playerID) {						//points difference
 	let gameWins = 0;
 	let gameLoss = 0;
 	let matches = matchDex[tourney].matches;
@@ -6770,7 +6792,7 @@ function matchDiff(tourney, playerID) { //points difference
 	}
 	return gameWins - gameLoss;
 }
-function sortWithBreakers(tourney, sortingArray) { //sorting script that incorporates TB, Buchholz, and Pts Diff breakers
+function sortWithBreakers(tourney, sortingArray) {			//sorting script that incorporates OMW, GW, and OGW breakers
 	let players = matchDex[tourney].players;
 	sortingArray.sort(function(a,b){return (players[b].gpWin + 0.5*players[b].gpDraw) - (players[a].gpWin + 0.5*players[a].gpDraw)});
 	sortingArray.sort(function(a, b) {
@@ -6778,7 +6800,7 @@ function sortWithBreakers(tourney, sortingArray) { //sorting script that incorpo
 	});
 	return sortingArray;
 }
-function applyBreakers (tourney, a, b) { //handles tiebreakers
+function applyBreakers (tourney, a, b) {					//handles tiebreakers
 	let players = matchDex[tourney].players;
 	let matches = matchDex[tourney].matches;
 	let result = (players[b].gpWin + 0.5*players[b].gpDraw) - (players[a].gpWin + 0.5*players[a].gpDraw);
@@ -6796,7 +6818,7 @@ function applyBreakers (tourney, a, b) { //handles tiebreakers
 		result = (matchDiff(tourney, b) - matchDiff(tourney, a))*/
 	return result;
 }
-function knockoutRound (tourney) { //handles knockout matches
+function knockoutRound (tourney) {							//handles knockout matches
 	let tName = matchDex[tourney].data.name;
 	if(!tName)
 		tName = tourney;
@@ -6818,7 +6840,7 @@ function knockoutRound (tourney) { //handles knockout matches
 	logMatch()
 	return pingParty
 }
-function matchWinPercentage(tourney, player, min) { //finds a player's match win percentage
+function matchWinPercentage(tourney, player, min) {			//finds a player's match win percentage
 	if(!min)
 		min = 0;
 	let thisPlayer = matchDex[tourney].players[player];
@@ -6833,7 +6855,7 @@ function matchWinPercentage(tourney, player, min) { //finds a player's match win
 	let p = wins / matches;
 	return 100*Math.max(min, p);
 }
-function gameWinPercentage(tourney, player, min) { //finds a player's game win percentage
+function gameWinPercentage(tourney, player, min) {			//finds a player's game win percentage
 	if(!min)
 		min = 0;
 	let thisPlayer = matchDex[tourney].players[player];
@@ -6869,7 +6891,7 @@ function oppWinPercentage(tourney, player, percentageFunction) { //find a player
 function omw(tourney, player) {return oppWinPercentage(tourney, player, matchWinPercentage)}
 function ogw(tourney, player) {return oppWinPercentage(tourney, player, gameWinPercentage)}
 //Project channels
-function fetchHelpMessage() { //devDex help message
+function fetchHelpMessage() {								//devDex help message
 	let output = "LackeyBot can now support fetching for custom sets!\n";
 	output += "To begin, use the following command in a DM with LackeyBot with one or more of the fields filled out with your channel's data:\n";
 	output += "```?fetch setup\n";
@@ -6884,7 +6906,7 @@ function fetchHelpMessage() { //devDex help message
 	output += "Then upload that exported file to LackeyBot's DM with the `?fetch upload` command and LackeyBot will attempt to add it to the database. To fetch, use {{Card Name}} and ?img.";
 	return output;
 }
-function sanitizeDevData(designer, channel, file) { //download devDex patches and verify there's nothing amiss
+function sanitizeDevData(designer, channel, file) {			//download devDex patches and verify there's nothing amiss
 	let holdingCell = {};
 	try{
 		holdingCell = require("./dev/" + file + "devtest.json");
@@ -6936,7 +6958,7 @@ function sanitizeDevData(designer, channel, file) { //download devDex patches an
 		console.log("Failed attempt to update project database by " + pullUsername(designer));
 		return "There are numerous errors in your set. Please re-export and try to upload again. If this continues, ping Cajun.";
 	}
-	if(hasValue(errors)) {
+	if(toolbox.hasValue(errors)) {
 		for(let thisCard in errors)
 			errorList += errors[thisCard] + ", "
 		errorList.replace(/, $/, "");
@@ -6967,7 +6989,7 @@ function sanitizeDevData(designer, channel, file) { //download devDex patches an
 	psWarn = psWarn.replace(/, $/, "");
 	return "Cards database downloaded successfully." + psWarn;
 }
-function reassignDevCode(currentCode, newCode, id) { //changes the set code for a project
+function reassignDevCode(currentCode, newCode, id) {		//changes the set code for a project
 	try{
 		let tempObj = {};
 		for(let thisCard in devDex.cards) {
@@ -6993,7 +7015,7 @@ function reassignDevCode(currentCode, newCode, id) { //changes the set code for 
 		devDex.devData[id].setCode = newCode;
 		devDex.setData[newCode] = devDex.setData[currentCode]
 		delete devDex.setData[currentCode]
-		devDex.setData = objSort(devDex.setData)
+		devDex.setData = toolbox.objSort(devDex.setData)
 		logDev(id);
 		return "Set code changed from " + currentCode + " to " + newCode + " succesfully!";
 	}catch(e){
@@ -7001,7 +7023,7 @@ function reassignDevCode(currentCode, newCode, id) { //changes the set code for 
 		return "There was an error in changing set codes.";
 	}
 }
-function setSort (a, b, database, setDatabase) { //sorts the sets
+function setSort (a, b, database, setDatabase) {			//sorts the sets
 	let rarityArray = ["special","token"];
 	let result = rarityArray.indexOf(database[a].rarity) - rarityArray.indexOf(database[b].rarity);
 	if(result == 0){
@@ -7017,7 +7039,7 @@ function setSort (a, b, database, setDatabase) { //sorts the sets
 }
 function escapify(string) {return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');} //escape regex characters
 //cr engine
-function sendRuleData (testRul) { //generates data for a given CR entry
+function sendRuleData (testRul) {							//generates data for a given CR entry
 	testRul = testRul.replace(/\.([a-z])/, "$1");
 	let rulMatch = testRul.match(/([0-9]{3})\.?([0-9]*)(\.|[a-z])?/);
 	let ruleData = {
@@ -7100,7 +7122,7 @@ function sendRuleData (testRul) { //generates data for a given CR entry
 	}
 	return ruleData;
 }
-function buildCREmbed(testrul, textFlag) { //build !cr embeds
+function buildCREmbed(testrul, textFlag) {					//build !cr embeds
 	let ruleData = sendRuleData(testrul);
 	let breakout = 0;
 	let output = "";
@@ -7137,133 +7159,9 @@ function buildCREmbed(testrul, textFlag) { //build !cr embeds
 		return ["", embedData];
 	}
 }
-//Toolbox functions
-function isReal (test, type) { //checks that test variable is not undefined and optionally the correct type
-	if(typeof test === 'undefined')
-		return 0
-	if(typeof type === 'string' && typeof test != type)
-		return 0
-	if(typeof type === 'string' && type == 'array' && !Array.isArray(test))
-		return 0
-	if(typeof type === 'string' && type == 'null' && test !== null)
-		return 0
-	return 1
-}
-function hasValue (test, type) { //checks if the test variable isReal and if it is nonzero (0, false, [], {}, null)
-	if(isReal(test, type) === 0 || !test)
-		return 0;
-	if(typeof test == 'object' && Array.isArray(test) && test.length === 0)
-		return 0
-	if(typeof test == 'object' && Object.keys(test) && Object.keys(test).length === 0)
-		return 0
-	return 1;
-}
-function setTheDate (splitter) { //creates a YY.MM.DD format with a given divider
-	let the_time = new Date();
-	return the_time.getYear()-100 + splitter + (the_time.getMonth() < 10 ? "0" + the_time.getMonth() : the_time.getMonth()) + splitter + (the_time.getDate() < 10 ? "0" + the_time.getDate() : the_time.getDate());
-}
-function arrayTheDate (the_time) { //creates a [YY,MM,DD,HH,MM]] array
-	if(!hasValue(the_time))
-		the_time = new Date();
-	return [the_time.getYear()-100,(the_time.getMonth()+1 < 10 ? "0" + (the_time.getMonth()+1) : the_time.getMonth()+1),(the_time.getDate() < 10 ? "0" + the_time.getDate() : the_time.getDate()),(the_time.getHours() < 10 ? "0" + the_time.getHours() : the_time.getHours()),(the_time.getMinutes() < 10 ? "0" + the_time.getMinutes() : the_time.getMinutes())];
-}
-function toTitleCase(str) { // changes string To Title Case
-	return str.replace(
-			/\w\S*/g,
-			function(txt) {
-				return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-			}
-	);
-}
-function fillLength(string, length, leading, trailing) { //fills string to length for things like 001
-	if(!hasValue(leading))
-		leading = "";
-	if(!hasValue(trailing))
-		trailing = "";
-	if(leading.length + trailing.length == 0)
-		return string;
-	while(string.length < length) {
-		string = leading + string + trailing;
-	}
-	return string;
-}
-function xor(a, b) { //exclusive or, returns true or false
-	if(a && b)
-		return false;
-	if(!a && !b)
-		return false;
-	return true;
-}
-function writeIndexes (array) { //write the indexes for an array
-	let i = 0, output = "";
-	for(let thing in array) {
-		output += i + ": " + array[thing] + "\n";
-		i++;
-	}
-	return output;
-}
-function reassignIndex(array, oldIndex, newIndex) { //changes index in an array
-	array.splice(newIndex, 0, array.splice(oldIndex,1)[0]);
-	return array;
-}
-function ordinalize(num) { //converts number (1, 2, 3, etc) into ordinal (1st, 2nd, 3rd, etc)
-	let ordArray = ["th","st","nd","rd","th","th","th","th","th","th","th","th","th","th"];
-	let string = num.toString();
-	if(parseInt(num) < ordArray.length)
-		return string + ordArray[num]; //return 0 to 13 directly
-	//get last two characters
-	let test1 = string.charAt(string.length-1);
-	let test2 = string.charAt(string.length-2);
-	let test3 = "";
-	if(test2 != "0")
-		test3 += test2;
-	test3 += test1;
-	if(parseInt(test3) < ordArray.length)
-		return string + ordArray[parseInt(test3)]; //return 0 to 13 directly
-	return string + ordArray[test1]; //else return ord of last digit
-}
-function objSort(obj) { //sorts an object alphabetically
-	let list = Object.keys(obj);
-	for(let thisKey in list) {
-		list[thisKey] += "_numcorr"
-	}
-	list.sort();
-	let newObj = {};
-	for(let thisKey in list) {
-		list[thisKey] = list[thisKey].replace(/_numcorr$/, "");
-		newObj[list[thisKey]] = obj[list[thisKey]]
-	}
-	return newObj;
-}
-function globalCapture(regString, matchString, caseSense) { //returns array of capture group regexes of a global regex check
-	let flags = "";
-	if(!caseSense)
-		flags += "i";
-	let globalRegex = new RegExp(regString, 'g'+flags);
-	let captureRegex = new RegExp(regString, flags);
-	let finalArrays = [];
-	
-	let globalMatches = matchString.match(globalRegex);
-	if(globalMatches) {
-		for(let m in globalMatches) {
-			let localMatches = globalMatches[m].match(captureRegex);
-			if(localMatches) {
-				finalArrays.push(localMatches);
-			}
-		}
-	}
-	return finalArrays;
-}
-function rand(low, high) { //rand(x) or rand(x,y) gets a random number from 0-x or random number from x-y
-	if(high == undefined)
-		high = 0;
-	let dif = Math.abs(low-high)+1;
-	let rando = Math.floor(Math.random()*dif);
-	rando += Math.min(low, high);
-	return rando;
-}
+
 //other random discord stuff
-function channelTrawl(channel, lastID, count) { //gets old messages from channel
+function channelTrawl(channel, lastID, count) {				//gets old messages from channel
 	console.log(count + " Here I go trawling again!");
 	var firstID = "";
 	Client.channels.cache.get(channel).messages.fetch({limit:100, before:lastID})
@@ -7297,14 +7195,14 @@ function channelTrawl(channel, lastID, count) { //gets old messages from channel
 		})
 		.catch(console.error);
 }
-function pullUsername(id) { //gets user's username, or PlayerUnknown if error
+function pullUsername(id) {									//gets user's username, or PlayerUnknown if error
 	try{
 		return Client.users.cache.get(id).username;
 	}catch(e){
 		return "PlayerUnknown";
 	}
 }
-function pullPing(id) { //gets user's ping, or PlayerUnknown if error
+function pullPing(id) {										//gets user's ping, or PlayerUnknown if error
 	try{
 		return Client.users.cache.get(id);
 	}catch(e){
@@ -7317,7 +7215,7 @@ function pullPing(id) { //gets user's ping, or PlayerUnknown if error
 		return playerUnknown;
 	}
 }
-function nabListNames() { //prints league decklists names
+function nabListNames() {									//prints league decklists names
 	let players = matchDex.league.players;
 	for(let thisPlayer in players) {
 		for(let thisRun in players[thisPlayer].runs) {
@@ -7325,7 +7223,7 @@ function nabListNames() { //prints league decklists names
 		}
 	}
 }
-function writeHelpMessage (guild) { //writes help message depending on the server
+function writeHelpMessage (guild) {							//writes help message depending on the server
 	let helpout = "";
 	if(disableGuild.includes(guild)) {
 		helpout = "Call cards with double brackets, and add setcodes to narrow your search, like <<Dissipate_ISD>>.";
@@ -7360,14 +7258,14 @@ function writeHelpMessage (guild) { //writes help message depending on the serve
 	helpout += "`$self-destruct` to self-destruct";
 	return helpout;
 }
-function updateDevDex() { //update devDex to use the new packSlots system
+function updateDevDex() {									//update devDex to use the new packSlots system
 let blank = require('./standardDist.json')
 	for(let set in devDex.setData) {
 		devDex.setData[set].packSlots = blank;
 	}
 	logDev(bye);
 }
-async function asyncSwapPins(msg, matching, max, bank) { //pin swapper script
+async function asyncSwapPins(msg, matching, max, bank) {	//pin swapper script
 	let pinnedPosts = await msg.channel.messages.fetchPinned();
 	pinnedPosts = pinnedPosts.array();
 	for(let post in pinnedPosts) {
@@ -7384,7 +7282,7 @@ async function asyncSwapPins(msg, matching, max, bank) { //pin swapper script
 		bank[1] = msg;
 	msg.pin();
 }
-function postMatching(post, matching) { //runs a matching object over a post
+function postMatching(post, matching) {						//runs a matching object over a post
 	if(matching.hasOwnProperty('content') && !post.content.match(matching.content))
 		return false;
 	if(matching.hasOwnProperty('author') && post.author.id != matching.author)
@@ -7395,10 +7293,10 @@ function postMatching(post, matching) { //runs a matching object over a post
 		return false;
 	return true;
 }
-function reformatallRoles() { //currently blank, for reformatting roles.json
+function reformatallRoles() {								//currently blank, for reformatting roles.json
 	logRole();
 }
-function addEventTags(timestamp){ //event reminders don't have snooze, this retroactively adds that
+function addEventTags(timestamp){							//event reminders don't have snooze, this retroactively adds that
 	if(!reminderBase[timestamp])
 		return "No reminders for that time.";
 	let thisTime = reminderBase[timestamp];
@@ -7795,7 +7693,7 @@ Client.on("message", (msg) => {
 				//matchDex maintenance
 				let nulRegex = new RegExp('!null ' + tournamentNames + ' ([0-9]+)','i')
 				var nulMatch = msg.content.match(nulRegex)
-				if(hasValue(nulMatch) && (msg.author.id == cajun || msg.author.id == matchDex[nulMatch[1]].data.TO)) {
+				if(toolbox.hasValue(nulMatch) && (msg.author.id == cajun || msg.author.id == matchDex[nulMatch[1]].data.TO)) {
 					msg.channel.send(nullMatch(nulMatch[1], parseInt(nulMatch[2])));
 				}
 				let pushRegex = new RegExp('!push ?' + tournamentNames,'i')
@@ -7975,7 +7873,7 @@ Client.on("message", (msg) => {
 					}
 					if(msg.content.match(/^\$groupindex/i)) {
 						let embedded = new Discord.MessageEmbed()
-							.addField("Guild Group indexes:",writeIndexes(allRoles.guilds[msg.guild.id].groups))
+							.addField("Guild Group indexes:",toolbox.writeIndexes(allRoles.guilds[msg.guild.id].groups))
 						msg.channel.send(embedded);
 					}
 					let renameRoleMatch = msg.content.match(/^\$renamer?o?l?e? ([^\n]+) \$to ([^\n]+)/i);
@@ -8751,7 +8649,7 @@ Client.on("message", (msg) => {
 					if(tourneyname == "league") {
 						msg.channel.send(addNewPlayer("league",msg.author.id));
 						numberString = matchDex.league.players[msg.author.id].currentRun+1;
-						let the_time = arrayTheDate();
+						let the_time = toolbox.arrayTheDate();
 						tourneyname += "_" + the_time[0] + "_" + the_time[1];
 						if(matchDex.league.players[msg.author.id].currentRun > 1)
 							fourWinPoster("league", msg.author.id, matchDex.league.players[msg.author.id].runs[matchDex.league.players[msg.author.id].currentRun-1]);
@@ -8860,7 +8758,7 @@ Client.on("message", (msg) => {
 						if(i == canonLegal[bancheck].length-2)
 							banlist += "and ";
 					}
-					banlist += " are banned in " + toTitleCase(bancheck) + ".";
+					banlist += " are banned in " + toolbox.toTitleCase(bancheck) + ".";
 					banlist = banlist.replace("banned in Vintagerest","restricted in Vintage");
 					if(bancheck == "legacy" || bancheck == "commander")
 						banlist = canonLegal['conspiracy'].length + " conspiracy cards, " + banlist;
@@ -9025,7 +8923,7 @@ Client.on("message", (msg) => {
 				let qName = quoteMatch[1];
 				if(!quote.dex.hasOwnProperty(quoteMatch[1]))
 					qName = fuzzy.searchArray(qName, Object.keys(quote.dex))[0];
-				let output = quote.dex[qName][rand(quote.dex[qName].length-1)]
+				let output = quote.dex[qName][toolbox.rand(quote.dex[qName].length-1)]
 				msg.channel.send(output)
 				bribes++;
 			}
@@ -9272,7 +9170,7 @@ Client.on("message", (msg) => {
 					}
 					output += "\n"
 				}
-				msg.channel.send(toTitleCase(output));
+				msg.channel.send(toolbox.toTitleCase(output));
 			}
 			let cipherCheck = msg.content.match(/\$cipher ([^\$]+)/i);
 			if(cipherCheck != null) {
@@ -9425,7 +9323,7 @@ Client.on("message", (msg) => {
 						standardSets.push(set)
 				}
 				let output = "";
-				let theDate = arrayTheDate()
+				let theDate = toolbox.arrayTheDate()
 				let thisYear = theDate[0] + 2000;
 				if(standardSets.length == 4) { //if a rotation just happened
 					if(theDate[1] != "01") //and we're not in the gap before the Q1 set
@@ -9737,7 +9635,7 @@ Client.on("message", (msg) => {
 			if(msg.content.match(/\$(sealed ?)?league/i)) {
 				bribes++;
 				let player = msg.author.id;
-				if(matchDex[leagueName].players[player] && hasValue(matchDex[leagueName].players[player].runs) && !msg.content.match(/\$leaguehelp/i)) {
+				if(matchDex[leagueName].players[player] && toolbox.hasValue(matchDex[leagueName].players[player].runs) && !msg.content.match(/\$leaguehelp/i)) {
 					let lookback = 0;
 					if(partLeagueMatch)
 						lookback = partLeagueMatch[2];
@@ -9829,11 +9727,11 @@ Client.on("message", (msg) => {
 				msg.channel.send(vsSeeker(leagueName, msg.author.id));
 			}
 			var deckChangeMatch = msg.content.match(/\$rename (gp|league) ?(\d+)? ?: ?([^\n]+)/);
-			if(hasValue(deckChangeMatch)) {
+			if(toolbox.hasValue(deckChangeMatch)) {
 				bribes++;
 				let tourney = deckChangeMatch[1];
 				let run = 1;
-				if(hasValue(deckChangeMatch[2]))
+				if(toolbox.hasValue(deckChangeMatch[2]))
 					run = deckChangeMatch[2];
 				let deckName = deckChangeMatch[3];
 				let message = changeDeckName(tourney, msg.author.id, deckName, run);
@@ -10097,7 +9995,7 @@ Client.on("message", (msg) => {
 									devDex.devData[msg.author.id].setCode = setCodeMatch[1];
 									changes++;
 								}
-								devDex.setData = objSort(devDex.setData);
+								devDex.setData = toolbox.objSort(devDex.setData);
 							}else if(setCodeMatch && devDex.devData[msg.author.id].setCode != "") {
 								msg.channel.send(reassignDevCode(devDex.devData[msg.author.id].setCode, setCodeMatch[1], msg.author.id));
 							}
