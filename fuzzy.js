@@ -105,7 +105,7 @@ function fuzzySearchSimple (needle,thread,needlescore) { //scoring function for 
 		charScore = 0.5; stringBonus = 1;
 	}
 	needleLine: for (var i = 0; i < needle.length; i++) { //for each character in the search string
-		for (var j = newstart; j < thread.length; j++){ //
+		for (var j = newstart; j < thread.length; j++){
 			if(thread.toLowerCase().charCodeAt(j) === needle.toLowerCase().charCodeAt(i)){
 				needlescore += charScore;
 				if(j == newstart)
@@ -173,27 +173,31 @@ function searchCards(library,searchstring,needleWeight) {  //main search functio
 		let timeSince = 0;
 		//first check for exact names
 		let name = database[entry].cardName;
-		let legendName = name.match(/^([A-Za-z0-9']+)/i);
-		if(legendName)
+		let commaMatch = false;
+		let legendName = name.match(/^([A-Za-z0-9']+)(,)?/i);
+		if(legendName) {
+			commaMatch = (legendName[2] == ",") //only check noncreature/walkers for this if they have a comma in their name to avoid matching like "Storm the Vault" for "Storm"
 			legendName = legendName[1]; //first word of a legendary's name
+		}
 		let narrowedFlag = false; //is this is a printing of the correct card?
 		//if the search string exactly/i matches a name or legend name
-		if(name.toLowerCase() === searchstring.toLowerCase() || (database[entry].typeLine.match(/Legendary/) && database[entry].typeLine.match(/(Creature|Planeswalker)/) && legendName && legendName.toLowerCase() === searchstring.toLowerCase()))
+		if(name.toLowerCase() === searchstring.toLowerCase() || (database[entry].typeLine.match(/Legendary/) && (commaMatch || database[entry].typeLine.match(/(Creature|Planeswalker)/)) && legendName && legendName.toLowerCase() === searchstring.toLowerCase()))
 			narrowedFlag = true;
 		//if the search string exactly/i matches a back name or back legend name
 		if(!narrowedFlag && database[entry].cardName2 !== undefined) {
 			name = database[entry].cardName2;
-			legendName = name.match(/^([A-Za-z0-9']+)/i);
-			if(legendName)
+			legendName = name.match(/^([A-Za-z0-9']+)(,)?/i);
+			if(legendName) {
+				commaMatch = (legendName[2] == ",")
 				legendName = legendName[1]; //first word of a legendary's name
-			if(name.toLowerCase() == searchstring.toLowerCase() || (database[entry].typeLine2.match(/Legendary/) && database[entry].typeLine2.match(/(Creature|Planeswalker)/) && legendName && legendName.toLowerCase() === searchstring.toLowerCase()))
+			}
+			if(name.toLowerCase() == searchstring.toLowerCase() || (database[entry].typeLine2.match(/Legendary/) && (commaMatch || database[entry].typeLine2.match(/(Creature|Planeswalker)/)) && legendName && legendName.toLowerCase() === searchstring.toLowerCase()))
 				narrowedFlag = true;
 		}
 		//if the search string exactly/i matches a fullName
 		name = database[entry].fullName;
 		if(!narrowedFlag && name.toLowerCase() == searchstring.toLowerCase())
 			narrowedFlag = true;
-
 		if(narrowedFlag) { //if this is a printing
 			if(splitString[2] && database[entry].setID != splitString[2]) { //and its not the right one
 				if(bestMatch[1] != 1000000) 							//and its the first one
@@ -289,7 +293,7 @@ function searchArray(string, array, scoreObj) { //fuzzy search arrary elements f
 	return bestMatch;
 }
 function buildScryRegex () { //builds the regexes for reading scryfall arguments
-	let keys = '(name|mana|cmc|ft|power|toughness|type|pow|tou|loy|set|artist|art|lore|adds|produces|companion|comp|ci|id|in|is|fo|a|c|e|f|m|o|r|t|block|b|border|cube|display|direction|game|frame|lang|new|order|prefer|sort|unique|wm|usd|tix|eur)'
+	let keys = '(name|mana|cmc|ft|power|toughness|type|pow|tou|loy|set|artist|art|lore|adds|produces|companion|comp|ci|color|id|in|is|fo|a|c|e|f|m|o|r|t|block|b|border|cube|display|direction|game|frame|lang|new|order|prefer|sort|unique|wm|usd|tix|eur)'
 	let words = '("[^"]+"|\/[^\/]+\/|[^ ]+)';
 	let standardMatch = '(?:-?' + keys + '(:| ?[=><]{1,2}) ?|!)' + words;
 	let invalMatch = '(?:-?' + '[a-z]+' + '(:| ?[=><]{1,2}) ?|!)' + words;
@@ -374,7 +378,7 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 		matchCheck = escapify(matchCheck);
 	matchCheck = matchCheck.replace(/(^["\/]|["\/]$)/g,"") //remove quotes and regex slashes
 	let operMatch = thisCheck.match(scryRegex[2])[2]; //the operators (:, >, =<, etc)
-	if(operMatch.match(/^ ?= ?$/)){
+	if(operMatch.match(/^ ?= ?$/) && !thisCheck.match(/c(i|olor)?(:| ?[<>=]{1,2})/i)){
 		thisCheck = thisCheck.replace(operMatch, ":")
 		operMatch = ":";
 	}
@@ -502,13 +506,13 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 			};
 		}
 	}
-	if(thisCheck.match(/ci?(:| ?[<>=]{1,2})/i)) { //colors
+	if(thisCheck.match(/c(i|olor)?(:| ?[<>=]{1,2})/i)) { //colors
 		thisCheck = thisCheck.replace(":", ">=");
 		if(operMatch.match(":"))
 			operMatch = ">="
-		if(thisCheck.match(/ci? ?>=[ wubrg]*m/i))
+		if(thisCheck.match(/c(i|olor)? ?>=[ wubrg]*m/i))
 			matchCheck = 2; //multicolor
-		if(thisCheck.match(/ci? ?>=[ wubrg]*c/i))
+		if(thisCheck.match(/c(i|olor)? ?>=[ wubrg]*c/i))
 			matchCheck = 0; //colorless
 		let identCheck = thisCheck.match(/ci/i);
 		return function(card) {
@@ -707,7 +711,7 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 				return false;
 			};
 		}
-		if(matchCheck.match(/permanent/i)) {// is:historic
+		if(matchCheck.match(/historic/i)) {// is:historic
 			return function(card) {
 				if(card.typeLine.match(/Artifact|Legendary|Saga/i))
 					return true;

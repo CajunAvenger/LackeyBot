@@ -7319,6 +7319,10 @@ try{//start the bot
 //this is what runs every time LackeyBot reads a Discord message
 //it stays all in this one handler
 Client.on("message", (msg) => {
+	msg.realContent = ""; 									//full content of message
+	msg.realContent += msg.content;							//split to not be a reference
+	msg.content = msg.content.replace(/```[\s\S]+```/g, "");//then remove codeblocks when checking commands
+	msg.content = msg.content.replace(/`[\s\S]+`/g, "");
 	let grab = 'defaults';
 	if(msg.guild && arcanaSettings.hasOwnProperty(msg.guild.id))
 		grab = msg.guild.id;
@@ -7381,7 +7385,7 @@ Client.on("message", (msg) => {
 				if(msg.content.match("!devdate"))
 					reloadDevDex();
 				if(msg.content.match(/!remindEdit/i))
-					msg.channel.send(parseReminderEdit(msg.content));
+					msg.channel.send(parseReminderEdit(msg.realContent));
 				if(msg.content.match(/!hookshift/i)){
 					let times = msg.content.match(/!hookshift (\d+) (\d+)/i)
 					hookShift(times[1], times[2]);
@@ -8639,7 +8643,7 @@ Client.on("message", (msg) => {
 						msg.channel.send(deckContent[0]);
 						let path = '/sealed/' + toolbox.stripEmoji(msg.author.username) + '.txt';
 						addNewRun("sealed",msg.author.id, path, msg.author.username+"'s Sealed Pool");
-						dropboxUpload(path, deckContent[1], function() {verifyDeck(path, deckContent[0])})
+						dropboxUpload(path, deckContent[1])
 						logMatch();
 					}
 				}else{ //msem deckcheck
@@ -8670,7 +8674,7 @@ Client.on("message", (msg) => {
 					}
 					if(deckContent[1].match(/This deck is legal in MSEM!/)) {
 						let path = '/' + tourneyname + '/' + toolbox.stripEmoji(msg.author.username) + numberString + '.txt';
-						dropboxUpload(path, deckContent[0], function() {verifyDeck(path, deckContent[0])})
+						dropboxUpload(path, deckContent[0])
 						msg.author.send(uploadcheck[1] + " decklist submitted!");
 					}
 				}
@@ -9406,11 +9410,6 @@ Client.on("message", (msg) => {
 				}
 			}else if(msg.content.match(/\$remind/)){
 				let hooks = {
-					ZRI: {
-						time: new Date('Fri, 25 September 2020 10:00:00 EST'), //YYYY, M-1, D, H, m
-						match: ["ZRI","ZRS","Zendikar","Zendikar Rising","Zendikar Resurgent","Zendikar Resurgence"],
-						message: "`Zendikar`, for the release of Zendikar Rising on September 25"
-					},
 					MSEM: {
 						time: new Date('Thu, 15 October 2020 10:00:00 EST'),
 						match: ["MSEM"],
@@ -9939,6 +9938,11 @@ Client.on("message", (msg) => {
 			if(msg.channel.type == 'dm') { //DevDex Management
 				let devUpMatch = msg.content.match(/(\$|\?)fetch ?setup/i);
 				if(devUpMatch) {
+					let user = msg.author.id, spoof = false;
+					if(user == cajun && msg.content.match(/spoof:/)) {
+						user = msg.content.match(/spoof: ?(\d+)/i)[1];
+						spoof = true;
+					}
 					let longNameMatch = msg.content.match(/longname: ?([^\n]*)/i);
 					let setCodeMatch = msg.content.match(/code: ?([^\n]{0,100})/i);
 					let designMatch = msg.content.match(/design: ?([^\n]*)/i);
@@ -9948,8 +9952,8 @@ Client.on("message", (msg) => {
 					let changes = 0;
 					if(!setCodeMatch && !longNameMatch && !designMatch && !psLinkMatch && !psSetMatch && !packSlotsMatch) {
 						//if they have a set and make no changes, tell them the current stuff
-						if(devDex.devData.hasOwnProperty(msg.author.id)) {
-							let thisSet = devDex.devData[msg.author.id];
+						if(devDex.devData.hasOwnProperty(user)) {
+							let thisSet = devDex.devData[user];
 							let output = "Your setcode is currently " + thisSet.setCode + "\n";
 							output += "Your longname is currently " + thisSet.longname + "\n";
 							output += "Your lead design is currently " + thisSet.design + "\n";
@@ -9969,57 +9973,59 @@ Client.on("message", (msg) => {
 							msg.channel.send(fetchHelpMessage());
 						}
 					}else{ //if they make changes...
-						if(!devDex.devData.hasOwnProperty(msg.author.id)) { //and don't have a set, make it
-							devDex.devData[msg.author.id] = {};
-							devDex.devData[msg.author.id].channel = "";
-							devDex.devData[msg.author.id].ownerID = msg.author.id;
-							devDex.devData[msg.author.id].setCode = "";
-							devDex.devData[msg.author.id].username = msg.author.username;
-							devDex.devData[msg.author.id].longname = "";
-							devDex.devData[msg.author.id].design = "";
-							devDex.devData[msg.author.id].psLink = "";
-							devDex.devData[msg.author.id].psSuffix = "";
-							devDex.devData[msg.author.id].psSet = "";
+						if(!devDex.devData.hasOwnProperty(user)) { //and don't have a set, make it
+							devDex.devData[user] = {};
+							devDex.devData[user].channel = "";
+							devDex.devData[user].ownerID = user;
+							devDex.devData[user].setCode = "";
+							devDex.devData[user].username = msg.author.username;
+							if(spoof)
+								devDex.devData[user].username = Client.users.cache.get(user).username;
+							devDex.devData[user].longname = "";
+							devDex.devData[user].design = "";
+							devDex.devData[user].psLink = "";
+							devDex.devData[user].psSuffix = "";
+							devDex.devData[user].psSet = "";
 						}
 						//then start applying the changes
 						if(setCodeMatch) {
 							if(devDex.setData.hasOwnProperty(setCodeMatch[1]) && devDex.setData[setCodeMatch[1]].channelID != msg.channel.id) {
 								msg.channel.send("The set code " + setCodeMatch[1] + " is already in use, please select a different one. You can use `?codes` to see all set codes in use.");
-							}else if(setCodeMatch && devDex.devData[msg.author.id].setCode == "") {
+							}else if(setCodeMatch && devDex.devData[user].setCode == "") {
 								if(!devDex.setData.hasOwnProperty(setCodeMatch[1])) {
 									devDex.setData[setCodeMatch[1]] = {};
 									devDex.setData[setCodeMatch[1]].channel = "";
-									devDex.setData[setCodeMatch[1]].leadID = msg.author.id;
+									devDex.setData[setCodeMatch[1]].leadID = user;
 									devDex.setData[setCodeMatch[1]].longname = "";
 									devDex.setData[setCodeMatch[1]].packSlots = require('./standardDist.json');
-									devDex.devData[msg.author.id].setCode = setCodeMatch[1];
+									devDex.devData[user].setCode = setCodeMatch[1];
 									changes++;
 								}
 								devDex.setData = toolbox.objSort(devDex.setData);
-							}else if(setCodeMatch && devDex.devData[msg.author.id].setCode != "") {
-								msg.channel.send(reassignDevCode(devDex.devData[msg.author.id].setCode, setCodeMatch[1], msg.author.id));
+							}else if(setCodeMatch && devDex.devData[user].setCode != "") {
+								msg.channel.send(reassignDevCode(devDex.devData[user].setCode, setCodeMatch[1], user));
 							}
 						}
 						if(longNameMatch) {
-							devDex.devData[msg.author.id].longname = longNameMatch[1];
+							devDex.devData[user].longname = longNameMatch[1];
 							changes++;
 						}
 						if(designMatch) {
-							devDex.devData[msg.author.id].design = designMatch[1];
+							devDex.devData[user].design = designMatch[1];
 							changes++;
 						}
 						if(psLinkMatch) {
-							devDex.devData[msg.author.id].psLink = psLinkMatch[1];
-							devDex.devData[msg.author.id].psSuffix = psLinkMatch[2];
-							if(devDex.devData.setCode != "" && devDex.setData.hasOwnProperty(devDex.devData[msg.author.id].setCode)) {
-								devDex.setData[devDex.devData[msg.author.id].setCode].psLink = psLinkMatch[1];
-								devDex.setData[devDex.devData[msg.author.id].setCode].psSuffix = psLinkMatch[2];
+							devDex.devData[user].psLink = psLinkMatch[1];
+							devDex.devData[user].psSuffix = psLinkMatch[2];
+							if(devDex.devData.setCode != "" && devDex.setData.hasOwnProperty(devDex.devData[user].setCode)) {
+								devDex.setData[devDex.devData[user].setCode].psLink = psLinkMatch[1];
+								devDex.setData[devDex.devData[user].setCode].psSuffix = psLinkMatch[2];
 							}
 							changes++;
 						}
 						if(psSetMatch) {
-							devDex.devData[msg.author.id].psSet = psSetMatch[1];
-							devDex.setData[devDex.devData[msg.author.id].setCode].psSet = psSetMatch[1];
+							devDex.devData[user].psSet = psSetMatch[1];
+							devDex.setData[devDex.devData[user].setCode].psSet = psSetMatch[1];
 							changes++;
 						}
 						if(packSlotsMatch) {
@@ -10033,25 +10039,30 @@ Client.on("message", (msg) => {
 							}else if(testPacks[0] && typeof testPacks[0] == 'string' && testPacks[0].match(/Invalid packSlot structure/)) {
 								msg.channel.send(testPacks[0]);
 							}else{
-								devDex.setData[devDex.devData[msg.author.id].setCode].packSlots = testPacks;
+								devDex.setData[devDex.devData[user].setCode].packSlots = testPacks;
 								changes++;
-								let testFilters = testPackFilters(testPacks, devDex.devData[msg.author.id].setCode);
+								let testFilters = testPackFilters(testPacks, devDex.devData[user].setCode);
 								if(testFilters)
 									msg.channel.send(testFilters)
 							}
 						}
 						if(changes)
 							msg.channel.send("Changes made!");
-						if(devDex.devData[msg.author.id].setCode == "") {
+						if(devDex.devData[user].setCode == "") {
 							msg.channel.send("Remember to set up a Set Code before uploading your file.");
 						}else{
-							devDex.setData[devDex.devData[msg.author.id].setCode].longname = devDex.devData[msg.author.id].longname;
+							devDex.setData[devDex.devData[user].setCode].longname = devDex.devData[user].longname;
 						}
 					}
 					logDev(msg.author.id); // and then save it
 				}
 				let devLoadMatch = msg.content.match(/(\$|\?)fetch ?upload/i);
 				if(devLoadMatch) {
+					let user = msg.author.id, spoof = false;
+					if(user == cajun && msg.content.match(/spoof:/)) {
+						user = msg.content.match(/spoof: ?(\d+)/i)[1];
+						spoof = true;
+					}
 					let attachURL = msg.attachments.array()[0].url;
 					let filename = msg.attachments.array()[0].name;
 					let newName = new Date().getTime()
@@ -10059,7 +10070,7 @@ Client.on("message", (msg) => {
 						if(err) throw err;
 						msg.channel.startTyping(100);
 						setTimeout(function() {
-							msg.channel.send(sanitizeDevData(msg.author.id, msg.channel, newName));
+							msg.channel.send(sanitizeDevData(user, msg.channel, newName));
 						}, 2000);
 						setTimeout(function() {
 							fs.unlink("./dev/" + newName + "devtest.json", (err) => {if (err) throw err;});
