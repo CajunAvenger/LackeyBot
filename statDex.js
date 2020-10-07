@@ -9,7 +9,7 @@
 var arcana = require('./arcana.js');									//can work with card fields
 var archiveArray = [];													//holds array of tourneyArchive files
 var baseFilters = {after:2004};											//default to after May Madness update
-var  blankDex = {cards:{}, players:{}, tournaments:{}, decklists:{}, global:{matches:0, decks:0, playedCards:0}};
+var blankDex = {cards:{}, players:{}, tournaments:{}, decklists:{}, global:{matches:0, decks:0, playedCards:0}};
 const bye = "343475440083664896"; 										//bye player id
 var cardBase = arcana.msem.cards;
 const config = require("./config/lackeyconfig.json");					//for logging into Discord
@@ -105,19 +105,19 @@ function discordAccess(cb) {											//login to Discord to access player names
 }
 
 //build dexes
-function updateStatDex(dex, decksArray) { 									//builds a statDex from an array of decklist folders
+function updateStatDex(dex, decksArray) { 								//builds a statDex from an array of decklist folders
 	var archives = {};
 	for(let archive in decksArray) {
 		let thisArchive = require('./tourneyArchives/' + decksArray[archive]);
 		let tourneyName = decksArray[archive].match(/(league|gp)_[0-9][0-9]_[0-9][0-9]/);
 		archives[tourneyName[0]] = (thisArchive);
+		dex.tournaments[tourneyName[0]] = [];
 	}
 	//go through the archives, grab each decklist
 	//count its W-L, winLists, and lossLists
 	//convert deck to json, then apply W-L to each card in them
 	for(let archive in archives) {																//for each tournament in the archive...
 		console.log(`starting ${archive}`)
-		dex.tournaments[tourneyName[0]] = [];
 		for(let player in archives[archive].players) {											//for each player in the tournament...
 			if(player != bye){
 				for(let list in archives[archive].players[player].lists) {						//for each decklist of that player...
@@ -184,8 +184,8 @@ function updateStatDex(dex, decksArray) { 									//builds a statDex from an ar
 						if(!dex.players[player].lists.includes(thisList))
 							dex.players[player].lists.push(thisList);
 						toolbox.addIfNew(dex.decklists, thisList, {cards:convertedList, player:player, tournament:tourneyName[0]})
-						if(!dex.tournaments[tourneyName[0]].includes(thisList))
-							dex.tournaments[tourneyName[0]].push(thisList);
+						if(!dex.tournaments[archive].includes(thisList))
+							dex.tournaments[archive].push(thisList);
 						
 					}catch(e){
 						/*console.log()
@@ -227,6 +227,7 @@ function addNewStatDexCard(dex, card) { 								//adds a new card to statDex
 function integrateDecklists(dex) {										//add decklists to statDex
 	dex.decklists = {};
 	dex.tournaments = {};
+	console.log('Loading decklists');
 	for(let ar in archiveArray) {										//for each tourney
 		let tourney = archiveArray[ar].replace(/_archive\.json/, "");
 		console.log(`starting ${tourney}`)
@@ -265,7 +266,16 @@ function integrateDecklists(dex) {										//add decklists to statDex
 		}
 	}
 }
-
+function rebuildDex() {													//build the full dex from scratch
+	loadArchives(function(array) {
+		let newDex = updateStatDex({cards:{}, players: {}, decklists:{}, tournaments:{}, global:{}}, array);
+		integrateDecklists(newDex);
+		addMatchesToLists(newDex);
+		fs.writeFile('./statDexUpdate.json', JSON.stringify(newDex), function(){
+			console.log('done');
+		})
+	});
+}
 //compile final data
 function statDexStats(dex) { 											//writes card spreadsheet of statDex
 	let output = "Card Name 	Wins	Losses	Matches	WinRate	MainCount	SideCount\r\n";
@@ -503,7 +513,7 @@ function playerFace (p1id, p2id, dex, filters) { 						//find wins of player 1 v
 	let p1w = 0;
 	let p2w = 0;
 	let draw = 0;
-	let p3 = {win:0, loss:0, draw:0}
+	let p3 = {wins:0, loss:0, draw:0}
 	for(let tourney in player1.matches) {
 		if(tourneyFilter(tourney, filters)) {
 			let tFile = require(`./tourneyArchives/${tourney}_archive.json`);
@@ -520,7 +530,7 @@ function playerFace (p1id, p2id, dex, filters) { 						//find wins of player 1 v
 				}else{
 					let theMatch = tFile.matches[player1.matches[tourney][match]-1];
 					if(theMatch.winner == p1id) {
-						p3.win++
+						p3.wins++
 					}else if(theMatch.winner == "") {
 						p3.draw++;
 					}else{
@@ -530,7 +540,14 @@ function playerFace (p1id, p2id, dex, filters) { 						//find wins of player 1 v
 			}
 		}
 	}
-	return [p1w, p2w, draw, p3]
+	p3.matches = p3.wins + p3.loss + p3.draw;
+	p4 = {
+		wins: p1w,
+		losses: p2w,
+		draws: draw,
+		matches: p1w+p2w+draw
+	}
+	return [p1w, p2w, draw, p3, p4]
 }
 function playerComboCard(dex, player, card, filters) { 					//finds winrate of a card when played by a particular player vs everyone else
 	let playerScore = {matches:0, wins:0, losses:0};
@@ -685,7 +702,11 @@ function playrateGenerator(dex, filters, skipThese, minMatches){		//generates pl
 							miniDex[card].allCount += thisCard.mainCount + thisCard.sideCount;
 							if(thisCard.mainCount + thisCard.sideCount >= 4)
 								miniDex[card].setCount++;
-							miniDex[card].matches += thisList.matches.length;
+							if(thisList.matches) {
+								miniDex[card].matches += thisList.matches.length;
+							}else{
+								console.log(listName)
+							}
 						}
 					}
 				}
@@ -1143,9 +1164,13 @@ function grabPlayerName(dex, msg, c){									//grabs a player name from command
 	let playName = msg.author.username;
 	if(c && c[1]) {
 		if(!c[1].match(/^[0-9]+$/)) {
+			console.log('wut');
 			let users = buildUsernameData(dex);
 			let bestName = fuzzy.searchArray(c[1], users[0]);
 			player = users[1][users[0].indexOf(bestName[0])];
+		}else if(c){
+			if(dex.players.hasOwnProperty(c[1]))
+				player = c[1];
 		}
 		playName = dex.players[player].username;
 	}
@@ -1366,7 +1391,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				return output;
 			}
 		}
-		if(input.match(/cardPlayers(Top|Bot)/i)) {			//players with best winrate with the card
+		if(input.match(/cardPlayers(Vs)?(Top|Bot)/i)) {		//players with best winrate with the card
 			let c = input.match(/\[([^\]]+)\]/);
 			if(c) {
 				let card = addNewStatDexCard(dex, c[1]);
@@ -1382,9 +1407,15 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 						}
 					}
 				}
+				let matchFunction = playerComboCard;
+				let withAg = "with";
+				if(input.match(/cardPlayersVs/i)) {
+					matchFunction = playerVsCard;
+					withAg = "against";
+				}
 				for(let player in miniDex) {
 					if(matchFilter(null, player, filters))
-						miniDex[player] = playerComboCard(dex, player, card, filters)[0];
+						miniDex[player] = matchFunction(dex, player, card, filters)[0];
 				}
 				let comp = function(dex, name, filters) {
 					return miniDex[name];
@@ -1393,11 +1424,11 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				let array = wrData[0];				//ordered by winrate
 				let topN = grabTop(array, input);
 				let topBot = "Top";
-				if(input.match(/PlayersBot/)){
-					array.reverse()
+				if(input.match(/Players(Vs)?Bot/i)){
+					array.reverse();
 					topBot = "Bottom";
 				}
-				let mess = `${topBot} ${topN} player winrates with ${pullSet(card)} with at least ${minMatch} matches and${filterMessage}\n`;
+				let mess = `${topBot} ${topN} player winrates ${withAg} ${pullSet(card)} with at least ${minMatch} matches and${filterMessage}\n`;
 				for(var i=0; i<topN; i++) {
 					if(dex.players[array[i]].username == "PlayerUnknown")
 						console.log(dex.players[array[i]]);
@@ -1569,6 +1600,7 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 		}
 		if(input.match(/playerVs/i)) {						//player vs player winrate
 			let c = input.match(/([^ \n]+) playerVs ([^ \n]+)/i);
+			let t = input.match(/([^ \n]+) playerVsTop/i)
 			if(c) {
 				let play1 = c[1];
 				let play2 = c[2];
@@ -1587,8 +1619,41 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 				let player1 = dex.players[play1];
 				let player2 = dex.players[play2];
 				let output = `${player1.username} has a ${winData[0]}-${winData[1]}-${winData[2]} record (${winValToWR([winData[0],(winData[0]+winData[1]+winData[2])])}%) when playing against ${player2.username}`;
-				output += `\n${player1.username} has a ${winData[3].win}-${winData[3].loss}-${winData[3].draw} record (${winValToWR([winData[3].win,(winData[3].win+winData[3].loss+winData[3].draw)])}%) when playing against other players.\n`
+				output += `\n${player1.username} has a ${winData[3].wins}-${winData[3].loss}-${winData[3].draw} record (${winValToWR([winData[3].wins,(winData[3].wins+winData[3].loss+winData[3].draw)])}%) when playing against other players.\n`
 				return output;
+			}else if(input.match(/playerVsTop/i)){
+				let play1 = msg.author.id;
+				if(t) {
+					play1 = t[1];
+					if(!play1.match(/^[0-9]+$/)) {
+						let users = buildUsernameData(dex);
+						if(!play1.match(/^[0-9]+$/)) {
+							let bestName = fuzzy.searchArray(play1, users[0]);
+							play1 = users[1][users[0].indexOf(bestName[0])];
+						}
+					}
+				}
+				let miniDex = {};
+				for(let player in dex.players) {
+					if(player != play1)
+						miniDex[player] = playerFace(play1, player, dex, filters);
+				}
+				let comp = function(dex, player, filters){
+					return miniDex[player][4]
+				}
+				let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, comp)
+				let array = wrData[0];
+				let topN = grabTop(array, input);
+				let topBot = "Top";
+				if(input.match(/VsBot/i)) {
+					array.reverse();
+					topBot = "Bottom";
+				}
+				let mess = `${dex.players[play1].username}'s ${topBot} ${topN} winrates vs all players with at least ${minMatch} matches and${filterMessage}\n`;
+				for(var i=0; i<topN; i++) {
+					mess += `${i+1}: ${dex.players[array[i]].username} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
+				}
+				return mess;
 			}
 		}
 		if(input.match(/playerWin(Top|Bot)/i)) {
@@ -1602,8 +1667,19 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 			let comp = function(dex, player) {
 				return miniDex[player];
 			}
-			let res = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, playerWinRate);
-			let topN = grabTop(res[0], input);
+			let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, playerWinRate);
+			let array = wrData[0];
+			let topN = grabTop(array, input);
+			let topBot = "Top";
+			if(input.match(/playerWinBot/i)) {
+				array.reverse();
+				topBot = "Bottom";
+			}
+			let output = `${topBot} ${topN} player winrates with at least ${minMatch} matches and${filterMessage}\n`;
+			for(let i=0; i<topN; i++)
+				output += `${i+1}: ${dex.players[array[i]].username} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
+			return output;
+			/*
 			let goodNames = [];
 			let bootNames = [];
 			for(let player in res[0]) {
@@ -1616,9 +1692,10 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 			console.log("Players with fewer than 4 matches in the last 6 months:")
 			console.log(bootNames);
 				return "";
+			*/
 		}
 		if(input.match(/playerWin/i)){						//basic player winrate
-			let c = input.match(/(.*) ?playerWin/i);
+			let c = input.match(/(.*) playerWin/i);
 			if(c) {
 				let playerArray = grabPlayerName(dex, msg, c);
 				let player = playerArray[0];
@@ -1753,13 +1830,103 @@ function playrateReporter(info) {										//sorts and reports playRate data
 	});
 	return cards;
 }
-//console.log(processCommands({content:"cardWin[Lucien] filter out:pip filter out:egg", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
+
+function biggun() {
+	let miniDex = {};
+	let pairs = 0;
+	let card_names = Object.keys(statDexPreBuilt.cards);
+	for(let i=0; i<card_names.length; i++) {
+		miniDex[card_names[i]] = {};
+		for(let j=i+1; j<card_names.length; j++) {
+			let res = pairedWinRate(statDexPreBuilt, card_names[i], card_names[j], pairedScore, baseFilters);
+			if(res.matches > 0) {
+				miniDex[card_names[i]][card_names[j]] = res;
+				pairs++
+			}
+		}
+	}
+	i = 0;
+	let megaDex = {};
+	for(let card in miniDex) {
+		for(let sub in miniDex[card]) {
+			megaDex[i] = miniDex[card][sub];
+			megaDex[i].cards = [card, sub];
+			i++
+		}
+	}
+	let comp = function(dex, ind, filters) {
+		return megaDex[ind];
+	}
+	let wrData = sortComparedData(statDexPreBuilt, Object.keys(megaDex), 20, {}, skipThese, comp);
+	let array = wrData[0];
+	//console.log(wrData)
+	for(i = 0; i<50; i++)
+		console.log(`${i}: ${pullSet(megaDex[array[i]].cards[0])} + ${pullSet(megaDex[array[i]].cards[1])}, ${wrData[1][array[i]].wr}% in ${wrData[1][array[i]].matches} matches`)
+}
+
+//console.log(processCommands({content:"playerWinBot", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
 //console.log(leagueFourOhs('league_20_08'))
 //exports for live
 exports.initialize = initialize
 exports.processCommands = processCommands
-
-
+function findDupes(archives) {
+	for(let a in archives) {
+		let thisTourney = require('./tourneyArchives/'+archives[a]);
+		for(let player in thisTourney.players) {
+			let theseLists = thisTourney.players[player].lists;
+			let hold = [];
+			for(let list in theseLists) {
+				if(!hold.includes(theseLists[list])) {
+					hold.push(theseLists[list]);
+				}else{
+					console.log('Duped list found: ' + theseLists[list])
+					console.log(theseLists);
+				}
+			}
+		}
+	}
+}
+function fixDupes(){
+	let archives = {
+		'league_19_12': ['284763898920304651'],
+		'league_20_09': ['233946395067940864','380148829128884236','524687574992945163','494540442445021206','107957368997834752']
+	}
+	for(let a in archives) {
+		let thisTourney = require('./tourneyArchives/'+a+'_archive.json');
+		for(let p in archives[a]) {
+			let thisPlayer = archives[a][p];
+			let playerData = thisTourney.players[thisPlayer];
+			for(let list in playerData.lists) {
+				let listName = playerData.lists[list];
+				for(let aMatch in playerData.matches[list]) {
+					let realMatchNo = playerData.matches[list][aMatch]-1;
+					let match = thisTourney.matches[realMatchNo];
+					let matchPlayer = match.players[0];
+					if(matchPlayer.id != thisPlayer)
+						matchPlayer = match.players[1];
+					if(matchPlayer.id != thisPlayer) {
+						console.log('aaaaaaaaaaaaaaaa')
+					}else{
+						matchPlayer.list = listName;
+						matchPlayer.run = parseInt(list)+1;
+					}
+				}
+			}
+			fs.writeFile('./tourneyArchives/'+a+'_archive.json', JSON.stringify(thisTourney), function(){
+				console.log('./tourneyArchives/'+a+'_archive.json written');
+			})
+		}
+	}
+}
+//fixDupes();
+function matchCounter(archives) {
+	let matches = 0;
+	for(let a in archives) {
+		let thisTourney = require('./tourneyArchives/' + archives[a])
+		matches += thisTourney.matches.length;
+	}
+	console.log(matches);
+}
 //let testDeck = statDexPreBuilt.decklists["/gp_20_08/cajun.json"].cards
 //testDeck = require('./decks/bluestest.json')
 //console.log(countColors(testDeck));

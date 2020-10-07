@@ -159,9 +159,9 @@ function applyIKOAlias(set) {
 	for(let card in set.cards) {
 		let thisCard = set.cards[card]
 		if(parseInt(thisCard.number) > set.baseSetSize) { //overcount promos
-			thisCard.rarity = "Special";
+			//thisCard.rarity = "Special";
 			if(parseInt(thisCard.number) == set.baseSetSize+1) //Buy A Box is Bonus instead
-				thisCard.rarity = "Bonus";
+				//thisCard.rarity = "Bonus";
 			if(aliases.hasOwnProperty(thisCard.name) && (!thisCard.hasOwnProperty('frameEffects') || (thisCard.frameEffects.length == 1 && thisCard.frameEffects[0] == "legendary"))) {
 				thisCard.alias = aliases[thisCard.name];
 			}else if(aliases.hasOwnProperty(thisCard.name)){
@@ -217,10 +217,8 @@ function blockBuilder(fileType) {
 		}
 		for(var i = 0; i < thisSet.cards.length; i++) {
 			let nextCard = "";
-			let thisCard = "";
+			let thisCard = {};
 			let clearedFor = "yes";
-			if(thisSet.cards[i].layout == "modal_dfc")
-				thisSet.cards[i].layout = "double-faced";
 			if(thisSet.cards[i].layout == "meld")
 				clearedFor = null;
 			if(thisSet.cards[i].hasOwnProperty('names') && thisSet.cards[i].names.includes("Who"))
@@ -230,10 +228,23 @@ function blockBuilder(fileType) {
 			
 			if(clearedFor !== null) {
 				if(thisSet.cards[i].side !== undefined){
-					nextCard = thisSet.cards[i];
-					i += 1;
+					if(thisSet.cards[i].side == "a") {
+						thisCard = thisSet.cards[i];
+						i++;
+						nextCard = thisSet.cards[i];
+					}else{
+						nextCard = thisSet.cards[i];
+						i++;
+						thisCard = thisSet.cards[i];
+					}
+				}else{
+					thisCard = thisSet.cards[i];
 				}
-				thisCard = thisSet.cards[i];
+				if(thisCard.layout == "modal_dfc")
+					thisCard.layout = "double-faced";
+				if(nextCard && nextCard.layout == "modal_dfc")
+					nextCard.layout = "double-faced";
+
 				let databaseName = thisCard.name;
 				if(thisCard.names !== undefined && thisSet.cards[i].side !== undefined && nextCard == "") {
 					databaseName += "//" + thisCard.names[1];
@@ -241,8 +252,8 @@ function blockBuilder(fileType) {
 					if(thisCard.names !== undefined && thisSet.cards[i].side !== undefined && nextCard != "")
 						databaseName += "//" + nextCard.name;
 				}
-				if(thisCard.type.match("Vanguard"))
-					databaseName += " Avatar";
+				//if(thisCard.type.match("Vanguard"))
+					//databaseName += " Avatar";
 				let cardFormats = [];
 				for(var thisFormat in thisCard.legalities) {
 					let thisLegal = thisCard.legalities[thisFormat];
@@ -278,12 +289,12 @@ function blockBuilder(fileType) {
 				thisEntry.cardName = thisCard.name;
 				if(thisCard.hasOwnProperty("faceName"))
 					thisEntry.cardName = thisCard.faceName;
-				if(thisCard.type.match("Vanguard"))
-					thisEntry.cardName += " Avatar";
+				//if(thisCard.type.match("Vanguard"))
+				//	thisEntry.cardName += " Avatar";
 				if(thisCard.manaCost === undefined) {
 					thisEntry.manaCost = "";
 				}else{
-					thisEntry.manaCost = thisCard.manaCost.replace(/{H(WUBRG)}/,"{|$1}");
+					thisEntry.manaCost = thisCard.manaCost.replace(/{H([WUBRG])}/,"{|$1}");
 				}
 				thisEntry.typeLine = thisCard.type;
 				let cardRarity = thisCard.rarity.replace("timeshifted ", "")[0].toUpperCase();
@@ -293,8 +304,6 @@ function blockBuilder(fileType) {
 					cardRarity = "Token";
 				if(set_code == (/(MPS|EXP|MPS_AKH)/))
 					cardRarity = "Masterpiece";
-				if(setData[set_code] !== undefined && setData[set_code].size !== 0 && setData[set_code].size < parseInt(thisCard.number))
-					cardRarity = "Bonus"
 				if(thisCard.rarity == "Special" || (thisCard.hasOwnProperty("frameEffects") && thisCard.frameEffects.includes("extendedart")))
 					cardRarity = "Promo";
 				if(thisCard.printings.includes("CMB1"))
@@ -309,7 +318,7 @@ function blockBuilder(fileType) {
 				}else{
 					let cardText = thisCard.text.replace(/\(/g,"*(");
 					cardText = cardText.replace(/\)/g,")*");
-					thisEntry.rulesText = cardText.replace(/{H(WUBRG)}/,"{|$1}") + "\n";
+					thisEntry.rulesText = cardText.replace(/{H([WUBRG])}/,"{|$1}") + "\n";
 				}
 				if(thisCard.flavorText === undefined) {
 					thisEntry.flavorText = "";
@@ -377,8 +386,6 @@ function blockBuilder(fileType) {
 						cardRarity = "Token";
 					if(set_code.match("MPS_"))
 						cardRarity = "Masterpiece";
-					if(setData[set_code] !== undefined && setData[set_code].size !== 0 && setData[set_code].size < parseInt(thisCard.number))
-						cardRarity = "Bonus";
 					if(nextCard.rarity == "Special" || (nextCard.hasOwnProperty("frameEffects") && nextCard.frameEffects.includes("extendedart")))
 						cardRarity = "Promo";
 					thisEntry.rarityLine2 = "*" + set_code + " " + cardRarity + "*";
@@ -435,8 +442,6 @@ function blockBuilder(fileType) {
 					cardRarity = "token";
 				if(set_code.match("MPS_"))
 					cardRarity = "masterpiece";
-				if(setData[set_code] !== undefined && setData[set_code].size !== 0 && setData[set_code].size < parseInt(thisCard.number))
-					cardRarity = "bonus"
 				if(thisCard.rarity == "Special" || (thisCard.hasOwnProperty("frameEffects") && thisCard.frameEffects.includes("extendedart")))
 					cardRarity = "promo";
 				if(cardRarity.match(/mythic/i))
@@ -450,7 +455,7 @@ function blockBuilder(fileType) {
 					thisEntry.shape = "leveler";
 				if(thisCard.layout === "double-faced" || thisCard.layout === "meld" ||thisCard.layout === "transform")
 					thisEntry.shape = "doubleface";
-				thisEntry.notes = notify(thisEntry, thisCard);
+				thisEntry.notes = notify(thisEntry, thisCard, set_code);
 				thisEntry.setID = set_code;
 				thisEntry.cardID = thisCard.number;
 				if(thisCard.hasOwnProperty('alias'))
@@ -492,7 +497,7 @@ function blockBuilder(fileType) {
 		}
 	}
 }
-function notify(thisEntry, thisCard) {
+function notify(thisEntry, thisCard, set_code) {
 	let noteArray = [];
 	for(let name in notes) {
 		if(notes[name].includes(thisEntry.cardName))
@@ -508,6 +513,8 @@ function notify(thisEntry, thisCard) {
 		if(thisEntry.rulesText.match(/meld/i))
 			noteArray.push("meld")
 	}
+	if(setData[set_code] !== undefined && setData[set_code].size !== 0 && setData[set_code].size < parseInt(thisCard.number))
+		noteArray.push("bonus");
 	return noteArray;
 }
 function standardize() {
