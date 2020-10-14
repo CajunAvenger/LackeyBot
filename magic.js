@@ -11,8 +11,23 @@ function symbolize(card) { //converts symbols to emotes
 	}
 	return card;
 }
+function unsymbolize(card) { //converts emotes and symbols to letters
+	//convert emotes
+	//emotes are formatted <:M_:1234> or <:manam:1234>
+	card = card.replace(/<:(?:mana)?([0-9CWUBRGSETQA]+)_?:\d+>/gi, function(v) {
+		v = v.replace(/^<:(mana)?/, "");
+		v = v.replace(/_?:\d+>$/, "");
+		return "{" + v.toUpperCase() + "}"
+	});
+	
+	card = card.replace(/} {/g, "}{"); //remove spaces between emotes
+	card = card.replace(/\{([0-9CWUBRGS])([0-9CWUBRGS])}/g, "{$1/$2}") //add hybrid slashes to emotes
+	card = card.replace(/[{}]/g, ""); //remove {s
+	card = card.replace(/[([]([0-9WUBRGPHCSEAQ]\/?[WUBRGPHCSEAQ]?)[)\]]/g, "$1"); //remove () and [] but only around mana symbols
+	return card;
+}
 function italPseudo(someText) { //italicizes pseudo abilities but not modals, anchors, Saga chapters, or harmony
-	let pseudoMatch = someText.match(/([^\n—\*]+) —/);
+	let pseudoMatch = someText.match(/^([^\n—\*]+) —/);
 	if(pseudoMatch == null || pseudoMatch[1].match(/(Choose|Harmony|Forecast|Companion)/i) || pseudoMatch[1] == "I" || pseudoMatch[1].match(/I,/))
 		return someText;
 	return someText.replace(pseudoMatch[1], "*"+pseudoMatch[1]+"*")
@@ -183,6 +198,7 @@ function findReprints(thisCard, database) { //finds other versions
 }
 
 exports.symbolize = symbolize;
+exports.unsymbolize = unsymbolize;
 exports.italPseudo = italPseudo;
 exports.writeCard = writeCard;
 exports.writeCardError = writeCardError;

@@ -1159,12 +1159,11 @@ function datify(num) {													//converts XX_YY to names
 function pullSet(name){													//remove _SET from cardnames
 	return name.replace(/_[A-Z0-9_]+/, "");
 }
-function grabPlayerName(dex, msg, c){									//grabs a player name from commands
+function grabPlayerName(dex, msg, c, bigData) {							//grabs a player name from commands
 	let player = msg.author.id;
 	let playName = msg.author.username;
-	if(c && c[1]) {
+	if(bigData && c && c[1]) {
 		if(!c[1].match(/^[0-9]+$/)) {
-			console.log('wut');
 			let users = buildUsernameData(dex);
 			let bestName = fuzzy.searchArray(c[1], users[0]);
 			player = users[1][users[0].indexOf(bestName[0])];
@@ -1200,10 +1199,11 @@ function instigatorPlayrateCoder(listOfNames, key){						//prints an is:key filt
 	//convert is:pointed to IsPointed
 	let output = "";
 	output += `class Condition${varKey} < Condition\n`
-	output += `\tdef searc(db)\n`
+	output += `\tdef search(db)\n`
 	output += `\t\tnames = [\n`
 	for(let name in listOfNames)
 		output += `\t\t\t"${listOfNames[name].toLowerCase().replace(/\/\/.*/, "").replace(/_.*/, "")}",\n`
+	output += `]\n\n`;
 	output += `\t\tnames\n`;
 	output += `\t\t\t.map{|n| db.cards[n]}\n`;
 	output += `\t\t\t.flat_map{|card| card ? card.printings : []}\n`;
@@ -1215,8 +1215,10 @@ function instigatorPlayrateCoder(listOfNames, key){						//prints an is:key filt
 	output += `end`;
 	return output;
 }
+
 //process commands from Discord
-function processFilters(dex, input) {									//process filters into filter objects
+function processFilters(dex, msg, bigData) {							//process filters into filter objects
+	let input = msg.content
 	let filters = toolbox.cloneObj(baseFilters);
 	let message = "";
 	if(input.match(/filter:? ?all/i))
@@ -1224,20 +1226,12 @@ function processFilters(dex, input) {									//process filters into filter obje
 	let afFilter = input.match(/filter after:? ?(\d+)/i);
 	let befFilter = input.match(/filter before:? ?(\d+)/i);
 	let typeFilter = input.match(/filter type:? ?(gp|league)/i);
-	let pipFilter = input.match(/filter out: ?pip/i);
-	let eggFilter = input.match(/filter out: ?egg/i);
 	if(afFilter)
 		filters.after = parseInt(afFilter[1]);
 	if(befFilter)
 		filters.before = parseInt(befFilter[1]);
 	if(typeFilter)
 		filters.type = [typeFilter[1]];
-	if(pipFilter || eggFilter)
-		filters.player = [];
-	if(pipFilter)
-		filters.player.push("107957368997834752");
-	if(eggFilter)
-		filters.player.push("139184614567575553");
 	if(filters.hasOwnProperty('after'))
 		message += " after " + datify(filters.after);
 	if(filters.hasOwnProperty('before'))
@@ -1246,21 +1240,24 @@ function processFilters(dex, input) {									//process filters into filter obje
 		message += " in " + filters.type + " tournaments";
 	if(filters.hasOwnProperty('type'))
 		message += " in " + filters.type + " tournaments";
-	if(pipFilter)
-		message += " and skipping Pip";
-	if(eggFilter)
-		message += " and skipping Egg";
+	if(bigData) {
+		let playerFilter = toolbox.globalCapture(/filter out: ?([^ ]+)/, input);
+		if(playerFilter) {
+			filters.player = [];
+			for(let match in playerFilter) {
+				let info = grabPlayerName(dex, msg, playerFilter[match], true);
+				filters.player.push(info[0])
+				message += " and skipping " + info[1];
+			}
+		}
+	}
 	return [filters, message];
 }
-function processCommands(msg, offline) { 								//processes commands from Discord posts
+function processCommands(msg, offline, admincheck) {					//processes commands from Discord posts
 	let input = msg.content;
 	let dex = statDexPreBuilt;
-	let LBShouldPost = true;
-	if(offline)
-		LBShouldPost = false;
-	if(msg.content.match(/!test/i))
-		LBShouldPost = true;
-	let filterData = processFilters(dex, input); 			//converts filter:all, filter before:YYMM, filter after:YYMM, filter type:gp/league
+	let bigData = admincheck.includes(5); //let msem council access more commands
+	let filterData = processFilters(dex, msg, bigData);		//converts filter:all, filter before:YYMM, filter after:YYMM, filter type:gp/league
 	let filters = filterData[0];							//min:# and count:# get pulled later
 	let filterMessage = filterData[1]; 						//normal text tourney filter description
 	let landFilter = "";									//normal text card filter description
@@ -1340,477 +1337,479 @@ function processCommands(msg, offline) { 								//processes commands from Disco
 		landFilter += " and only nonbasic cards";
 	filterMessage += landFilter;
 	let minMatch = grabMin(input);
-	if(LBShouldPost || offline === "all") { //LackeyBot responds
-		if(msg.content.match(/!test/i) && !offline)
+	//run commands
+	if(input.match(/cardwin/i)){						//winrates of a card
+		let c = input.match(/\[([^\]]+)\]/);
+		if(c) {
+			let card1 = addNewStatDexCard(dex, c[1]);
+			let res = filteredWinRate(dex, card1, filters);
+			let output = `${pullSet(card1)} win rate `;
+			output += `for matches${filterMessage}\n`;
+			output += `${pullSet(card1)} won ${res.wins}/${res.matches} (${winValToWR([res.wins,res.matches],2)}%)\n`
+			return output;
+		}
+	}
+	if(input.match(/vsWinRate/i)) {						//X vs Y winrates
+		let c = input.match(/\[([^\]]+)\](?: | ?vs.? ?)?\[([^\]]+)\]/);
+		if(c) {
+			let card1 = addNewStatDexCard(dex, c[1]);
+			let card2 = addNewStatDexCard(dex, c[2]);
+			let res = pairedWinRate(dex, card1, card2, vsScore, filters);
+			let output = `${pullSet(card1)} vs ${pullSet(card2)}:\n`;
+			output += `Found ${res.matches} matches${filterMessage}\n`;
+			output += `${pullSet(card1)} won ${res.wins}/${res.matches} (${winValToWR(res)}%)\n`
+			output += `${pullSet(card2)} won ${res.losses}/${res.matches} (${100-winValToWR(res)}%)`
+			return output;
+		}
+	}
+	if(input.match(/unComboWinRate/i)) {				//X - Y winrates
+		let c = input.match(/\[([^\]]+)\](?: | ?vs.? ?)?\[([^\]]+)\]/);
+		if(c) {
+			let card1 = addNewStatDexCard(dex, c[1]);
+			let card2 = addNewStatDexCard(dex, c[2]);
+			let res = unpairedWinRate(dex, card1, card2, filters);
+			let output = `${pullSet(card1)} without ${pullSet(card2)}:\n`;
+			output += `Found ${res.matches} matches${filterMessage}\n`;
+			output += `Decks playing ${pullSet(card1)} without ${pullSet(card2)} won ${res.wins}/${res.matches} (${winValToWR(res)}%)\n`
+			return output;
+		}
+	}
+	if(input.match(/comboWinRate/i)) {					//X + Y winrates
+		let c = input.match(/\[([^\]]+)\](?: | ?vs.? ?)?\[([^\]]+)\]/);
+		if(c) {
+			let card1 = addNewStatDexCard(dex, c[1]);
+			let card2 = addNewStatDexCard(dex, c[2]);
+			let res = pairedWinRate(dex, card1, card2, pairedScore, filters);
+			let output = `${pullSet(card1)} comboed with ${pullSet(card2)}:\n`;
+			output += `Found ${res.matches} matches${filterMessage}\n`;
+			output += `Decks playing both ${pullSet(card1)} and ${pullSet(card2)} won ${res.wins}/${res.matches} (${winValToWR(res)}%)\n`
+			return output;
+		}
+	}
+	if(input.match(/cardPlayers(Vs)?(Top|Bot)/i)) {		//players with best winrate with the card
+		if(!bigData)
 			return "";
-		if(input.match(/cardwin/i)){						//winrates of a card
-			let c = input.match(/\[([^\]]+)\]/);
-			if(c) {
-				let card1 = addNewStatDexCard(dex, c[1]);
-				let res = filteredWinRate(dex, card1, filters);
-				let output = `${pullSet(card1)} win rate `;
-				output += `for matches${filterMessage}\n`;
-				output += `${pullSet(card1)} won ${res.wins}/${res.matches} (${winValToWR([res.wins,res.matches],2)}%)\n`
-				return output;
-			}
-		}
-		if(input.match(/vsWinRate/i)) {						//X vs Y winrates
-			let c = input.match(/\[([^\]]+)\](?: | ?vs.? ?)?\[([^\]]+)\]/);
-			if(c) {
-				let card1 = addNewStatDexCard(dex, c[1]);
-				let card2 = addNewStatDexCard(dex, c[2]);
-				let res = pairedWinRate(dex, card1, card2, vsScore, filters);
-				let output = `${pullSet(card1)} vs ${pullSet(card2)}:\n`;
-				output += `Found ${res.matches} matches${filterMessage}\n`;
-				output += `${pullSet(card1)} won ${res.wins}/${res.matches} (${winValToWR(res)}%)\n`
-				output += `${pullSet(card2)} won ${res.losses}/${res.matches} (${100-winValToWR(res)}%)`
-				return output;
-			}
-		}
-		if(input.match(/unComboWinRate/i)) {				//X - Y winrates
-			let c = input.match(/\[([^\]]+)\](?: | ?vs.? ?)?\[([^\]]+)\]/);
-			if(c) {
-				let card1 = addNewStatDexCard(dex, c[1]);
-				let card2 = addNewStatDexCard(dex, c[2]);
-				let res = unpairedWinRate(dex, card1, card2, filters);
-				let output = `${pullSet(card1)} without ${pullSet(card2)}:\n`;
-				output += `Found ${res.matches} matches${filterMessage}\n`;
-				output += `Decks playing ${pullSet(card1)} without ${pullSet(card2)} won ${res.wins}/${res.matches} (${winValToWR(res)}%)\n`
-				return output;
-			}
-		}
-		if(input.match(/comboWinRate/i)) {					//X + Y winrates
-			let c = input.match(/\[([^\]]+)\](?: | ?vs.? ?)?\[([^\]]+)\]/);
-			if(c) {
-				let card1 = addNewStatDexCard(dex, c[1]);
-				let card2 = addNewStatDexCard(dex, c[2]);
-				let res = pairedWinRate(dex, card1, card2, pairedScore, filters);
-				let output = `${pullSet(card1)} comboed with ${pullSet(card2)}:\n`;
-				output += `Found ${res.matches} matches${filterMessage}\n`;
-				output += `Decks playing both ${pullSet(card1)} and ${pullSet(card2)} won ${res.wins}/${res.matches} (${winValToWR(res)}%)\n`
-				return output;
-			}
-		}
-		if(input.match(/cardPlayers(Vs)?(Top|Bot)/i)) {		//players with best winrate with the card
-			let c = input.match(/\[([^\]]+)\]/);
-			if(c) {
-				let card = addNewStatDexCard(dex, c[1]);
-				let miniDex = {};
-				for(let list in dex.cards[card].decks) { //get all the players
-					let thisList = dex.cards[card].decks[list];
-					for(let player in dex.players) {
-						if(!miniDex.hasOwnProperty(player)){
-							if(dex.players[player].lists.includes(thisList)) {
-								miniDex[player] = {matches:0, wins:0, losses:0}
-								continue;
-							}
+		let c = input.match(/\[([^\]]+)\]/);
+		if(c) {
+			let card = addNewStatDexCard(dex, c[1]);
+			let miniDex = {};
+			for(let list in dex.cards[card].decks) { //get all the players
+				let thisList = dex.cards[card].decks[list];
+				for(let player in dex.players) {
+					if(!miniDex.hasOwnProperty(player)){
+						if(dex.players[player].lists.includes(thisList)) {
+							miniDex[player] = {matches:0, wins:0, losses:0}
+							continue;
 						}
 					}
 				}
-				let matchFunction = playerComboCard;
-				let withAg = "with";
-				if(input.match(/cardPlayersVs/i)) {
-					matchFunction = playerVsCard;
-					withAg = "against";
-				}
-				for(let player in miniDex) {
-					if(matchFilter(null, player, filters))
-						miniDex[player] = matchFunction(dex, player, card, filters)[0];
-				}
-				let comp = function(dex, name, filters) {
-					return miniDex[name];
-				}
-				let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, comp);
-				let array = wrData[0];				//ordered by winrate
-				let topN = grabTop(array, input);
-				let topBot = "Top";
-				if(input.match(/Players(Vs)?Bot/i)){
-					array.reverse();
-					topBot = "Bottom";
-				}
-				let mess = `${topBot} ${topN} player winrates ${withAg} ${pullSet(card)} with at least ${minMatch} matches and${filterMessage}\n`;
-				for(var i=0; i<topN; i++) {
-					if(dex.players[array[i]].username == "PlayerUnknown")
-						console.log(dex.players[array[i]]);
-					mess += `${i+1}: ${dex.players[array[i]].username} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
-				}
-				return mess;
 			}
-		}
-		if(input.match(/player(Combo|Vs)Card(Top|Bot)/i)){	//top/bottom winrates of cards of a player
-			let c = input.match(/(.*) ?player(?:Combo|Vs)Card/i);
-			let playArray = grabPlayerName(dex, msg, c);
-			let player = playArray[0];
-			let playName = playArray[1];		
-			let youOrMe = 0;
-			if(input.match(/other/i))
-				youOrMe = 1;
-			let matchScript = playerComboCard;
-			let matchMessage = `when played by ${playName}`;
-			if(input.match(/playerVsCard/i)) {
-					matchScript = playerVsCard;
-					matchMessage = `when played against ${playName}`;
+			let matchFunction = playerComboCard;
+			let withAg = "with";
+			if(input.match(/cardPlayersVs/i)) {
+				matchFunction = playerVsCard;
+				withAg = "against";
 			}
-			if(youOrMe)
-				matchMessage = matchMessage.replace(/when played (by|against)/, "when played $1 players other than")
-			let comp = function(aDex, aCard, someFilters){
-				return matchScript(aDex, player, aCard, someFilters)[youOrMe];
+			for(let player in miniDex) {
+				if(matchFilter(null, player, filters))
+					miniDex[player] = matchFunction(dex, player, card, filters)[0];
 			}
-			let wrData = sortComparedData(dex, Object.keys(dex.cards), minMatch, filters, skipThese, comp);
-			let array = wrData[0];
+			let comp = function(dex, name, filters) {
+				return miniDex[name];
+			}
+			let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, comp);
+			let array = wrData[0];				//ordered by winrate
 			let topN = grabTop(array, input);
 			let topBot = "Top";
-			if(matchScript == playerVsCard)
-				array.reverse();
-			if(input.match(/CardBot/i)) {
+			if(input.match(/Players(Vs)?Bot/i)){
 				array.reverse();
 				topBot = "Bottom";
 			}
-			let mess = `${topBot} ${topN} winrates ${matchMessage} with at least ${minMatch} matches and${filterMessage}\n`;
+			let mess = `${topBot} ${topN} player winrates ${withAg} ${pullSet(card)} with at least ${minMatch} matches and${filterMessage}\n`;
 			for(var i=0; i<topN; i++) {
-				if(matchScript == playerVsCard) {
-					mess += `${i+1}: ${pullSet(array[i])} (${wrData[1][array[i]].losses}/${wrData[1][array[i]].matches} -> ${100-wrData[1][array[i]].wr}%)\n`;
-				}else{
-					mess += `${i+1}: ${pullSet(array[i])} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
-				}
+				if(dex.players[array[i]].username == "PlayerUnknown")
+					console.log(dex.players[array[i]]);
+				mess += `${i+1}: ${dex.players[array[i]].username} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
 			}
 			return mess;
 		}
-		if(input.match(/player(Combo|Vs)Card/i)) {			//winrates of a player with a card
-			let c = input.match(/(.*) ?player(?:Combo|Vs)Card ?\[([^\]]+)\]/i);
-			if(c) {
-				let matchScript = playerComboCard
-				if(input.match(/playerVsCard/i))
-					matchScript = playerVsCard;
-				let card1 = addNewStatDexCard(dex, c[2]);
-				let play1 = msg.author.id;
-				let playName = msg.author.username;
-				if(c[1]){
-					if(!c[1].match(/^[0-9]+$/)) {
-						let users = buildUsernameData(dex);
-						let bestName = fuzzy.searchArray(c[1], users[0]);
-						play1 = users[1][users[0].indexOf(bestName[0])];
-					}
-					playName = dex.players[play1].username;
-				}
-				let res = matchScript(dex, play1, card1, filters);
-				let wr1 = winValToWR(res[0]);
-				let wr2 = winValToWR(res[1]);
-				if(matchScript == playerComboCard) {
-					let output = `${pullSet(card1)} being played by ${playName}:\n`;
-					output += `Found ${res[0].matches} matches${filterMessage}\n`;
-					output += `Decks where ${playName} plays ${pullSet(card1)} won ${res[0].wins}/${res[0].matches} (${wr1}%)\n`
-					output += `${pullSet(card1)} being played by other people:\n`;
-					output += `Found ${res[1].matches} matches${filterMessage}\n`;
-					output += `Decks where literally anyone else plays ${pullSet(card1)} won ${res[1].wins}/${res[1].matches} (${wr2}%)\n`
-					return output;
-				}else{
-					let output = `${pullSet(card1)} being played against ${playName}:\n`;
-					output += `Found ${res[0].matches} matches${filterMessage}\n`;
-					output += `Decks where ${playName} plays against ${pullSet(card1)} won ${res[0].wins}/${res[0].matches} (${wr1}%)\n`
-					output += `${pullSet(card1)} being played by other people:\n`;
-					output += `Found ${res[1].matches} matches${filterMessage}\n`;
-					output += `Decks where literally anyone else plays against ${pullSet(card1)} won ${res[1].wins}/${res[1].matches} (${wr2}%)\n`
-					return output;
-				}
-			}
+	}
+	if(input.match(/player(Combo|Vs)Card(Top|Bot)/i)){	//top/bottom winrates of cards of a player
+		let c = input.match(/(.*) ?player(?:Combo|Vs)Card/i);
+		let playArray = grabPlayerName(dex, msg, c, bigData);
+		let player = playArray[0];
+		let playName = playArray[1];		
+		let youOrMe = 0;
+		if(input.match(/other/i))
+			youOrMe = 1;
+		let matchScript = playerComboCard;
+		let matchMessage = `when played by ${playName}`;
+		if(input.match(/playerVsCard/i)) {
+				matchScript = playerVsCard;
+				matchMessage = `when played against ${playName}`;
 		}
-		if(input.match(/playerUn(Combo|Vs)Card/i)) {		//winrates of a player without a card
-			let c = input.match(/(.*) ?playerUn(?:Combo|Vs)Card ?\[([^\]]+)\]/i);
-			if(c) {
-				let matchScript = playerComboCard
-				if(input.match(/playerUnVsCard/i))
-					matchScript = playerVsCard;
-				let card1 = addNewStatDexCard(dex, c[2]);
-				let play1 = msg.author.id;
-				let playName = msg.author.username;
-				if(c[1]){
-					if(!c[1].match(/^[0-9]+$/)) {
-						let users = buildUsernameData(dex);
-						let bestName = fuzzy.searchArray(c[1], users[0]);
-						play1 = users[1][users[0].indexOf(bestName[0])];
-					}
-					playName = dex.players[play1].username;
-				}
-				let resPre = matchScript(dex, play1, card1, filters);
-				let base = playerWinRate(dex, play1, filters);
-				let res = [subtractWRs(base, resPre[0])];
-				let wr1 = winValToWR(res[0]);
-				if(matchScript == playerComboCard) {
-					let output = `${pullSet(card1)} not being played by ${playName}:\n`;
-					output += `Found ${res[0].matches} matches${filterMessage}\n`;
-					output += `Decks where ${playName} doesn't play ${pullSet(card1)} won ${res[0].wins}/${res[0].matches} (${wr1}%)\n`
-					return output;
-				}else{
-					let output = `${pullSet(card1)} not being played against ${playName}:\n`;
-					output += `Found ${res[0].matches} matches${filterMessage}\n`;
-					output += `Decks where ${playName} doesn't play against ${pullSet(card1)} won ${res[0].wins}/${res[0].matches} (${wr1}%)\n`
-					return output;
-				}
-			}
+		if(youOrMe)
+			matchMessage = matchMessage.replace(/when played (by|against)/, "when played $1 players other than")
+		let comp = function(aDex, aCard, someFilters){
+			return matchScript(aDex, player, aCard, someFilters)[youOrMe];
 		}
-		if(input.match(/(top|bot)WinVs/i)){					//top N winrates vs a particular card
-			let c = input.match(/\[([^\]]+)\]/);
-			if(c) {
-				let card1 = addNewStatDexCard(dex, c[1]);
-				let cardsArray = [];
-				let filteredWRs = {};
-				for(let card in dex.cards) {
-					let res = pairedWinRate(dex, card1, card, vsScore, filters);
-					let winRate = winValToWR(res);
-					if(winRate > 0 && res.matches >= minMatch && !(skipThese(card))){
-						cardsArray.push(card)
-						filteredWRs[card] = {};
-						filteredWRs[card].wr = winRate;
-						filteredWRs[card].mc = res.matches;
-					}
-				}
-				cardsArray.sort(function(a,b){
-					let result = filteredWRs[b].wr - filteredWRs[a].wr
-					if(result == 0)
-						result = filteredWRs[b].mc - filteredWRs[a].mc
-					return result;
-				});
-				let topN = grabTop(cardsArray, input);
-				let topBot = "Top";
-				if(input.match(/botWin/i)) {
-					cardsArray.reverse();
-					topBot = "Bottom";
-				}
-				let mess = `${topBot} ${topN} winrates against ${pullSet(card1)} with at least ${minMatch} matches and${filterMessage}\n`;
-				for(var i=0; i<topN; i++)
-					mess += `${i+1}: ${pullSet(cardsArray[i])} (${filteredWRs[cardsArray[i]].wins}/${filteredWRs[cardsArray[i]].matches} -> ${filteredWRs[cardsArray[i]].wr}%)\n`;
-				return mess;
-			}
+		let wrData = sortComparedData(dex, Object.keys(dex.cards), minMatch, filters, skipThese, comp);
+		let array = wrData[0];
+		let topN = grabTop(array, input);
+		let topBot = "Top";
+		if(matchScript == playerVsCard)
+			array.reverse();
+		if(input.match(/CardBot/i)) {
+			array.reverse();
+			topBot = "Bottom";
 		}
-		if(input.match(/(top|bot)Win/i)) {					//top N winrates
-			let wrData = sortComparedData(dex, Object.keys(dex.cards), minMatch, filters, skipThese, filteredWinRate);
-			let array = wrData[0];
-			let topN = grabTop(array, input);
-			let topBot = "Top";
-			if(input.match(/botWin/i)) {
-				array.reverse();
-				topBot = "Bottom";
-			}
-			let mess = `${topBot} ${topN} winrates with at least ${minMatch} matches and${filterMessage}\n`;
-			for(var i=0; i<topN; i++) {
+		let mess = `${topBot} ${topN} winrates ${matchMessage} with at least ${minMatch} matches and${filterMessage}\n`;
+		for(var i=0; i<topN; i++) {
+			if(matchScript == playerVsCard) {
+				mess += `${i+1}: ${pullSet(array[i])} (${wrData[1][array[i]].losses}/${wrData[1][array[i]].matches} -> ${100-wrData[1][array[i]].wr}%)\n`;
+			}else{
 				mess += `${i+1}: ${pullSet(array[i])} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
 			}
+		}
+		return mess;
+	}
+	if(input.match(/player(Combo|Vs)Card/i)) {			//winrates of a player with a card
+		let c = input.match(/(.*) ?player(?:Combo|Vs)Card ?\[([^\]]+)\]/i);
+		if(c) {
+			let matchScript = playerComboCard
+			if(input.match(/playerVsCard/i))
+				matchScript = playerVsCard;
+			let card1 = addNewStatDexCard(dex, c[2]);
+			let play1 = msg.author.id;
+			let playName = msg.author.username;
+			if(bigData && c[1]){
+				if(!c[1].match(/^[0-9]+$/)) {
+					let users = buildUsernameData(dex);
+					let bestName = fuzzy.searchArray(c[1], users[0]);
+					play1 = users[1][users[0].indexOf(bestName[0])];
+				}
+				playName = dex.players[play1].username;
+			}
+			let res = matchScript(dex, play1, card1, filters);
+			let wr1 = winValToWR(res[0]);
+			let wr2 = winValToWR(res[1]);
+			if(matchScript == playerComboCard) {
+				let output = `${pullSet(card1)} being played by ${playName}:\n`;
+				output += `Found ${res[0].matches} matches${filterMessage}\n`;
+				output += `Decks where ${playName} plays ${pullSet(card1)} won ${res[0].wins}/${res[0].matches} (${wr1}%)\n`
+				output += `${pullSet(card1)} being played by other people:\n`;
+				output += `Found ${res[1].matches} matches${filterMessage}\n`;
+				output += `Decks where others play ${pullSet(card1)} won ${res[1].wins}/${res[1].matches} (${wr2}%)\n`
+				return output;
+			}else{
+				let output = `${pullSet(card1)} being played against ${playName}:\n`;
+				output += `Found ${res[0].matches} matches${filterMessage}\n`;
+				output += `Decks where ${playName} plays against ${pullSet(card1)} won ${res[0].wins}/${res[0].matches} (${wr1}%)\n`
+				output += `${pullSet(card1)} being played by other people:\n`;
+				output += `Found ${res[1].matches} matches${filterMessage}\n`;
+				output += `Decks where others play against ${pullSet(card1)} won ${res[1].wins}/${res[1].matches} (${wr2}%)\n`
+				return output;
+			}
+		}
+	}
+	if(input.match(/playerUn(Combo|Vs)Card/i)) {		//winrates of a player without a card
+		let c = input.match(/(.*) ?playerUn(?:Combo|Vs)Card ?\[([^\]]+)\]/i);
+		if(c) {
+			let matchScript = playerComboCard
+			if(input.match(/playerUnVsCard/i))
+				matchScript = playerVsCard;
+			let card1 = addNewStatDexCard(dex, c[2]);
+			let play1 = msg.author.id;
+			let playName = msg.author.username;
+			if(c[1]){
+				if(!c[1].match(/^[0-9]+$/)) {
+					let users = buildUsernameData(dex);
+					let bestName = fuzzy.searchArray(c[1], users[0]);
+					play1 = users[1][users[0].indexOf(bestName[0])];
+				}
+				playName = dex.players[play1].username;
+			}
+			let resPre = matchScript(dex, play1, card1, filters);
+			let base = playerWinRate(dex, play1, filters);
+			let res = [subtractWRs(base, resPre[0])];
+			let wr1 = winValToWR(res[0]);
+			if(matchScript == playerComboCard) {
+				let output = `${pullSet(card1)} not being played by ${playName}:\n`;
+				output += `Found ${res[0].matches} matches${filterMessage}\n`;
+				output += `Decks where ${playName} doesn't play ${pullSet(card1)} won ${res[0].wins}/${res[0].matches} (${wr1}%)\n`
+				return output;
+			}else{
+				let output = `${pullSet(card1)} not being played against ${playName}:\n`;
+				output += `Found ${res[0].matches} matches${filterMessage}\n`;
+				output += `Decks where ${playName} doesn't play against ${pullSet(card1)} won ${res[0].wins}/${res[0].matches} (${wr1}%)\n`
+				return output;
+			}
+		}
+	}
+	if(input.match(/(top|bot)WinVs/i)){					//top N winrates vs a particular card
+		let c = input.match(/\[([^\]]+)\]/);
+		if(c) {
+			let card1 = addNewStatDexCard(dex, c[1]);
+			let cardsArray = [];
+			let filteredWRs = {};
+			for(let card in dex.cards) {
+				let res = pairedWinRate(dex, card1, card, vsScore, filters);
+				let winRate = winValToWR(res);
+				if(winRate > 0 && res.matches >= minMatch && !(skipThese(card))){
+					cardsArray.push(card)
+					filteredWRs[card] = {};
+					filteredWRs[card].wr = winRate;
+					filteredWRs[card].mc = res.matches;
+				}
+			}
+			cardsArray.sort(function(a,b){
+				let result = filteredWRs[b].wr - filteredWRs[a].wr
+				if(result == 0)
+					result = filteredWRs[b].mc - filteredWRs[a].mc
+				return result;
+			});
+			let topN = grabTop(cardsArray, input);
+			let topBot = "Top";
+			if(input.match(/botWin/i)) {
+				cardsArray.reverse();
+				topBot = "Bottom";
+			}
+			let mess = `${topBot} ${topN} winrates against ${pullSet(card1)} with at least ${minMatch} matches and${filterMessage}\n`;
+			for(var i=0; i<topN; i++)
+				mess += `${i+1}: ${pullSet(cardsArray[i])} (${filteredWRs[cardsArray[i]].wins}/${filteredWRs[cardsArray[i]].matches} -> ${filteredWRs[cardsArray[i]].wr}%)\n`;
 			return mess;
 		}
-		if(input.match(/playerVs/i)) {						//player vs player winrate
-			let c = input.match(/([^ \n]+) playerVs ([^ \n]+)/i);
-			let t = input.match(/([^ \n]+) playerVsTop/i)
-			if(c) {
-				let play1 = c[1];
-				let play2 = c[2];
-				if(!play1.match(/^[0-9]+$/) || !play2.match(/^[0-9]+$/)) {
+	}
+	if(input.match(/(top|bot)Win/i)) {					//top N winrates
+		let wrData = sortComparedData(dex, Object.keys(dex.cards), minMatch, filters, skipThese, filteredWinRate);
+		let array = wrData[0];
+		let topN = grabTop(array, input);
+		let topBot = "Top";
+		if(input.match(/botWin/i)) {
+			array.reverse();
+			topBot = "Bottom";
+		}
+		let mess = `${topBot} ${topN} winrates with at least ${minMatch} matches and${filterMessage}\n`;
+		for(var i=0; i<topN; i++) {
+			mess += `${i+1}: ${pullSet(array[i])} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
+		}
+		return mess;
+	}
+	if(input.match(/playerVs/i)) {						//player vs player winrate
+		if(!bigData)
+			return "";
+		let c = input.match(/([^ \n]+) playerVs ([^ \n]+)/i);
+		let t = input.match(/([^ \n]+) playerVsTop/i)
+		if(c) {
+			let play1 = c[1];
+			let play2 = c[2];
+			if(!play1.match(/^[0-9]+$/) || !play2.match(/^[0-9]+$/)) {
+				let users = buildUsernameData(dex);
+				if(!play1.match(/^[0-9]+$/)) {
+					let bestName = fuzzy.searchArray(play1, users[0]);
+					play1 = users[1][users[0].indexOf(bestName[0])];
+				}
+				if(!play2.match(/^[0-9]+$/)) {
+					let bestName = fuzzy.searchArray(play2, users[0]);
+					play2 = users[1][users[0].indexOf(bestName[0])];
+				}
+			}
+			let winData = playerFace(play1, play2, dex, filters);
+			let player1 = dex.players[play1];
+			let player2 = dex.players[play2];
+			let output = `${player1.username} has a ${winData[0]}-${winData[1]}-${winData[2]} record (${winValToWR([winData[0],(winData[0]+winData[1]+winData[2])])}%) when playing against ${player2.username}`;
+			output += `\n${player1.username} has a ${winData[3].wins}-${winData[3].loss}-${winData[3].draw} record (${winValToWR([winData[3].wins,(winData[3].wins+winData[3].loss+winData[3].draw)])}%) when playing against other players.\n`
+			return output;
+		}else if(input.match(/playerVsTop/i)){
+			let play1 = msg.author.id;
+			if(t) {
+				play1 = t[1];
+				if(!play1.match(/^[0-9]+$/)) {
 					let users = buildUsernameData(dex);
 					if(!play1.match(/^[0-9]+$/)) {
 						let bestName = fuzzy.searchArray(play1, users[0]);
 						play1 = users[1][users[0].indexOf(bestName[0])];
 					}
-					if(!play2.match(/^[0-9]+$/)) {
-						let bestName = fuzzy.searchArray(play2, users[0]);
-						play2 = users[1][users[0].indexOf(bestName[0])];
-					}
 				}
-				let winData = playerFace(play1, play2, dex, filters);
-				let player1 = dex.players[play1];
-				let player2 = dex.players[play2];
-				let output = `${player1.username} has a ${winData[0]}-${winData[1]}-${winData[2]} record (${winValToWR([winData[0],(winData[0]+winData[1]+winData[2])])}%) when playing against ${player2.username}`;
-				output += `\n${player1.username} has a ${winData[3].wins}-${winData[3].loss}-${winData[3].draw} record (${winValToWR([winData[3].wins,(winData[3].wins+winData[3].loss+winData[3].draw)])}%) when playing against other players.\n`
-				return output;
-			}else if(input.match(/playerVsTop/i)){
-				let play1 = msg.author.id;
-				if(t) {
-					play1 = t[1];
-					if(!play1.match(/^[0-9]+$/)) {
-						let users = buildUsernameData(dex);
-						if(!play1.match(/^[0-9]+$/)) {
-							let bestName = fuzzy.searchArray(play1, users[0]);
-							play1 = users[1][users[0].indexOf(bestName[0])];
-						}
-					}
-				}
-				let miniDex = {};
-				for(let player in dex.players) {
-					if(player != play1)
-						miniDex[player] = playerFace(play1, player, dex, filters);
-				}
-				let comp = function(dex, player, filters){
-					return miniDex[player][4]
-				}
-				let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, comp)
-				let array = wrData[0];
-				let topN = grabTop(array, input);
-				let topBot = "Top";
-				if(input.match(/VsBot/i)) {
-					array.reverse();
-					topBot = "Bottom";
-				}
-				let mess = `${dex.players[play1].username}'s ${topBot} ${topN} winrates vs all players with at least ${minMatch} matches and${filterMessage}\n`;
-				for(var i=0; i<topN; i++) {
-					mess += `${i+1}: ${dex.players[array[i]].username} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
-				}
-				return mess;
 			}
-		}
-		if(input.match(/playerWin(Top|Bot)/i)) {
 			let miniDex = {};
-			let boots = [];
 			for(let player in dex.players) {
-				miniDex[player] = playerWinRate(dex, player, filters);
-				if(miniDex[player].matches < 4)
-					boots.push(player);
+				if(player != play1)
+					miniDex[player] = playerFace(play1, player, dex, filters);
 			}
-			let comp = function(dex, player) {
-				return miniDex[player];
+			let comp = function(dex, player, filters){
+				return miniDex[player][4]
 			}
-			let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, playerWinRate);
+			let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, comp)
 			let array = wrData[0];
 			let topN = grabTop(array, input);
 			let topBot = "Top";
-			if(input.match(/playerWinBot/i)) {
+			if(input.match(/VsBot/i)) {
 				array.reverse();
 				topBot = "Bottom";
 			}
-			let output = `${topBot} ${topN} player winrates with at least ${minMatch} matches and${filterMessage}\n`;
-			for(let i=0; i<topN; i++)
-				output += `${i+1}: ${dex.players[array[i]].username} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
-			return output;
-			/*
-			let goodNames = [];
-			let bootNames = [];
-			for(let player in res[0]) {
-				if(!boots.includes(res[0][player]))
-					goodNames.push(dex.players[res[0][player]].username);
+			let mess = `${dex.players[play1].username}'s ${topBot} ${topN} winrates vs all players with at least ${minMatch} matches and${filterMessage}\n`;
+			for(var i=0; i<topN; i++) {
+				mess += `${i+1}: ${dex.players[array[i]].username} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
 			}
-			for(let player in boots) {
-				bootNames.push(dex.players[boots[player]].username);
-			}
-			console.log("Players with fewer than 4 matches in the last 6 months:")
-			console.log(bootNames);
-				return "";
-			*/
-		}
-		if(input.match(/playerWin/i)){						//basic player winrate
-			let c = input.match(/(.*) playerWin/i);
-			if(c) {
-				let playerArray = grabPlayerName(dex, msg, c);
-				let player = playerArray[0];
-				let playerName = playerArray[1];
-				let res = playerWinRate(dex, player, filters);
-				let output = `${playerName} has a ${res.wins}-${res.losses}-${res.draws} (${winValToWR(res, 2)}%) record`;
-				return output;
-			}
-		}
-		if(input.match(/set(Top|Bot)/i)) {					//winrates of cards in a set or sets
-			let exc = false;
-			if(input.match(/exclus/))
-				exc = true;
-			let setsMatch = input.match(/set(Top|Bot) ?([A-Z0-9 ,-_\/]+)/i);
-			if(setsMatch){
-				let setsNab = setsMatch[2].match(/([A-Z0-9_]{1,7})/g);
-				let cond = defaultConditional(setsNab, exc);
-				let wrData = statFromSet(dex, minMatch, filters, skipThese, cond);
-				let array = wrData[0];
-				let wrObj = wrData[1];
-				let topN = grabTop(array, input, 20);
-				let topBot = "Top";
-				if(input.match(/setBot/i)) {
-					array.reverse();
-					topBot = "Bottom"
-				}
-				let output = topBot + " winrates for " + setsNab.concat() + "\n";
-				for(let i=0; i<topN; i++) {
-					output += `${i+1}: ${pullSet(array[i])} (${wrObj[array[i]].wins}/${wrObj[array[i]].matches} -> ${winValToWR(wrObj[array[i]])}%)\n`;
-				}
-				return output;
-			}
-		}
-		if(input.match(/playRate/i)) {						//returns playRate values of cards
-			let playrates = playrateGenerator(dex, filters, skipThese);
-			playrates[2] = playrateReporter(playrates);
-			let c = input.match(/\[([^\]]+)\]/);
-			if(c) {
-				let card = addNewStatDexCard(dex, c[1]);
-				if(!playrates[0].hasOwnProperty(card)) {
-					return "No playrate data for " + pullSet(card);
-				}else{
-					let rates = playrates[0][card]
-					let output = "Playrate data for " + pullSet(card) + "\n";
-					output += `Found ${rates.mainCount} in mainboards and ${rates.sideCount} in sideboards across ${rates.decks} decks${filterMessage}\n`;
-					output += `${pullSet(card)} is played in ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}% of decks, making it the ${toolbox.ordinalize(playrates[2].indexOf(card)+1)} most played card.\n`
-					output += `${pullSet(card)} has a win rate of ${rates.wr}% and a play-win rate multi of ${rates.pwrm}%.`
-					return output;
-				}
-			}else{ //playRateTop/Bot
-				let topBot = "Top";
-				if(input.match(/playRate(Multi)?Bot/i)) {
-					playrates[2].reverse();
-					topBot = "Bottom";
-				}
-				let topN = grabTop(playrates[2], input);
-				let output = `${topBot} ${topN} cards by playrate${filterMessage}\n`;
-				if(input.match(/RateMulti/i))
-					output = output.replace('playrate', 'playrate * winrate')
-				for(let i=0; i<topN; i++) {
-					let name = playrates[2][i];
-					let rates = playrates[0][name];
-					let mess = `(${rates.decks}/${playrates[1]} -> ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}%)`;
-					if(input.match(/RateMulti/i))
-						mess = `(${rates.pwrm}%)`;
-					output += `${i+1}: ${pullSet(name)} ${mess}\n`;
-				}
-				return output;
-			}
-		}
-		if(input.match(/stapleMaker/i)){
-			stapleMaker(dex, filters, 45, skipThese, minMatch)
+			return mess;
 		}
 	}
-	if(!LBShouldPost || offline === "all") { //OfflineBot responds
+	if(input.match(/playerWin(Top|Bot)/i)) {			//top/bottom winrates of all players
+		let miniDex = {};
+		let boots = [];
+		for(let player in dex.players) {
+			miniDex[player] = playerWinRate(dex, player, filters);
+			if(miniDex[player].matches < 4)
+				boots.push(player);
+		}
+		let comp = function(dex, player) {
+			return miniDex[player];
+		}
+		let wrData = sortComparedData(dex, Object.keys(miniDex), minMatch, filters, skipThese, playerWinRate);
+		let array = wrData[0];
+		let topN = grabTop(array, input);
+		let topBot = "Top";
+		if(input.match(/playerWinBot/i)) {
+			array.reverse();
+			topBot = "Bottom";
+		}
+		let output = `${topBot} ${topN} player winrates with at least ${minMatch} matches and${filterMessage}\n`;
+		for(let i=0; i<topN; i++)
+			output += `${i+1}: ${dex.players[array[i]].username} (${wrData[1][array[i]].wins}/${wrData[1][array[i]].matches} -> ${wrData[1][array[i]].wr}%)\n`;
+		return output;
+		/*
+		let goodNames = [];
+		let bootNames = [];
+		for(let player in res[0]) {
+			if(!boots.includes(res[0][player]))
+				goodNames.push(dex.players[res[0][player]].username);
+		}
+		for(let player in boots) {
+			bootNames.push(dex.players[boots[player]].username);
+		}
+		console.log("Players with fewer than 4 matches in the last 6 months:")
+		console.log(bootNames);
+			return "";
+		*/
+	}
+	if(input.match(/playerWin/i)){						//basic player winrate
+		let c = input.match(/(.*) ?playerWin/i);
+		if(c) {
+			let playerArray = grabPlayerName(dex, msg, c, bigData);
+			let player = playerArray[0];
+			let playerName = playerArray[1];
+			let res = playerWinRate(dex, player, filters);
+			let output = `${playerName} has a ${res.wins}-${res.losses}-${res.draws} (${winValToWR(res, 2)}%) record`;
+			return output;
+		}
+	}
+	if(input.match(/set(Top|Bot)/i)) {					//winrates of cards in a set or sets
+		let exc = false;
+		if(input.match(/exclus/))
+			exc = true;
+		let setsMatch = input.match(/set(Top|Bot) ?([A-Z0-9,-_\/]+)/i);
+		if(setsMatch){
+			let setsNab = setsMatch[2].match(/([A-Z0-9_]{1,7})/g);
+			let cond = defaultConditional(setsNab, exc);
+			let wrData = statFromSet(dex, minMatch, filters, skipThese, cond);
+			let array = wrData[0];
+			let wrObj = wrData[1];
+			let topN = grabTop(array, input, 20);
+			let topBot = "Top";
+			if(input.match(/setBot/i)) {
+				array.reverse();
+				topBot = "Bottom"
+			}
+			let output = topBot + " winrates for " + setsNab.concat() + "\n";
+			for(let i=0; i<topN; i++) {
+				output += `${i+1}: ${pullSet(array[i])} (${wrObj[array[i]].wins}/${wrObj[array[i]].matches} -> ${winValToWR(wrObj[array[i]])}%)\n`;
+			}
+			return output;
+		}
+	}
+	if(input.match(/playRate/i)) {						//returns playRate values of cards
+		let playrates = playrateGenerator(dex, filters, skipThese);
+		playrates[2] = playrateReporter(playrates);
+		let c = input.match(/\[([^\]]+)\]/);
+		if(c) {
+			let card = addNewStatDexCard(dex, c[1]);
+			if(!playrates[0].hasOwnProperty(card)) {
+				return "No playrate data for " + pullSet(card);
+			}else{
+				let rates = playrates[0][card]
+				let output = "Playrate data for " + pullSet(card) + "\n";
+				output += `Found ${rates.mainCount} in mainboards and ${rates.sideCount} in sideboards across ${rates.decks} decks${filterMessage}\n`;
+				output += `${pullSet(card)} is played in ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}% of decks, making it the ${toolbox.ordinalize(playrates[2].indexOf(card)+1)} most played card.\n`
+				output += `${pullSet(card)} has a win rate of ${rates.wr}% and a play-win rate multi of ${rates.pwrm}%.`
+				return output;
+			}
+		}else{ //playRateTop/Bot
+			let topBot = "Top";
+			if(input.match(/playRate(Multi)?Bot/i)) {
+				playrates[2].reverse();
+				topBot = "Bottom";
+			}
+			let topN = grabTop(playrates[2], input);
+			let output = `${topBot} ${topN} cards by playrate${filterMessage}\n`;
+			if(input.match(/RateMulti/i))
+				output = output.replace('playrate', 'playrate * winrate')
+			for(let i=0; i<topN; i++) {
+				let name = playrates[2][i];
+				let rates = playrates[0][name];
+				let mess = `(${rates.decks}/${playrates[1]} -> ${parseFloat(100*rates.decks/playrates[1]).toFixed(2)}%)`;
+				if(input.match(/RateMulti/i))
+					mess = `(${rates.pwrm}%)`;
+				output += `${i+1}: ${pullSet(name)} ${mess}\n`;
+			}
+			return output;
+		}
+	}
+	if(input.match(/stapleMaker/i)){
+		if(!bigData)
+			return "";
+		stapleMaker(dex, filters, 45, skipThese, minMatch)
 	}
 
-	/* disabled on live	
-		if(input.match(/buildDefaultDex/i)) {		//builds statDex
-			statDex = updateStatDex(archiveArray);
-		}
-		if(input.match(/buildFilteredDex/i)) {		//builds filtered statDex
-			filters = {};
-			let filmatch = input.match(/before: ?(\d+)/i);
-			if(filmatch)
-				filters.before = parseInt(filmatch[1]);
-			filmatch = input.match(/after: ?(\d+)/i);
-			if(filmatch)
-				filters.after = parseInt(filmatch[1]);
-			filmatch = input.match(/type: ?(gp|league)/i);
-			if(filmatch)
-				filters.type = [filmatch[1]];
-			statDex = generateFilteredDex(filters);
-			return 'done';
-		}
-		if(input.match(/printStatDex/i)) {			//writes statDex.json
-			fs.writeFile('statDex.json', JSON.stringify(statDex).replace(/"]},"/g,'"]},\r\n"'), 'binary', function(err) {
-				if(err) throw err;
-			});
-		}
-		if(input.match(/printStatSheet/i)) {		//writes card spreadsheet of statDex
-			fs.writeFile('statDex.txt', statDexStats(statDexPreBuilt), 'binary', function(err) {
-				if(err) throw err;
-				console.log("Done");
-			});
-		}
-		if(input.match(/printPlayerSheet/i)) {		//writes player spreadhseet of statDex
-			fs.writeFile('playerDex.txt', playerWinRate(statDexPreBuilt), 'binary', function(err) {
-				if(err) throw err;
-				console.log("Done");
-			});
-		if(input.match(/fixFiles/i))
-			loadArchives(fixFiles);
-		}
-	*/
+
+/* disabled on live	
+	if(input.match(/buildDefaultDex/i)) {		//builds statDex
+		statDex = updateStatDex(archiveArray);
+	}
+	if(input.match(/buildFilteredDex/i)) {		//builds filtered statDex
+		filters = {};
+		let filmatch = input.match(/before: ?(\d+)/i);
+		if(filmatch)
+			filters.before = parseInt(filmatch[1]);
+		filmatch = input.match(/after: ?(\d+)/i);
+		if(filmatch)
+			filters.after = parseInt(filmatch[1]);
+		filmatch = input.match(/type: ?(gp|league)/i);
+		if(filmatch)
+			filters.type = [filmatch[1]];
+		statDex = generateFilteredDex(filters);
+		return 'done';
+	}
+	if(input.match(/printStatDex/i)) {			//writes statDex.json
+		fs.writeFile('statDex.json', JSON.stringify(statDex).replace(/"]},"/g,'"]},\r\n"'), 'binary', function(err) {
+			if(err) throw err;
+		});
+	}
+	if(input.match(/printStatSheet/i)) {		//writes card spreadsheet of statDex
+		fs.writeFile('statDex.txt', statDexStats(statDexPreBuilt), 'binary', function(err) {
+			if(err) throw err;
+			console.log("Done");
+		});
+	}
+	if(input.match(/printPlayerSheet/i)) {		//writes player spreadhseet of statDex
+		fs.writeFile('playerDex.txt', playerWinRate(statDexPreBuilt), 'binary', function(err) {
+			if(err) throw err;
+			console.log("Done");
+		});
+	if(input.match(/fixFiles/i))
+		loadArchives(fixFiles);
+	}
+*/
 }
 function playrateReporter(info) {										//sorts and reports playRate data
 	let miniDex = info[0];
