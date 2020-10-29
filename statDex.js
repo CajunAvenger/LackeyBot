@@ -16,6 +16,7 @@ const config = require("./config/lackeyconfig.json");					//for logging into Dis
 var discClient = require('./discClient.js');							//other Discord stuff
 var fs = require('fs');
 var fuzzy = require('./fuzzy.js');										//fuzzy searching for fun and profit
+var globalPlayrates = null;
 var skipThese = function(){
 	return false; //don't skip anything by default
 };
@@ -371,7 +372,7 @@ function filteredWinRate(dex, card, filters) { 							//returns general card win
 				for(let match in refCard.matches[tourney]) {
 					let thisMatch = thisTourney.matches[refCard.matches[tourney][match]-1];
 					for(let player in thisMatch.players) {
-						if(matchFilter(thisMatch, thisMatch.players[player].id, filters)) {
+						if(matchFilter(thisMatch, thisMatch.players[player].id, filters, card)) {
 							let list = thisMatch.players[player].list.replace('.txt', '.json');
 							if(refCard.decks.includes(list)) {
 								results.matches++;
@@ -421,9 +422,9 @@ function pairedWinRate(dex, card1, card2, matchFunction, filters) { 	//finds win
 		if(tourneyFilter(tourney, filters) && pairCard.matches.hasOwnProperty(tourney)) {
 			let pairedMatches = toolbox.arrayDuplicates(refCard.matches[tourney], pairCard.matches[tourney]);
 			let scores2 = matchFunction(dex, card1, card2, tourney, pairedMatches, filters);
-			scores.wins += scores2[0];
-			scores.losses += scores2[1];
-			scores.matches += scores2[0]+scores2[1];
+			scores.wins += scores2.wins;
+			scores.losses += scores2.losses;
+			scores.matches += scores2.wins+scores2.losses;
 		}
 	}
 	return scores;
@@ -431,50 +432,64 @@ function pairedWinRate(dex, card1, card2, matchFunction, filters) { 	//finds win
 function vsScore(dex, card1, card2, tourney, pairedMatches,filters) {	//finds winrates of one card vs another
 	let thisTourney = require('./tourneyArchives/' + tourney + '_archive.json');
 	let thoseMatches = thisTourney.matches;
-	let score = [0,0];
+	let scores = {matches:0, wins:0, losses:0, mirrors:0};
 	for(let aMatch in pairedMatches) {
-		if(matchFilter(thisTourney.matches[pairedMatches[aMatch]-1], "both", filters)) {
+		if(matchFilter(thisTourney.matches[pairedMatches[aMatch]-1], "both", filters, card1)) {
 			let thisMatch = thisTourney.matches[pairedMatches[aMatch]-1];
 			let player1 = thisMatch.players[0];
 			let player2 = thisMatch.players[1];
 			let winner = thisMatch.winner;
+			let win, lose;
 			if(winner != player1.id && winner != player2.id)
 				continue; //tie
 			let winList = player1.list.replace('.txt', '.json'), loseList = player2.list.replace('.txt', '.json')
 			if(winner == player2.id)
 				winList = player2.list.replace('.txt', '.json'), loseList = player1.list.replace('.txt', '.json');
 			if(dex.cards[card1].decks.includes(winList) && dex.cards[card2].decks.includes(loseList))
-				score[0]++;
+				win = true;
 			if(dex.cards[card1].decks.includes(loseList) && dex.cards[card2].decks.includes(winList))
-				score[1]++;
-			//check they're in opposite decks, ticks up both in the mirror
+				lose = true;
+			//check they're in opposite decks
+			if(win)
+				scores.wins++;
+			if(lose)
+				scores.losses++;
+			if(win && lose)
+				scores.mirrors++;
 		}
 	}
-	return score;
+	return scores;
 }
 function pairedScore(dex,card1,card2,tourney,pairedMatches,filters) {	//finds winrates of one card when paired with another
 	let thisTourney = require('./tourneyArchives/' + tourney + '_archive.json');
 	let thoseMatches = thisTourney.matches;
-	let score = [0,0];
+	let scores = {matches:0, wins:0, losses:0, mirrors:0};
 	for(let aMatch in pairedMatches) {
-		if(matchFilter(thisTourney.matches[pairedMatches[aMatch]-1], "both", filters)) {
+		if(matchFilter(thisTourney.matches[pairedMatches[aMatch]-1], "both", filters, card1)) {
 			let thisMatch = thisTourney.matches[pairedMatches[aMatch]-1];
 			let player1 = thisMatch.players[0];
 			let player2 = thisMatch.players[1];
 			let winner = thisMatch.winner;
+			let win, lose;
 			if(winner != player1.id && winner != player2.id)
 				continue; //tie
 			let winList = player1.list.replace('.txt', '.json'), loseList = player2.list.replace('.txt', '.json')
 			if(winner == player2.id)
 				winList = player2.list.replace('.txt', '.json'), loseList = player1.list.replace('.txt', '.json');
 			if(dex.cards[card1].decks.includes(winList) && dex.cards[card2].decks.includes(winList))
-				score[0]++;
+				win = true;
 			if(dex.cards[card1].decks.includes(loseList) && dex.cards[card2].decks.includes(loseList))
-				score[1]++;
-			//check they're in the same deck, ticks up both in the mirror
+				lose = true;
+			//check they're in the same deck
+			if(win)
+				scores.wins++;
+			if(lose)
+				scores.losses++;
+			if(win && lose)
+				scores.mirrors++;
 		}
 	}
-	return score;
+	return scores;
 }
 function unpairedWinRate(dex, card1, card2, filters) { 					//finds winrates of card 1 played without card 2
 	let score = {matches:0, wins:0, losses:0};
@@ -490,7 +505,7 @@ function unpairedWinRate(dex, card1, card2, filters) { 					//finds winrates of 
 				if(thisMatch.winner != thisMatch.players[0].id && thisMatch.winner != thisMatch.players[1].id)
 					continue; //skip ties
 				for(let player in thisMatch.players) {
-					if(matchFilter(thisMatch, thisMatch.players[player].id, filters)) {
+					if(matchFilter(thisMatch, thisMatch.players[player].id, filters, card1)) {
 						let list = thisMatch.players[player].list.replace('.txt', '.json');
 						if(refCard.decks.includes(list) && !pairCard.decks.includes(list)){
 							score.matches++;
@@ -559,19 +574,21 @@ function playerComboCard(dex, player, card, filters) { 					//finds winrate of a
 			let archive = require(`./tourneyArchives/${tourney}_archive.json`)
 			for(let match in refCard.matches[tourney]){
 				let refMatch = archive.matches[refCard.matches[tourney][match]-1];
-				for(let play in refMatch.players) {
-					let thisPlayer = refMatch.players[play];
-					if(refCard.decks.includes(thisPlayer.list.replace('.txt','.json'))) { //in this list yaay
-						let inputScore = playerScore;				//if this is the chosen player
-						if(thisPlayer.id != player) {				//if this is someone else
-							inputScore = othersScore;
-						}
-						if(refMatch.winner == thisPlayer.id) {		//if this is the winner
-							inputScore.matches++;					//tick up their matches and wins
-							inputScore.wins++;
-						}else{
-							inputScore.matches++;
-							inputScore.losses++;
+				if(matchFilter(refMatch, "both", filters, card)) {
+					for(let play in refMatch.players) {
+						let thisPlayer = refMatch.players[play];
+						if(refCard.decks.includes(thisPlayer.list.replace('.txt','.json'))) { //in this list yaay
+							let inputScore = playerScore;				//if this is the chosen player
+							if(thisPlayer.id != player) {				//if this is someone else
+								inputScore = othersScore;
+							}
+							if(refMatch.winner == thisPlayer.id) {		//if this is the winner
+								inputScore.matches++;					//tick up their matches and wins
+								inputScore.wins++;
+							}else{
+								inputScore.matches++;
+								inputScore.losses++;
+							}
 						}
 					}
 				}
@@ -590,33 +607,35 @@ function playerVsCard(dex, player, card, filters) { 					//finds winrate of a ca
 			let archive = require(`./tourneyArchives/${tourney}_archive.json`)					//load the match data
 			for(let match in refCard.matches[tourney]){									//in each match this card is in
 				let refMatch = archive.matches[refCard.matches[tourney][match]-1];
-				let hasPlayer = (refMatch.players[0].id == player || refMatch.players[1].id == player); //is the given player in this match?
-				for(let play in refMatch.players) {										//for each player in that match
-					let thisPlayer = refMatch.players[play];
-					if(refCard.decks.includes(thisPlayer.list.replace('.txt','.json'))) {//that is playing this card
-						if(thisPlayer.id == player){ 										//if it's being played by the given player
-							if(refMatch.winner == thisPlayer.id){								//and they won
-								othersScore.matches++; 												//chalk a loss for others
-								othersScore.losses++;
-							}else{ 																//and they lost
-								othersScore.matches++; 												//chalk a win for others
-								othersScore.wins++;
-							}
-						}else if(hasPlayer){ 												//if it's being played against the given player
-							if(refMatch.winner == thisPlayer.id){ 								//and the other player won
-								playerScore.matches++; 												//chalk a loss for given player
-								playerScore.losses++;
-							}else{ 																//and the other player lost
-								playerScore.matches++; 												//chalk a win for given player
-								playerScore.wins++;
-							}
-						}else{																//if it's being played by and against other people
-							if(refMatch.winner == thisPlayer.id){								//and player playing it won
-								othersScore.matches++; 												//chalk a loss for others
-								othersScore.losses++;
-							}else{ 																//and the player playing it lost
-								othersScore.matches++; 												//chalk a win for others
-								othersScore.wins++;
+				if(matchFilter(refMatch, "both", filters, card)) {
+					let hasPlayer = (refMatch.players[0].id == player || refMatch.players[1].id == player); //is the given player in this match?
+					for(let play in refMatch.players) {										//for each player in that match
+						let thisPlayer = refMatch.players[play];
+						if(refCard.decks.includes(thisPlayer.list.replace('.txt','.json'))) {//that is playing this card
+							if(thisPlayer.id == player){ 										//if it's being played by the given player
+								if(refMatch.winner == thisPlayer.id){								//and they won
+									othersScore.matches++; 												//chalk a loss for others
+									othersScore.losses++;
+								}else{ 																//and they lost
+									othersScore.matches++; 												//chalk a win for others
+									othersScore.wins++;
+								}
+							}else if(hasPlayer){ 												//if it's being played against the given player
+								if(refMatch.winner == thisPlayer.id){ 								//and the other player won
+									playerScore.matches++; 												//chalk a loss for given player
+									playerScore.losses++;
+								}else{ 																//and the other player lost
+									playerScore.matches++; 												//chalk a win for given player
+									playerScore.wins++;
+								}
+							}else{																//if it's being played by and against other people
+								if(refMatch.winner == thisPlayer.id){								//and player playing it won
+									othersScore.matches++; 												//chalk a loss for others
+									othersScore.losses++;
+								}else{ 																//and the player playing it lost
+									othersScore.matches++; 												//chalk a win for others
+									othersScore.wins++;
+								}
 							}
 						}
 					}
@@ -770,6 +789,9 @@ function runPlayerCounts(dex, filters, minimum){						//returns array of cards t
 	}
 	return clearedArray;
 }
+function stapleGrabber() {												//returns array of is:staple cards
+	return processCommands({content:"stapleMaker rep:2 min:25 filter after:2004", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
+}
 function stapleMaker(dex, filters, wr, skipThese, minMatch) {			//builds the staples code
 	let playrates = playrateGenerator(dex, filters, skipThese, minMatch);
 	let stapleArray = [];
@@ -780,10 +802,7 @@ function stapleMaker(dex, filters, wr, skipThese, minMatch) {			//builds the sta
 	stapleArray.sort(function(a,b){
 		return playrates[0][b].decks - playrates[0][a].decks;
 	})
-	let file = instigatorPlayrateCoder(stapleArray, "is:staple");
-	fs.writeFile('staples.txt', file, function(){
-		console.log('done');
-	})
+	return stapleArray;
 }
 //quickly grab stats
 function wr(statCard) { 												//returns card's historic winrate
@@ -844,8 +863,8 @@ function tourneyFilter(tourneyName, filters) {	 						//returns if tourney passe
 		return false;
 	return true;
 }
-function matchFilter(match, player, filters) {							//returns if match passes match filters
-	if(player == "both" && filters.hasOwnProperty('player')) {
+function matchFilter(match, player, filters, card) {					//returns if match passes match filters
+	if(player == "both" && filters.hasOwnProperty('player')) { //filter out players
 		for(let aPlayer in match.players) {
 			if(filters.player.includes(match.players[aPlayer].id)) {
 				//bugFinder(match, player);
@@ -855,6 +874,18 @@ function matchFilter(match, player, filters) {							//returns if match passes m
 	}else if(filters.hasOwnProperty('player') && filters.player.includes(player)) {
 		//bugFinder(match);
 		return false;
+	}
+	if(card && filters.mirror) { //filter out mirrors
+		if(match.players[0].id == bye || match.players[1].id == bye) {
+			return true;
+		}
+		let list1 = match.players[0].list;
+		let list2 = match.players[1].list;
+		let cards1 = statDexPreBuilt.decklists[list1].cards;
+		let cards2 = statDexPreBuilt.decklists[list2].cards;
+		if(cards1.hasOwnProperty(card) && cards2.hasOwnProperty(card)) {
+			return false;
+		}
 	}
 	return true;
 }
@@ -945,7 +976,7 @@ function rankFinder(tourneyName) {										//sorts gp decklists to 1st, 2nd, to
 	let top4s = [matches[last-2], matches[last-3]];
 	for(let match in top4s) {
 		for(let player in top4s[match].players) {
-			if(!nabbed.includes(top4s[match].players[player].list) && player != bye) {
+			if(!nabbed.includes(top4s[match].players[player].list) && top4s[match].players[player].id != bye) {
 				top4.push(top4s[match].players[player].list)
 				nabbed.push(top4s[match].players[player].list)
 			}
@@ -955,7 +986,7 @@ function rankFinder(tourneyName) {										//sorts gp decklists to 1st, 2nd, to
 		let top8s = [matches[last-4], matches[last-5], matches[last-6], matches[last-7]];
 		for(let match in top8s) {
 			for(let player in top8s[match].players) {
-				if(!nabbed.includes(top8s[match].players[player].list) && player != bye) {
+				if(!nabbed.includes(top8s[match].players[player].list) && top8s[match].players[player].id != bye) {
 					top8.push(top8s[match].players[player].list)
 					nabbed.push(top8s[match].players[player].list)
 				}
@@ -1226,12 +1257,17 @@ function processFilters(dex, msg, bigData) {							//process filters into filter
 	let afFilter = input.match(/filter after:? ?(\d+)/i);
 	let befFilter = input.match(/filter before:? ?(\d+)/i);
 	let typeFilter = input.match(/filter type:? ?(gp|league)/i);
+	let mirrorFilter = input.match(/filter: ?(no)?mirrors?/i);
+	if(befFilter) {
+		filters.before = parseInt(befFilter[1]);
+		delete filters.after
+	}
 	if(afFilter)
 		filters.after = parseInt(afFilter[1]);
-	if(befFilter)
-		filters.before = parseInt(befFilter[1]);
 	if(typeFilter)
 		filters.type = [typeFilter[1]];
+	if(mirrorFilter)
+		filters.mirror = true;
 	if(filters.hasOwnProperty('after'))
 		message += " after " + datify(filters.after);
 	if(filters.hasOwnProperty('before'))
@@ -1261,16 +1297,33 @@ function processCommands(msg, offline, admincheck) {					//processes commands fr
 	let filters = filterData[0];							//min:# and count:# get pulled later
 	let filterMessage = filterData[1]; 						//normal text tourney filter description
 	let landFilter = "";									//normal text card filter description
-	let repFilter = input.match(/(rep|represent|represented|representation): ?(\d+)/i)
-	let clearedCards = [];
+	let repFilter = input.match(/(rep|represent|represented|representation): ?(\d+)/i);
+	let stapleCheck = input.match(/(is|yes|not?)staple/i);
+	let clearedCards = {rep:[], staple:[]};
 	if(repFilter) {
-		clearedCards = runPlayerCounts(dex, filters, repFilter[2]);
+		clearedCards.rep = runPlayerCounts(dex, filters, repFilter[2]);
 		landFilter += " skipping cards played by fewer than " + repFilter[2] + " players"
+	}
+	if(stapleCheck) {
+		clearedCards.staple = stapleGrabber();
+		if(stapleCheck[1].match(/not?/i)) {
+			landFilter += " skipping staples";
+		}else{
+			landFilter += " showing only staples";
+		}
 	}
 	skipThese = function(cardName) {
 		let test = false;
 		if(repFilter) {
-			if(!clearedCards.includes(cardName))
+			if(!clearedCards.rep.includes(cardName))
+				return true;
+		}
+		if(stapleCheck) {
+			let inStaple = clearedCards.staple.includes(cardName);
+			let noStaples = false;
+			if(stapleCheck[1].match(/not?/i))
+				noStaples = true;
+			if(noStaples == inStaple) //staple with nostaple
 				return true;
 		}
 		if(input.match(/nolands/i)) {
@@ -1338,7 +1391,72 @@ function processCommands(msg, offline, admincheck) {					//processes commands fr
 	filterMessage += landFilter;
 	let minMatch = grabMin(input);
 	//run commands
-	if(input.match(/cardwin/i)){						//winrates of a card
+	if(input.match(/cardPrice/i)) {						//calculated cost of a card
+		if(!arcana.msem.setData["101"].counter) //calc the play numbers if we haven't yet
+			calcPlayCounts(dex);
+		if(globalPlayrates == null) {
+			globalPlayrates = playrateGenerator(dex, {}, function(){
+				return false;
+			});
+			globalPlayrates[2] = playrateReporter(globalPlayrates);
+		}
+		let c = input.match(/\[([^\]]+)\]/);
+		if(c) {
+			let name = fuzzy.searchCards(arcana.msem, c[1])
+			let deets = cardPricer(dex, name, globalPlayrates);
+			let output = `Estimated card price for ${name}\n`;
+			output += `$${deets[0]} [`;
+			output += `base: ${deets[1]}, multipliers: `;
+			output += `playRate: ${deets[2]}, `;
+			output += `winRate: ${deets[3]}, `;
+			output += `gpPlace: ${deets[4]}, `;
+			output += `setPlay: ${deets[5]}, `;
+			output += `setPlayables: ${deets[6]}, `;
+			output += `age: ${deets[7]}, `;
+			output += `reprints: ${deets[8]}`;
+			output += `]`;
+			return output;
+		}else if(input.match(/cardPriceTop/i)) {
+			let miniDex = [];
+			for(let card in dex.cards) {
+				dex.cards[card].price = cardPricer(dex, card, globalPlayrates);
+				miniDex.push(card);
+			}
+			miniDex.sort(function(a, b) {
+				return dex.cards[b].price[0] - dex.cards[a].price[0];
+			});
+			let output = `Top 10 card prices\n`
+			for(i=0; i<100; i++) {
+				output += `${i+1}: ${dex.cards[miniDex[i]].price[0]} — ${miniDex[i]}\n`
+			}
+			return output;
+		}else if(input.match(/cardPriceSet/i)){
+			let set = "101";
+			let rarities = {common: 0, uncommon:0, rare:0, "mythic rare":0, bonus:0}
+			let prices = {common: 0, uncommon:0, rare:0, "mythic rare":0, bonus:0}
+			for(let card in arcana.msem.cards) {
+				let cardData = arcana.msem.cards[card];
+				if(cardData.setID == set) {
+					if(rarities.hasOwnProperty(cardData.rarity)) {
+						rarities[cardData.rarity]++;
+						let price = cardPricer(dex, card, globalPlayrates)[0];
+						prices[cardData.rarity] += parseFloat(price);
+					}
+				}
+			}
+			//get average value of each rarity;
+			console.log(prices);
+			for(let r in prices)
+				prices[r] = prices[r]/rarities[r];
+			let ev = 10*prices.common;
+			ev += 3*prices.uncommon;
+			ev += 1*prices.bonus;
+			ev += 0.865*prices.rare;
+			ev += 0.135*prices["mythic rare"];
+			return ev;
+		}
+	}
+	if(input.match(/cardWin/i)){						//winrates of a card
 		let c = input.match(/\[([^\]]+)\]/);
 		if(c) {
 			let card1 = addNewStatDexCard(dex, c[1]);
@@ -1721,7 +1839,7 @@ function processCommands(msg, offline, admincheck) {					//processes commands fr
 				array.reverse();
 				topBot = "Bottom"
 			}
-			let output = topBot + " winrates for " + setsNab.concat() + "\n";
+			let output = topBot + " winrates for " + setsNab.concat() + filterMessage + "\n";
 			for(let i=0; i<topN; i++) {
 				output += `${i+1}: ${pullSet(array[i])} (${wrObj[array[i]].wins}/${wrObj[array[i]].matches} -> ${winValToWR(wrObj[array[i]])}%)\n`;
 			}
@@ -1730,7 +1848,7 @@ function processCommands(msg, offline, admincheck) {					//processes commands fr
 	}
 	if(input.match(/playRate/i)) {						//returns playRate values of cards
 		let playrates = playrateGenerator(dex, filters, skipThese);
-		playrates[2] = playrateReporter(playrates);
+		playrates[2] = playrateReporter(playrates, input.match(/RateMulti/i));
 		let c = input.match(/\[([^\]]+)\]/);
 		if(c) {
 			let card = addNewStatDexCard(dex, c[1]);
@@ -1768,7 +1886,15 @@ function processCommands(msg, offline, admincheck) {					//processes commands fr
 	if(input.match(/stapleMaker/i)){
 		if(!bigData)
 			return "";
-		stapleMaker(dex, filters, 45, skipThese, minMatch)
+		let stapleArray = stapleMaker(dex, filters, 45, skipThese, minMatch)
+		if(input.match(/Print/i)) {
+			let file = instigatorPlayrateCoder(stapleArray, "is:staple");
+			fs.writeFile('staples.txt', file, function(){
+				console.log('done');
+			})
+		}else{
+			return stapleArray;
+		}
 	}
 
 
@@ -1811,20 +1937,25 @@ function processCommands(msg, offline, admincheck) {					//processes commands fr
 	}
 */
 }
-function playrateReporter(info) {										//sorts and reports playRate data
+function playrateReporter(info, multi) {										//sorts and reports playRate data
 	let miniDex = info[0];
 	let deckCount = info[1];
 	let cards = Object.keys(miniDex);
+	let wrm = function(v){
+		if(!multi)
+			return 1;
+		return miniDex[v].wr;
+	}
 	cards.sort(function(a, b){
-		let result = miniDex[b].wr*miniDex[b].decks - miniDex[a].wr*miniDex[a].decks;
+		let result = wrm(b)*miniDex[b].decks - wrm(a)*miniDex[a].decks;
 		if(result == 0)
-			result = miniDex[b].wr*miniDex[b].allCount - miniDex[a].wr*miniDex[a].allCount
+			result = wrm(b)*miniDex[b].allCount - wrm(a)*miniDex[a].allCount
 		if(result == 0)
-			result = miniDex[b].wr*miniDex[b].mainCount - miniDex[a].wr*miniDex[a].mainCount
+			result = wrm(b)*miniDex[b].mainCount - wrm(a)*miniDex[a].mainCount
 		if(result == 0)
-			result = miniDex[b].wr*miniDex[b].sideCount - miniDex[a].wr*miniDex[a].sideCount
+			result = wrm(b)*miniDex[b].sideCount - wrm(a)*miniDex[a].sideCount
 		if(result == 0)
-			result = miniDex[b].wr*miniDex[b].setCount - miniDex[a].wr*miniDex[a].setCount
+			result = wrm(b)*miniDex[b].setCount - wrm(a)*miniDex[a].setCount
 		return result;
 	});
 	return cards;
@@ -1863,8 +1994,6 @@ function biggun() {
 		console.log(`${i}: ${pullSet(megaDex[array[i]].cards[0])} + ${pullSet(megaDex[array[i]].cards[1])}, ${wrData[1][array[i]].wr}% in ${wrData[1][array[i]].matches} matches`)
 }
 
-//console.log(processCommands({content:"playerWinBot", author:{id:"190309440069697536", username:"Cajun"}}, "all"))
-//console.log(leagueFourOhs('league_20_08'))
 //exports for live
 exports.initialize = initialize
 exports.processCommands = processCommands
@@ -1926,6 +2055,237 @@ function matchCounter(archives) {
 	}
 	console.log(matches);
 }
+function cardPricer(dex, name, playrates) {
+	let avgPlay = calcAvgPlay(); //average play values
+	let avgSetPlay = avgPlay[0]; //average plays a set gets
+	let avgSetCards = avgPlay[1];//average playables a set has
+	let medCardPlay = calcMedCount(playrates);
+	let card = arcana.msem.cards[name];
+	if(card.prints.length > 1) { //make sure we use the first print for pulling from statDex
+		name = name.replace(/_[A-Z0-9_]+$/, "_" + card.prints[0]);
+	}
+	let thisSet = arcana.msem.setData[card.setID];
+	let eachSetData = determineAverageSetPlays(card);
+	let eachSetPlays = eachSetData[0];
+	let eachSetCards = eachSetData[1];
+	let wr = 0.2;																	//default wr for .7x multi for unplayed cards
+	let playCount = 0.7*medCardPlay;												//default pr for .7x prm
+	if(playrates[0][name]) {
+		wr = playrates[0][name].wr/100;												//card's decimal win rate
+		playCount = playrates[0][name].allCount;									//pure # of this card played
+	}
+	let pcMulti = Math.min(8, playCount/medCardPlay).toFixed(2);					//multiplier based on play rate vs median
+	let wrMulti = Math.pow(wr+0.7, 3).toFixed(2);									//multiplier based on win rate
+	let sprMulti = Math.pow(avgSetPlay / eachSetPlays, 1.2).toFixed(2);				//multiplier based on how opened the set was
+	let plbMulti = Math.max(0.9, avgSetCards / eachSetCards).toFixed(2);			//multiplier based on how playable the set was
+	let ageMulti = determineAge(thisSet.releaseDate);								//multiplier based on how old the set is
+	let rpMulti = determineReprints(card).toFixed(2);								//multiplier based on how reprinted the card is
+	let gpMulti = determineGPMulti(dex, name).toFixed(2);							//multiplier for good GP performance
+	let base = determineBaseCost(card);												//base cost for this card
+	let finalCost = base * pcMulti * wrMulti * gpMulti * sprMulti * plbMulti * ageMulti * rpMulti;
+	finalCost = finalCost.toFixed(2);
+	if(finalCost < 0.01)
+		finalCost = 0.01;
+	return [finalCost, base, pcMulti, wrMulti, gpMulti, sprMulti, plbMulti, ageMulti, rpMulti];
+}
+function determineAverageSetPlays(card) {	//calculate playability of sets its in
+	let allcount = 0, uniques = 0, counted = 0;
+	for(let p in card.prints) {
+		if(arcana.msem.setData[card.prints[p]].priceSkip)
+			continue;
+		allcount += arcana.msem.setData[card.prints[p]].counter[0];
+		uniques += arcana.msem.setData[card.prints[p]].counter[1];
+		counted++;
+		if(card.prints[p] == card.setID) { //count the given set twice for some weight
+			allcount += arcana.msem.setData[card.prints[p]].counter[0];
+			uniques += arcana.msem.setData[card.prints[p]].counter[1];
+			counted++;
+		}
+	}
+	let avgCount = allcount/counted
+	if(arcana.msem.setData[card.setID].counter && arcana.msem.setData[card.setID].counter[0] > avgCount)
+		avgCount = arcana.msem.setData[card.setID].counter[0]
+	let avgUnique = uniques/counted
+	if(arcana.msem.setData[card.setID].counter && arcana.msem.setData[card.setID].counter[1] > avgUnique)
+		avgUnique = arcana.msem.setData[card.setID].counter[1]
+	return [avgCount, avgUnique];
+}
+function determineGPMulti(dex, name) {	//calculate multiplier of GP placements
+	let weights = { //weigh newer GPs higher, older GPs lower
+		"gp_20_09": 1.2,
+		"gp_20_08": 1.15,
+		"gp_20_07": 1.1,
+		"gp_20_06": 1.05,
+		"gp_20_05": 1.00,
+		"gp_20_04": 0.95,
+		"gp_20_03": 0.90,
+		"gp_20_02": 0.90,
+		"gp_20_01": 0.90,
+		"gp_19_12": 0.85,
+		"gp_19_11": 0.85,
+	};
+	let base = 0, add = 0;
+	function uptick(rank, tourney) {
+		let multi = 0.9;
+		if(weights[tourney])
+			multi = weights[tourney];
+		let testBase, testAdd;
+		switch(rank) { 
+			case 1: //2.5 + .3 for winning GPs
+				testBase = 2.2;
+				testAdd = 0.3;
+				break;
+			case 2: //2.0 + .2 for getting 2nd
+				testBase = 1.8;
+				testAdd = 0.2;
+				break;
+			case 4: //1.75 + .15 for getting top 4
+				testBase = 1.6;
+				testAdd = 0.15;
+				break;
+			case 8: //1.5 + .1 for getting top 8
+				testBase = 1.4;
+				testAdd = 0.1;
+				break;
+			default: //if something weird happened don't increment
+				testBase = 1.0;
+				testAdd = 0;
+		}
+		testBase = testBase * multi;
+		if(testBase > base)
+			base = testBase;
+		add += (testAdd * multi);
+	}
+	for(let t in dex.tournaments) {
+		if(t.match(/^gp/)) {
+			let thisT = dex.tournaments[t];
+			for(let d in thisT) {
+				let thisList = dex.decklists[thisT[d]];
+				if(thisList.rank && thisList.cards.hasOwnProperty(name))
+					uptick(thisList.rank, t)
+			}
+		}
+	}
+	if(!base) //if it never won anything, send 1.0x
+		base = 1;
+	return base + add;
+}
+function determineReprints(card) {
+	if(card.typeLine.match(/Basic/i))
+		return 0;
+	let reprints = 0;
+	let vals = {
+		"basic land": 1,
+		"token": 1,
+		common: 1,
+		uncommon: 2.5,
+		rare: 4.5,
+		bonus: 4.5,
+		special: 4.5,
+		mythic: 5,
+		"mythic rare": 5,
+		masterpiece: 1
+	}
+	let refValue = vals[card.rarity];
+	for(let p in card.prints) {
+		if(arcana.msem.setData[card.prints[p]].priceSkip)
+			continue;
+		let printVal = 1;
+		try{
+			let reprinted = arcana.msem.cards[card.fullName + "_" + card.prints[p]];
+			let dif = refValue - vals[reprinted.rarity];
+			if(dif > 0 && card.rarity != "masterpiece" && reprinted.rarity != "masterpiece") { //masterpiece reprints don't affect pricing
+				printVal += dif;
+				if(reprinted.setID.match(/^MS\d/))
+					printVal *= 1.5;
+				reprints += printVal;
+			}
+		}catch(e){
+			if(card.prints[p].match(/^MS\d/))
+				printVal *= 1.5;
+			reprints += printVal;
+		}
+	}
+	if(!reprints)
+		return 1;
+	return 1 / reprints;
+}
+function determineAge(release) {
+	let year = release.match(/^(20\d\d)/);
+	let month = release.match(/-\d\d-/);
+	let current = 2020;
+	let dif = 2020 - parseInt(year);
+	//do 0.5 per year
+	return 1 + 0.3*dif;
+}
+function determineBaseCost(card) {	//determines base cost of card based on rarity
+	if(card.setID == "101")
+		return 1;
+	if(card.rarity == "masterpiece")
+		return 30;
+	if(card.setID == "L3")
+		return 20;
+	if(card.setID == "L2")
+		return 10;
+	if(card.rarity == "common")
+		return 0.1;
+	if(card.rarity == "uncommon")
+		return 0.5;
+	if(card.rarity == "rare" || card.rarity == "bonus")
+		return 1;
+	if(card.rarity == "mythic rare")
+		return 2;
+	return 1;
+}
+function calcMedCount(playrates) {	//median played amount
+/*	if(playrates[2].length%2) { //odd, take middle
+		let half = playrates[2].length/2;
+		return playrates[0][playrates[2][half-0.5]].allCount;
+	}else{ //even, take avg
+		let half = playrates[2].length/2;
+		console.log(playrates[0][playrates[2][half]]);
+		console.log(playrates[0][playrates[2][half-1]]);
+		let c1 = playrates[0][playrates[2][half]].allCount;
+		let c2 = playrates[0][playrates[2][half-1]].allCount;
+		return (c1+c2)/2;
+	}*/
+	let allcounter = 0, cardCounter = 0;
+	for(let card in playrates[0]) {
+		if(playrates[0][card].allCount > 10) {
+			allcounter += playrates[0][card].allCount;
+			cardCounter++;
+		}
+	}
+	return allcounter / cardCounter;
+}
+function calcAvgPlay() {			//avg plays and playables in a set
+	let allCount = 0, uniqueCount = 0, setCount = 0;
+	for(let set in arcana.msem.setData) {
+		if(!arcana.msem.setData[set].priceSkip && arcana.msem.setData[set].counter) {
+			allCount += arcana.msem.setData[set].counter[0];
+			uniqueCount += arcana.msem.setData[set].counter[1];
+			setCount++;
+		}
+	}
+	return [allCount/setCount, uniqueCount/setCount];
+}
+function calcPlayCounts(dex) {		//add counts to each set
+	for(let card in dex.cards) {
+		let theCard = arcana.msem.cards[card];
+		if(theCard.typeLine.match(/Basic/))
+			continue;
+		let allCount = dex.cards[card].mainCount + dex.cards[card].sideCount;
+		for(let set in theCard.prints) {
+			let thisSet = arcana.msem.setData[theCard.prints[set]];
+			toolbox.addIfNew(thisSet, 'counter', [0,0,0]);
+			thisSet.counter[0] += allCount; //sum of all
+			thisSet.counter[1]++;			//sum of unique
+		}
+	}
+}
+console.log(processCommands({content:"cardWin[Intrepid] filter:mirror", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5]))
+//console.log(leagueFourOhs('league_20_08'))
+
 //let testDeck = statDexPreBuilt.decklists["/gp_20_08/cajun.json"].cards
 //testDeck = require('./decks/bluestest.json')
 //console.log(countColors(testDeck));

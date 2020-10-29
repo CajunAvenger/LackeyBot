@@ -33,7 +33,32 @@ let magicCards = require('./canon/cards.json');
 let magicSets = require('./canon/setData.json');
 let magicBanned = require('./canon/legal.json');
 let magicRules = require('./canon/oracle.json');
-
+magicBanned.primordial = [
+	"Ancient Den",
+	"Great Furnace",
+	"Seat of the Synod",
+	"Tree of Tales",
+	"Vault of Whispers",
+	"Chaos Orb",
+	"Contract from Below",
+	"Crusade",
+	"Darkpact",
+	"Demonic Attorney",
+	"Bronze Tablet",
+	"Pradesh Gypsies",
+	"Rebirth",
+	"Tempest Efreet",
+	"Jeweled Bird",
+	"Jihad",
+	"Shahrazad",
+	"Stone-Throwing Devils",
+	"Timmerian Fiends",
+	"Amulet of Quoz",
+	"Cleanse",
+	"Falling Star",
+	"Imprison",
+	"Invoke Prejudice"	
+]
 let myriadCards = require('./myriad/cards.json');
 let myriadSets = require('./myriad/setData.json');
 let myriadPointed = require('./myriad/legal.json');
@@ -91,7 +116,12 @@ function scryfallLinker (thisCard, first) { //links from scryfall
 		return showCard;
 	if(thisCard.shape == "doubleface") {
 		showCard = `https://img.scryfall.com/cards/large/front/${thisCard.scryID.charAt(0)}/${thisCard.scryID.charAt(1)}/${thisCard.scryID}.jpg`;
-		showCard += `\nhttps://img.scryfall.com/cards/large/back/${thisCard.scryID.charAt(0)}/${thisCard.scryID.charAt(1)}/${thisCard.scryID}.jpg`;
+		if(thisCard.notes.includes("meld")) {
+			showCard += `\nhttps://img.scryfall.com/cards/large/front/${thisCard.scryID2.charAt(0)}/${thisCard.scryID2.charAt(1)}/${thisCard.scryID2}.jpg`;
+			
+		}else{
+			showCard += `\nhttps://img.scryfall.com/cards/large/back/${thisCard.scryID.charAt(0)}/${thisCard.scryID.charAt(1)}/${thisCard.scryID}.jpg`;
+		}
 	}
 	let hiddenCards = ["Invoke Prejudice", "Imprison"];
 	if(hiddenCards.includes(thisCard.cardName))

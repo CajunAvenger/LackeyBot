@@ -3,6 +3,7 @@
 */
 var cards = require('./msem/cards.json');
 var setsArray = require("./msem/setData.json");
+setsArray["MSEMAR"] = {longname:"MSEM Additional Resources"}
 var bob = require('./bob');
 var fs = require('fs');
 var toolbox = require('./toolbox');
@@ -16,7 +17,7 @@ function tokenName(card) { //generates a token's name
 	if(card.cardName == "Treasure")
 		return "Treasure " + bob.pullTokenSet(card, setsArray);
 	if(card.cardName == "Lotus Petal")
-		return card.fullName + " " + bob.pullTokenSet(card, setsArray);
+		return card.fullName;// + " " + bob.pullTokenSet(card, setsArray);
 	if(card.cardName == "Idol")
 		return "Idol " + bob.pullTokenSet(card, setsArray);
 	if(bob.pullTokenSet(card, setsArray) == "MSEMAR")
@@ -99,13 +100,13 @@ function allsets(card, dfc) {
 function tokenSetBlock(card) {
 	return " <set picURL=\"/"+tokenName(card).replace(/\//g,"")+".jpg\" picURLSt=\"\" picURLHq=\"\">" + bob.pullTokenSet(card, setsArray) + "</set>\r\n";
 }
-function triceTranslator(script, cardName) {
+function triceTranslator(script, entry) {
 	//two scripts we're looking for, tokens and cipt
 	//for tokens, we bank those for later
 	let tokensPull = script.match(/<f>[^<]*\/spawnx?[0-9]* [^<]*/ig);
 	if(tokensPull && toolbox.hasValue(tokensPull)) {
 		for(let i=0;i<tokensPull.length;i++) {
-		let tokensMatch = tokensPull[i].match(/<f>[^<]*\/spawnx?([0-9]+)? ([^<]*)/i)
+		let tokensMatch = tokensPull[i].match(/<f>[^<]*\/spawnx?([0-9]+)? ([^<]*)/i);
 			if(tokensMatch && toolbox.hasValue(tokensMatch)) {
 				for(j=1; j<tokensMatch.length; j++) {
 					let tokenAmount = "1";
@@ -115,19 +116,33 @@ function triceTranslator(script, cardName) {
 					let ptPull = tokenName.match(/^([0-9]+)\/([0-9]+) /)
 					if(ptPull) {
 						tokenName = tokenName.replace(ptPull[0], "");
-						let setPull = tokenName.match(/([A-Z0-9]+)$/)
+						let setPull = tokenName.match(/([A-Z0-9_]+)$/)
 						if(setPull)
 							tokenName = tokenName.replace(setPull[0], "");
 						tokenName += ptPull[1] + ptPull[2]
 						if(setPull)
 							tokenName += setPull[1];
 					}
+					tokenName = tokenName.replace("’", "'");
+					let triceName = entry;						//normal reprint
+					if(!cards[entry].notes.includes("reprint"))
+						triceName = cards[entry].fullName 		//if normal original printing
+					if(cards[entry].shape == "split") {
+						triceName = cards[entry].cardName + " // " + cards[entry].cardName2; //split original printing
+						if(cards[entry].notes.includes("reprint"))
+							triceName = cards[entry].cardName + "_" + cards[entry].setID + " // " + cards[entry].cardName2  + "_" + cards[entry].setID; //split reprinting
+					}
+					if(cards[entry].shape == "doubleface" || cards[entry].shape == "adventure") {
+						triceName = cards[entry].cardName + '_' + cards[entry].setID; //dfc reprint
+						if(!cards[entry].notes.includes("reprint"))
+							triceName = cards[entry].cardName 		//dfc original printing
+					}
 					if(!tokensRelated.hasOwnProperty(tokenName))
 						tokensRelated[tokenName] = {};
-					if(!tokensRelated[tokenName].hasOwnProperty(cardName))
-						tokensRelated[tokenName][cardName] = [];
-					if(!tokensRelated[tokenName][cardName].includes(tokenAmount))
-						tokensRelated[tokenName][cardName].push(tokenAmount);
+					if(!tokensRelated[tokenName].hasOwnProperty(triceName))
+						tokensRelated[tokenName][triceName] = [];
+					if(!tokensRelated[tokenName][triceName].includes(tokenAmount))
+						tokensRelated[tokenName][triceName].push(tokenAmount);
 				}
 			}
 		}
@@ -138,7 +153,9 @@ function triceTranslator(script, cardName) {
 		return "<cipt>1</cipt>";
 	return "";
 }
-function triceBlockWriter(card) {
+function triceBlockWriter(entry) {
+	let card = cards[entry];
+
 	let setCheck = allsets(card, false);
 	if(setCheck === false)
 		return;
@@ -185,7 +202,7 @@ function triceBlockWriter(card) {
 	}else{
 		cardsFile += " <text>"+card.rulesText.replace(/\n/g," ")+"</text>\r\n";
 	}
-	var cardScripts = triceTranslator(bob.lackeyScript(card), card.cardName);
+	var cardScripts = triceTranslator(bob.lackeyScript(card), entry);
 	if(cardScripts != "")
 		cardsFile += " "+cardScripts+"\r\n";
 	cardsFile += "</card>\r\n";
@@ -220,13 +237,17 @@ function triceBlockWriter(card) {
 		}
 		cardsFile += "</tablerow>\r\n";
 		cardsFile += " <text>"+card.rulesText2.replace(/\n/g," ")+"</text>\r\n";
-		var cardScripts = triceTranslator(bob.lackeyScript(card), card.cardName);
+		var cardScripts = triceTranslator(bob.lackeyScript(card), entry);
 		if(cardScripts != "")
 			cardsFile += " "+cardScripts+"\r\n";
 		cardsFile += "</card>\r\n";
 	}
 }
-function triceTokenBlocker(card) {
+function triceTokenBlocker(entry) {
+
+	let card = cards[entry];
+	if(card.rulesText.match("make and shuffle")) //skip make tokens on trice //todo make this less bad
+		return "";
 	let thisToken = tokenName(card);
 	tokensFile += "<card>\r\n";
 	tokensFile += " <name>"+thisToken+"</name>\r\n";
@@ -239,7 +260,7 @@ function triceTokenBlocker(card) {
 	tokensFile += " <cmc>"+card.cmc+"</cmc>\r\n";
 	if(card.loyalty)
 		tokensFile += " <loyalty>"+card.loyalty+"</loyalty>\r\n";
-	if(card.power) {
+	if(card.power !== "") {
 		tokensFile += " <pt>" + card.power + "/" + card.toughness+"</pt>\r\n";
 	}
 	tokensFile += " <type>"+card.typeLine.replace(/ $/,"")+"</type>\r\n";
@@ -257,7 +278,7 @@ function triceTokenBlocker(card) {
 	tokensFile += " <text>"+card.rulesText.replace(/\n/g," ")+"</text>\r\n";
 	tokensFile += " <token>1</token>\r\n";
 	tokensFile += " <set num=\"" + card.cardID + "\" rarity=\"" + card.rarity + "\">" + card.setID + "</set>\r\n"
-	var cardScripts = triceTranslator(bob.lackeyScript(card), card.cardName);
+	var cardScripts = triceTranslator(bob.lackeyScript(card), entry);
 	if(cardScripts != "")
 		tokensFile += " "+cardScripts+"\r\n";
 	let reverseTokens = reverseWriter(tokensRelated[thisToken]);
@@ -306,9 +327,9 @@ for(let set in setsArray) {
 	cardsFile += "</sets>\r\n<cards>\r\n";
 	for(let card in cards) {
 		if(cards[card].setID == set) {
-			triceBlockWriter(cards[card]);
+			triceBlockWriter(card);
 		}else if (cards[card].setID == "tokens" && bob.pullTokenSet(cards[card], setsArray) == set){
-			triceTokenBlocker(cards[card]);
+			triceTokenBlocker(card);
 		}
 	}
 	/*let fullFile = cardsFile + tokensFile + "</cards>\r\</cockatrice_carddatabase>";
