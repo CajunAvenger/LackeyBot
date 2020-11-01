@@ -1775,7 +1775,7 @@ function postEmote(msg, emoteSnag, bigFlag) {				//$emote and $bigemote
 	if(!bigFlag && emoteStuff) {
 		msg.channel.send(`<:${emoteStuff.name}:${emoteStuff.id}>`)
 	}else{
-		let attachURL = `https://cdn.discordapp.com/emojis/${emoteSnag}.gif?v=1`;
+		let attachURL = `https://cdn.discordapp.com/emojis/${emoteSnag}.gif`;
 		download(attachURL, {directory:"./examples/", filename:"emote.gif"}, function(err) {
 			if(err) {
 				msg.channel.send(attachURL.replace(".gif", ".png"));
@@ -5708,82 +5708,113 @@ function generateBracketSeeds (powers) {					//generate bracket with 2^input pai
 	return primeArray;
 }
 function resetTourney(tourney) {							//archives tourney data
-		startWriting("match")
-		let leagueArchive = {};
-		let flag = {};
-		for(let t in matchDex) {
-			if(t != "version")
-				flag[t] = 0;
+	startWriting("match")
+	let leagueArchive = {};
+	let flag = {};
+	for(let t in matchDex) {
+		if(t != "version")
+			flag[t] = 0;
+	}
+	if(tourney == "league") {
+		for(let p in matchDex[tourney].players) {
+			let current = toolbox.lastElement(matchDex[tourney].players[p].runs);
+			if(current && current.matches && current.matches.length == 4)
+				fourWinPoster(tourney, p, current);
 		}
-		leagueArchive.matches = [];
-		leagueArchive.players = {};
-		let trolearray = {league: '638181322325491744', gp: '588781514616209417'}
-		let prolearray = {primordial: '763102029504970823'}
-		for(let thisPlayer in matchDex[tourney].players) {
-			//remove their tourney role
-			try{
-				if(trolearray.hasOwnProperty(tourney))
-					Client.guilds.cache.get('317373924096868353').members.cache.get(thisPlayer).roles.remove(trolearray[tourney]);
-				if(prolearray.hasOwnProperty(tourney))
-					Client.guilds.cache.get('413055835179057173').members.cache.get(thisPlayer).roles.remove(trolearray[tourney]);
-			}catch(e){console.log(e)};
-			leagueArchive.players[thisPlayer] = {};
-			leagueArchive.players[thisPlayer].username = pullUsername(thisPlayer);
-			leagueArchive.players[thisPlayer].matches = [];
-			leagueArchive.players[thisPlayer].lists = [];
-			leagueArchive.players[thisPlayer].opponents = [];
-			leagueArchive.players[thisPlayer].wins = 0;
-			leagueArchive.players[thisPlayer].losses = 0;
-			leagueArchive.players[thisPlayer].draws = 0;
-			leagueArchive.players[thisPlayer].monthScore = 0;
-			
-			for(let aRun in matchDex[tourney].players[thisPlayer].runs) {
-				if(matchDex[tourney].players[thisPlayer].runs[aRun].matches.length) {
-					leagueArchive.players[thisPlayer].matches.push(matchDex[tourney].players[thisPlayer].runs[aRun].matches)
-					leagueArchive.players[thisPlayer].lists.push(matchDex[tourney].players[thisPlayer].runs[aRun].dropLink)
-					oppArrayArray = [];
-					for(let aMatch in matchDex[tourney].players[thisPlayer].runs[aRun].matches) {
-						//[opponent id, run number]
-						let eMatch = matchDex[tourney].matches[matchDex[tourney].players[thisPlayer].runs[aRun].matches[aMatch]-1];
-						let opp = (eMatch.p1 == thisPlayer ? eMatch.p2 : eMatch.p1);
-						let oppR = (opp == eMatch.p1 ? eMatch.p1r : eMatch.p2r);
-						let oppW = (opp == eMatch.p1 ? eMatch.p1w : eMatch.p2w);
-						let plaW = (oppW == eMatch.p1w ? eMatch.p2w : eMatch.p1w);
-						oppArrayArray.push([opp, oppR])
-						if(plaW > oppW)
-							leagueArchive.players[thisPlayer].wins++;
-						if(plaW < oppW)
-							leagueArchive.players[thisPlayer].losses++;
-						if(plaW == oppW)
-							leagueArchive.players[thisPlayer].draws++;
-					}
-					leagueArchive.players[thisPlayer].opponents.push(oppArrayArray);
-					leagueArchive.players[thisPlayer].monthScore = bestRecord(tourney,thisPlayer)[4]
+	}
+	leagueArchive.matches = [];
+	leagueArchive.players = {};
+	let trolearray = {league: '638181322325491744', gp: '588781514616209417'}
+	let prolearray = {primordial: '763102029504970823'}
+	for(let thisPlayer in matchDex[tourney].players) {
+		//remove their tourney role
+		try{
+			if(trolearray.hasOwnProperty(tourney))
+				Client.guilds.cache.get('317373924096868353').members.cache.get(thisPlayer).roles.remove(trolearray[tourney]);
+			if(prolearray.hasOwnProperty(tourney))
+				Client.guilds.cache.get('413055835179057173').members.cache.get(thisPlayer).roles.remove(trolearray[tourney]);
+		}catch(e){console.log(e)};
+		leagueArchive.players[thisPlayer] = {};
+		leagueArchive.players[thisPlayer].username = pullUsername(thisPlayer);
+		leagueArchive.players[thisPlayer].matches = [];
+		leagueArchive.players[thisPlayer].lists = [];
+		leagueArchive.players[thisPlayer].opponents = [];
+		leagueArchive.players[thisPlayer].wins = 0;
+		leagueArchive.players[thisPlayer].losses = 0;
+		leagueArchive.players[thisPlayer].draws = 0;
+		leagueArchive.players[thisPlayer].monthScore = 0;
+		
+		for(let aRun in matchDex[tourney].players[thisPlayer].runs) {
+			if(matchDex[tourney].players[thisPlayer].runs[aRun].matches.length) {
+				leagueArchive.players[thisPlayer].matches.push(matchDex[tourney].players[thisPlayer].runs[aRun].matches)
+				leagueArchive.players[thisPlayer].lists.push(matchDex[tourney].players[thisPlayer].runs[aRun].dropLink.replace(".txt", ""))
+				oppArrayArray = [];
+				for(let aMatch in matchDex[tourney].players[thisPlayer].runs[aRun].matches) {
+					//[opponent id, run number]
+					let eMatch = matchDex[tourney].matches[matchDex[tourney].players[thisPlayer].runs[aRun].matches[aMatch]-1];
+					let opp = (eMatch.p1 == thisPlayer ? eMatch.p2 : eMatch.p1);
+					let oppR = (opp == eMatch.p1 ? eMatch.p1r : eMatch.p2r);
+					let oppW = (opp == eMatch.p1 ? eMatch.p1w : eMatch.p2w);
+					let plaW = (oppW == eMatch.p1w ? eMatch.p2w : eMatch.p1w);
+					oppArrayArray.push([opp, oppR])
+					if(plaW > oppW)
+						leagueArchive.players[thisPlayer].wins++;
+					if(plaW < oppW)
+						leagueArchive.players[thisPlayer].losses++;
+					if(plaW == oppW)
+						leagueArchive.players[thisPlayer].draws++;
 				}
+				leagueArchive.players[thisPlayer].opponents.push(oppArrayArray);
+				leagueArchive.players[thisPlayer].monthScore = bestRecord(tourney,thisPlayer)[4]
 			}
 		}
-		for(let thisMatch in matchDex[tourney].matches) {
-			let currentMatch = matchDex[tourney].matches[thisMatch]
-			let matchStats = {};
-			matchStats.players = [];
-			let leadArray = renderRecord(currentMatch.p1, currentMatch.p2, currentMatch.p1w, currentMatch.p2w, currentMatch.p1r, currentMatch.p2r)
-			matchStats.players.push(archivePlayer(tourney, leadArray[0], leadArray[2], leadArray[3], leadArray[4]));
-			matchStats.players.push(archivePlayer(tourney, leadArray[1], leadArray[3], leadArray[2], leadArray[5]));
-			matchStats.winner = null;
-			if(leadArray[2] > leadArray[3])
-				matchStats.winner = leadArray[0];
-			if(currentMatch.round)
-				matchStats.round = currentMatch
-			leagueArchive.matches.push(matchStats);
+	}
+	let knockoutRound = 0;
+	if(matchDex[tourney].data.pairing == "knockout") {
+		var tops = [];
+		let cut = toolbox.nextSquare(swissCut(tourney).length);					//top past the cut
+		while(cut > 1) {
+			tops.push(cut)
+			cut = cut/2;
 		}
-		let leagueText = JSON.stringify(leagueArchive);
-		let archName = tourney+"_"+toolbox.setTheDate("_")+'_archive.json'
-		fs.writeFile('./msem/'+archName, leagueText, (err) => {
-			if(err) console.log(err);
-		});
-		dropboxUpload("/tourneyArchives/"+archName,leagueText, function(){doneWriting("match")})
-		
-		flag[tourney] = 1;
+	}
+	for(let thisMatch in matchDex[tourney].matches) {
+		let currentMatch = matchDex[tourney].matches[thisMatch]
+		let matchStats = {};
+		matchStats.players = [];
+		let leadArray = renderRecord(currentMatch.p1, currentMatch.p2, currentMatch.p1w, currentMatch.p2w, currentMatch.p1r, currentMatch.p2r)
+		matchStats.players.push(archivePlayer(tourney, leadArray[0], leadArray[2], leadArray[3], leadArray[4]));
+		matchStats.players.push(archivePlayer(tourney, leadArray[1], leadArray[3], leadArray[2], leadArray[5]));
+		matchStats.winner = null;
+		if(leadArray[2] > leadArray[3])
+			matchStats.winner = leadArray[0];
+		if(currentMatch.round)
+			matchStats.round = currentMatch
+		leagueArchive.matches.push(matchStats);
+		if(matchDex[tourney].data.pairing == "knockout" && currentMatch.knockout) { //add top 8 ranks
+			if(!knockoutRound)
+				knockoutRound = currentMatch.round;
+			let rankNo = currentMatch.round - knockoutRound;
+				if(currentMatch.p1 == matchStats.winner) {
+					leagueArchive.players[currentMatch.p1].rank = tops[rankNo+1];
+				}else if(currentMatch.p1 != bye){
+					leagueArchive.players[currentMatch.p1].rank = tops[rankNo];
+				}
+				if(currentMatch.p2 == matchStats.winner) {
+					leagueArchive.players[currentMatch.p2].rank = tops[rankNo+1];
+				}else if(currentMatch.p2 != bye){
+					leagueArchive.players[currentMatch.p2].rank = tops[rankNo];
+				}
+		}
+	}
+	let leagueText = JSON.stringify(leagueArchive);
+	let archName = tourney+"_"+toolbox.setTheDate("_")+'_archive.json'
+	fs.writeFile('./msem/'+archName, leagueText, (err) => {
+		if(err) console.log(err);
+	});
+	dropboxUpload("/tourneyArchives/"+archName,leagueText, function(){doneWriting("match")})
+	
+	flag[tourney] = 1;
 	return [flag, "The " + tourney + " database has been archived. If the tournament is over, send !delete " + tourney + " to reset its database or `!continue league` to start a new month in the same season."];
 }
 function deleteTourney (tourney) {							//resets a tourney to nothing/base data
@@ -5868,9 +5899,9 @@ function archivePlayer(tourney, id, wins, losses, run) {	//saves player data for
 	archPlay.winner = (wins > losses ? 1 : 0);
 	archPlay.run = run;
 	if(partRun && partRun.dropLink) {
-		archPlay.list = partRun.dropLink;
+		archPlay.list = partRun.dropLink.replace(".txt", "");
 	}else{
-		archPlay.list = archPlay.username;
+		archPlay.list = `/${tourney}/${archPlay.username}`;
 	}
 	return archPlay
 }
@@ -6890,6 +6921,35 @@ function swissCount (num) {									//number of swiss rounds for num players
 	if(num < 32)
 		return 4
 	return 5
+}
+function swissCut (tourney) {								//returns array of players who make the swiss cut
+	let out = [];
+	let players = matchDex[tourney].players;
+	if(matchDex[tourney].data.cutScript) {
+		if(matchDex[tourney].data.cutScript == "X-2") { //X-2s make the cut
+			for(let p in players) {
+				if(p != bye && players[p].gpLoss + players[p].gpDraw < 3)
+					out.push(p);
+			}
+		}else if(matchDex[tourney].data.cutScript.match(/^Top\d+/i)){
+			let board = sortWithBreakers(tourney, players);
+			let topN = matchDex[tourney].data.cutScript.match(/^Top(\d+)/i)[1];
+			for(let i = 0; i<topN; i++) {
+				if(board[i] == bye) {
+					topN++;
+				}else{
+					out.push(board[i]);
+				}
+			}
+		}
+	}else{
+		//cut 1 losses+draws
+		for(let p in players) {
+			if(p != bye && players[p].gpLoss + players[p].gpDraw < 2)
+				out.push(p);
+		}
+	}
+	return out;
 }
 function swissPair (tourney) {								//pairs players swiss style
 	startWriting("match");
@@ -8438,55 +8498,69 @@ Client.on("message", (msg) => {
 						let timeCheck = msg.content.match(/pingtime: (\d+) ([^\n]+)/i);
 						let crownCheck = msg.content.match(/crown: (\d+)/i);
 						let regCheck = msg.content.match(/regex: ([^\n]+)/i);
-						if(pairCheck)
-							pairing = pairCheck[1];
-						if(toCheck)
-							TO = toCheck[1];
-						if(channelCheck)
-							channel = channelCheck[1];
-						if(rematchCheck)
-							rematch = rematchCheck[1];
-						if(runsCheck)
-							runLength = runsCheck[1];
-						if(setCheck)
-							set = setCheck[1];
-						if(subNameCheck)
-							subName = subNameCheck[1];
-						if(timeCheck)
-							pingtime = [parseInt(timeCheck[1]), timeCheck[2]];
-						if(crownCheck)
-							crownID = crownCheck[1]
-						if(regCheck)
-							reg = regCheck[1]
-						
-						if(!matchDex.hasOwnProperty(tourneyname)) {
-							matchDex[tourneyname] = {matches:[], players:{}, round:0, awaitingMatches:[], data:{}};
-							msg.channel.send("Tournament created!");			
+						let delCheck = msg.content.match(/delete: ? true/i);
+						if(delCheck) {
+							if(!matchDex.hasOwnProperty(tourneyname)) {
+								msg.channel.send('Tourney not found.');
+								return;
+							}else if(matchDex[tourneyname].matches.length){
+								msg.channel.send('Tourney must be archived before deletion.');
+								return;
+							}else{
+								delete matchDex[tourneyname];
+								msg.channel.send(`${tourneyname} deleted.`)
+							}
 						}else{
-							msg.channel.send("Tournament edited.");
-						}
-						if(TO)
-							matchDex[tourneyname].data.TO = TO;
-						if(pairing)
-							matchDex[tourneyname].data.pairing = pairing;
-						if(channel)
-							matchDex[tourneyname].data.channel = channel;
-						if(rematch)
-							matchDex[tourneyname].data.rematch = parseInt(rematch);
-						if(runLength)
-							matchDex[tourneyname].data.runLength = parseInt(runLength);
-						if(set)
-							matchDex[tourneyname].data.set = set;								
-						if(subName)
-							matchDex[tourneyname].data.name = subName;
-						if(pingtime)
-							matchDex[tourneyname].data.time = pingtime;
-						if(crownID)
-							matchDex[tourneyname].data.crown = crownID;
-						if(reg) {
-							matchDex[tourneyname].data.submitRegex = reg;
-						}else if(!matchDex[tourneyname].data.submitRegex){
-							matchDex[tourneyname].data.submitRegex = tourneyname;
+							if(pairCheck)
+								pairing = pairCheck[1];
+							if(toCheck)
+								TO = toCheck[1];
+							if(channelCheck)
+								channel = channelCheck[1];
+							if(rematchCheck)
+								rematch = rematchCheck[1];
+							if(runsCheck)
+								runLength = runsCheck[1];
+							if(setCheck)
+								set = setCheck[1];
+							if(subNameCheck)
+								subName = subNameCheck[1];
+							if(timeCheck)
+								pingtime = [parseInt(timeCheck[1]), timeCheck[2]];
+							if(crownCheck)
+								crownID = crownCheck[1]
+							if(regCheck)
+								reg = regCheck[1]
+							
+							if(!matchDex.hasOwnProperty(tourneyname)) {
+								matchDex[tourneyname] = {matches:[], players:{}, round:0, awaitingMatches:[], data:{}};
+								msg.channel.send("Tournament created!");			
+							}else{
+								msg.channel.send("Tournament edited.");
+							}
+							if(TO)
+								matchDex[tourneyname].data.TO = TO;
+							if(pairing)
+								matchDex[tourneyname].data.pairing = pairing;
+							if(channel)
+								matchDex[tourneyname].data.channel = channel;
+							if(rematch)
+								matchDex[tourneyname].data.rematch = parseInt(rematch);
+							if(runLength)
+								matchDex[tourneyname].data.runLength = parseInt(runLength);
+							if(set)
+								matchDex[tourneyname].data.set = set;								
+							if(subName)
+								matchDex[tourneyname].data.name = subName;
+							if(pingtime)
+								matchDex[tourneyname].data.time = pingtime;
+							if(crownID)
+								matchDex[tourneyname].data.crown = crownID;
+							if(reg) {
+								matchDex[tourneyname].data.submitRegex = reg;
+							}else if(!matchDex[tourneyname].data.submitRegex){
+								matchDex[tourneyname].data.submitRegex = tourneyname;
+							}
 						}
 						logMatch();
 						let matchString = '('
@@ -10478,7 +10552,7 @@ Client.on("message", (msg) => {
 			if(msg.content.match(/\$template ?pack/)) {
 				let links = "";
 				links += "[Basic M15 Pack](https://www.dropbox.com/s/tnuvawiqyvj107l/Magic%20Set%20Editor%202%20-%20M15%20Basic.zip?dl=0)\n";
-				links += "[Full M15 Pack](https://www.dropbox.com/s/4aupl48rez983i6/Magic%20Set%20Editor%202%20-%20M15%20Main.zip?dl=0\n";
+				links += "[Full M15 Pack](https://www.dropbox.com/s/4aupl48rez983i6/Magic%20Set%20Editor%202%20-%20M15%20Main.zip?dl=0)\n";
 				links += "[Full Magic Pack](https://www.dropbox.com/s/kz6gi2ruhtnhtgu/Magic%20Set%20Editor%20Full%20-%20Magic.zip?dl=0)\n";
 				links += "[Non-MTG Pack](https://www.dropbox.com/s/ibm2wtzayn6s6ty/Magic%20Set%20Editor%20Full%20-%20Other%20Styles.zip?dl=0)\n";
 				links += "[Font Pack](https://www.dropbox.com/s/u1vqnl0f3lplzh8/Font%20Pack.zip?dl=0)";				let embedded = new Discord.MessageEmbed()

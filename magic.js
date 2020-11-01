@@ -27,10 +27,11 @@ function unsymbolize(card) { //converts emotes and symbols to letters
 	return card;
 }
 function italPseudo(someText) { //italicizes pseudo abilities but not modals, anchors, Saga chapters, or harmony
-	let pseudoMatch = someText.match(/^([^\n—\*]+) —/);
-	if(pseudoMatch == null || pseudoMatch[1].match(/(Choose|Harmony|Forecast|Companion)/i) || pseudoMatch[1] == "I" || pseudoMatch[1].match(/I,/))
-		return someText;
-	return someText.replace(pseudoMatch[1], "*"+pseudoMatch[1]+"*")
+	return someText.replace(/^([^•\n—\*]+) —/gm, function(v) {
+		if(v.match(/(Choose|^Harmony|^Discovery|^Forecast|^Companion)/i) || v.match(/^[IV ,]+ —$/))
+			return v;
+		return "*" + v.replace(" —", "* —");
+	});
 }
 function writeCard(cardName,database,setDatabase,shortFlag, extra, version) { //turns card data into card string
 	let showCard = "";
@@ -197,9 +198,67 @@ function findReprints(thisCard, database) { //finds other versions
 	return reprintString;
 }
 
+function writeManaCost (symArray) {		//turns array into ordered array in mana symbol order
+	if(!Array.isArray(symArray)) { //if we got a string, arraify it
+		symArray = symArray.match(/[w|u|b|r|g|p|h|2]\/[w|u|b|r|g]|[w|u|b|r|g|c|s|x|y]|[0-9]{1,2}/ig)
+	}
+	let colorArray = [];
+	for(let symbol in symArray) {//first fix hybrids and capitalization and make colorArray
+		symArray[symbol] = symArray[symbol].toUpperCase()
+		let hybridArray = symArray[symbol].match(/([WUBRG])\/([WUBRG])/);
+		if(hybridArray) { //fix hybrids
+			let sorted = arrangeColors([hybridArray[1],hybridArray[2]]);
+			symArray[symbol] = sorted[0] + "/" + sorted[1];
+		}else{ //get colors
+			let colorMatch = symArray[symbol].match(/^[WUBRG]$/)
+			if(colorMatch && !colorArray.includes(symArray[symbol]))
+				colorArray.push(symArray[symbol])
+		}
+	}
+	let sortedColors = arrangeColors(colorArray); //get color order
+	symArray.sort(function(a,b) { //sort symbols
+		let result = (b == "X") - (a == "X");
+		if(result == 0)
+			result = (b == "Y") - (a == "Y");
+		if(result == 0)
+			result = Boolean(b.match(/^[0-9]+$/)) - Boolean(a.match(/^[0-9]+$/));
+		if(result == 0)
+			result = Boolean(a.match(/^[WUBRG]$/)) - Boolean(b.match(/^[WUBRG]$/));
+		if(result == 0)
+			result = sortedColors.indexOf(a) - sortedColors.indexOf(b);
+		return result;
+	});
+	return symArray;
+}
+function arrangeColors (colorArray) {		//converts array of colors to array in mana order
+	let testArray= [];
+	let refArray = ["W", "U", "B", "R", "G"];
+	let assembly = "";
+	while(testArray.length < colorArray.length) {
+		for(var i = 0; i < refArray.length; i++) {
+			if(colorArray.includes(refArray[i])) {
+				assembly += "1";
+				testArray.push(refArray[i]);
+			}else if(testArray.length != 0){
+				assembly += "0";
+			}
+			//break after two skips, two push+skip, or skip+two push
+			if(assembly.match(/(00|110|011)/)) {
+				refArray.push(refArray.splice(0,1)[0]) //shift
+				testArray = [];
+				i=-1; //and restart
+				assembly = "";
+			}
+		}
+	}
+	return testArray;
+}
 exports.symbolize = symbolize;
 exports.unsymbolize = unsymbolize;
 exports.italPseudo = italPseudo;
 exports.writeCard = writeCard;
 exports.writeCardError = writeCardError;
 exports.findReprints = findReprints;
+
+exports.writeManaCost = writeManaCost;
+exports.arrangeColors = arrangeColors;

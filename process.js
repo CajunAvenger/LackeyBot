@@ -6,8 +6,9 @@ var toolbox = require('./toolbox.js');
 const bye = "343475440083664896";
 var cards = require('./msem/cards.json');
 var archives = [
-	'gp_20_09_archive.json',
-	'league_20_09_archive.json'
+	'gp_20_10_archive.json',
+	'league_20_10_archive.json',
+	'tuc_20_10_archive.json'
 ];
 
 function extractPlain (cardString) { //converts HTML deck back to plain text
@@ -96,7 +97,7 @@ function searchInput(database,searchstring,needleWeight) {  //main search functi
 	return bestMatch[0];
 }
 function convertDeck(thisList){
-		fs.readFile("./decks"+thisList, "utf8", function read(err, data) {
+		fs.readFile("./decks"+thisList+".txt", "utf8", function read(err, data) {
 		if(!err) {
 			let deckString = extractPlain(data);
 			let splitDeck = deckString.split("Sideboard");
@@ -126,20 +127,23 @@ function convertDeck(thisList){
 					convertedList[cardName].sideCount += parseInt(card[1]);
 				}
 			}
-			fs.writeFile("./decks"+thisList.replace(".txt",".json"), JSON.stringify(convertedList), function read(err, data) {if (err) throw err});
+			fs.writeFile("./decks"+thisList+".json", JSON.stringify(convertedList), function read(err, data) {
+				if (err) throw err
+				console.log("./decks"+thisList+".json written")
+			});
+		}else{
+			console.log(err);
 		}
 	});
 }
-/*
-fs.readdir("tourneyArchives",function(err, array) {
-	processJsons(array);
-});
-*/
+
+
+
 function processJsons(archiveArray) {
 	console.log(archiveArray);
 	for(let archive in archiveArray) {
 		let thisArchive = require('./tourneyArchives/' + archiveArray[archive]);
-		let tourneyName = archiveArray[archive].match(/(league|gp)_[0-9][0-9]_[0-9][0-9]/);
+		let tourneyName = archiveArray[archive].match(/(league|gp|tuc)_[0-9][0-9]_[0-9][0-9]/);
 		archives[tourneyName[0]] = (thisArchive);
 	}
 	for(let archive in archives) {														//for each tournament in the archive...
@@ -162,3 +166,8 @@ function processJsons(archiveArray) {
 	}
 }
 processJsons(archives)
+/*
+fs.readdir("tourneyArchives",function(err, array) {
+	processJsons(array);
+});
+*/

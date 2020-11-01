@@ -47,33 +47,102 @@ function loadArchives(cb) { 											//reads the archived tournament files
 	});
 }
 function fixFiles(fixArray) { 											//update older/broken files
+	let fix = "files";
+	let replaces = gatherRenames();
 	for(let ar in fixArray){
-		let tourney = archiveArray[ar].replace(/\.json$/, "");
-		var archive = require('./tourneyArchives/'+tourney+'.json');
-		for(let match in archive.matches) {
-			for(let player in archive.matches[match].players) {
-				let thisPlayer = archive.matches[match].players[player];
-				if(thisPlayer.username == thisPlayer.list)
-					thisPlayer.list = `/${tourney}/${thisPlayer.username}.txt`
-				thisPlayer.list = thisPlayer.list.replace("_archive", "")
-			}
+		let tourney = fixArray[ar].replace(/\.json$/, "");
+		if(fix == "fields") {
+			var archive = require('./tourneyArchives/'+tourney+'.json');
+			//scripts go here
+			fs.writeFile('./tourneyArchives/'+tourney+'.json', JSON.stringify(archive), function(err) {
+				if(err)
+					throw err;
+				console.log(tourney + ' fixed');
+			});
+		}else if(fix == "files"){
+			fs.readFile('./tourneyArchives/'+tourney+'.json', 'utf8', function(err, data){
+				//scripts go here
+				for(let r in replaces) {
+					let swap = new RegExp(r, 'g');
+					data = data.replace(swap, replaces[r]);
+				}
+				fs.writeFile('./tourneyArchives/'+tourney+'.json', data, function(err) {
+					if(err)
+						throw err;
+					console.log(tourney + ' fixed');
+				});
+			});
 		}
-		for(let player in archive.players) {
-			if(archive.players[player].lists[0] == "")
-				archive.players[player].lists[0] = `/${tourney}/${archive.players[player].username}.txt`
-			for(let list in archive.players[player].lists){
-				archive.players[player].lists[list] = archive.players[player].lists[list].replace("_archive", "")
+	}
+	if(fix == "files") {
+		console.log(replaces)
+		fs.readFile('./statDex.json', 'utf8', function(err, data){
+			for(let r in replaces) {
+				let swap = new RegExp(r, 'g');
+				data = data.replace(swap, replaces[r]);
 			}
-		}
-		fs.writeFile('./tourneyArchives/'+tourney+'.json', JSON.stringify(archive), function(err) {
-			if(err)
-				throw err;
-			console.log(tourney + ' fixed');
+			fs.writeFile('./statDex.json', data, function(err) {
+				if(err)
+					throw err;
+				console.log('statDex fixed');
+			});
 		});
 	}
 }
+function gatherRenames() {												//search for cards that need renames
+	let replaceObj = { //replace old names with new ones
+		"Hallowed Dungeon_L": "Legacy Foundations_L",
+		"Mystic Spire_L": "Horizon of Origins_L",
+		"Hidden Hovel_L": "Deserted Trail_L",
+		"Valiant's Stronghold_L": "Imperial Barracks_L",
+		"Distant Domains_L": "Flourishing Waterways_L",
+		"Plaxolotl_KOD": "Plaxolotl Pyari_KOD"
+	}
+	for(let c in statDexPreBuilt.cards) { //find original prints
+		if(replaceObj[c])
+			continue;
+		let card = arcana.msem.cards[c];
+		let rename = "";
+		if(card.notes.includes("reprint")) {
+			for(let print in card.prints) {
+				let test = c.replace(/_[A-Z0-9_]+/, "_" + card.prints[print]);
+				if(arcana.msem.cards[test] && !arcana.msem.cards[test].notes.includes("reprint"))
+					rename = test;
+			}
+			if(!rename) { //we're on a reprint and it was originally printed somewhere weird
+				for(let c2 in arcana.msem.cards) {
+					if(arcana.msem.cards[c2].fullName == card.fullName && !arcana.msem.cards[c2].notes.includes("reprint")) {
+						rename = c2;
+						break;
+					}
+				}
+			}
+			if(!rename) { //everything is reprints or something went weird
+				console.log(`Reprint error at card ${c}`);
+			}else{
+				replaceObj[c] = rename;
+			}
+		}
+	}
+	return replaceObj;
+}
+function findFirstPrint(card) {											//gets first print of a card
+	if(card.fullName == "Endless Reverie")
+		return "Endless Reverie_ORP";
+	let hold = [999, ""];
+	let cardSets = arcana.msem.setData;
+	for(let p in card.prints) {
+		let setID = card.prints[p];
+		if(!cardSets[setID].reprint && parseInt(cardSets[setID].releaseNo) < hold[0]) {
+			hold = [cardSets[setID].releaseNo, setID]
+		}
+	}
+	return fuzzy.searchCards(arcana.msem, card.fullName + "_" + hold[1]);
+}
 function addMatchesToLists(dex) {										//adds matches to old decklists
 	for(let t in dex.tournaments){
+		if(!t.match(/20_10/))
+			continue;
 		let thisTourney = require(`./tourneyArchives/${t}_archive.json`);
 		for(let match in thisTourney.matches) {
 			for(let p in thisTourney.matches[match].players) {
@@ -110,7 +179,7 @@ function updateStatDex(dex, decksArray) { 								//builds a statDex from an arr
 	var archives = {};
 	for(let archive in decksArray) {
 		let thisArchive = require('./tourneyArchives/' + decksArray[archive]);
-		let tourneyName = decksArray[archive].match(/(league|gp)_[0-9][0-9]_[0-9][0-9]/);
+		let tourneyName = decksArray[archive].match(/(league|gp|tuc)_[0-9][0-9]_[0-9][0-9]/);
 		archives[tourneyName[0]] = (thisArchive);
 		dex.tournaments[tourneyName[0]] = [];
 	}
@@ -122,7 +191,6 @@ function updateStatDex(dex, decksArray) { 								//builds a statDex from an arr
 		for(let player in archives[archive].players) {											//for each player in the tournament...
 			if(player != bye){
 				for(let list in archives[archive].players[player].lists) {						//for each decklist of that player...
-					dex.global.decks++;
 					let wins = 0;
 					let losses = 0;
 					let draws = 0;
@@ -131,9 +199,9 @@ function updateStatDex(dex, decksArray) { 								//builds a statDex from an arr
 					let allMatches = [];
 					let thisList = archives[archive].players[player].lists[list]; 				//a decklist from the array
 					if(thisList == "")
-						thisList = "/" + archive + "/" + archives[archive].players[player].username + ".json";
+						thisList = "/" + archive + "/" + archives[archive].players[player].username;
 					thisList = thisList.replace("_archive", "");
-					thisList = thisList.replace(".txt", ".json"); //change file types from HTML to JSON lists
+					thisList = thisList.replace(".txt", ""); //change file types from HTML to JSON lists
 					let thoseMatches = archives[archive].players[player].matches[list];			//the set of matches for that run
 					for(let match in thoseMatches) {											//for each match that decklist was in...
 						dex.global.matches++;
@@ -151,7 +219,7 @@ function updateStatDex(dex, decksArray) { 								//builds a statDex from an arr
 					}//end of matches in a list
 					//convert the list, extract plain, feed list
 					try{
-						let convertedList = require("./decks"+thisList);
+						let convertedList = require("./decks"+thisList+".json");
 						for(let card in convertedList) {											//for each card in that decklist...
 							let cardName = addNewStatDexCard(dex, card);
 							dex.cards[cardName].mainCount += convertedList[card].mainCount;
@@ -173,6 +241,7 @@ function updateStatDex(dex, decksArray) { 								//builds a statDex from an arr
 							dex.players[player].wins = 0;
 							dex.players[player].losses = 0;
 							dex.players[player].matches = {};
+							dex.players[player].lists = [];
 						}
 						dex.players[player].wins += wins;
 						dex.players[player].losses += losses;
@@ -184,14 +253,15 @@ function updateStatDex(dex, decksArray) { 								//builds a statDex from an arr
 						}
 						if(!dex.players[player].lists.includes(thisList))
 							dex.players[player].lists.push(thisList);
-						toolbox.addIfNew(dex.decklists, thisList, {cards:convertedList, player:player, tournament:tourneyName[0]})
+						toolbox.addIfNew(dex.decklists, thisList, {cards:convertedList, player:player, tournament:archive})
+						if(archives[archive].players[player].rank)
+							dex.decklists[thisList].rank = archives[archive].players[player].rank;
 						if(!dex.tournaments[archive].includes(thisList))
 							dex.tournaments[archive].push(thisList);
-						
 					}catch(e){
-						/*console.log()
+						console.log(e)
 						console.log("Missing file at " + thisList)
-						console.log()*/
+						console.log()
 						continue;
 					}
 				}//end of lists in a player
@@ -210,7 +280,8 @@ function generateFilteredDex(filters) { 								//returns a smaller statDex foll
 }
 function addNewStatDexCard(dex, card) { 								//adds a new card to statDex
 	let statName = fuzzy.searchCards(arcana.msem, card)
-	
+	if(arcana.msem.cards[statName].notes.includes("reprint"))
+		statName = findFirstPrint(arcana.msem.cards[statName])
 	if(dex !== null && !dex.cards.hasOwnProperty(statName)) {
 		dex.cards[statName] = {};
 		dex.cards[statName].mainCount = 0;
@@ -365,6 +436,11 @@ function compileLeagueData(dex, archive) {								//compiles a league into one d
 function filteredWinRate(dex, card, filters) { 							//returns general card win rate
 	let refCard = dex.cards[card];
 	let results = {matches:0, wins:0, losses:0};
+	if(!refCard) {
+		console.log(card);
+		return;
+		return;
+	}
 	for(let tourney in refCard.matches) {
 		if(tourneyFilter(tourney, filters)){
 			if(tourneyFilter(tourney, filters)) {
@@ -844,7 +920,7 @@ function subtractWRs(base, resPre){										//subtracts two WR objects
 	return res;
 }
 function tourneyInfo(tourneyName) { 									//gives tourney type and truncated date number
-	let nameMatch = tourneyName.match(/(gp|league)_(\d+)_(\d+)/i);
+	let nameMatch = tourneyName.match(/(gp|league|tuc)_(\d+)_(\d+)/i);
 	if(nameMatch) {
 		let tour = nameMatch[1];
 		let date = nameMatch[2] + nameMatch[3];
@@ -1256,7 +1332,8 @@ function processFilters(dex, msg, bigData) {							//process filters into filter
 		return [{}, " without filters"];
 	let afFilter = input.match(/filter after:? ?(\d+)/i);
 	let befFilter = input.match(/filter before:? ?(\d+)/i);
-	let typeFilter = input.match(/filter type:? ?(gp|league)/i);
+	let typeFilter = input.match(/filter type:? ?(gp|league|tuc)/i);
+	let setFilter = input.match(/filter set:? ?([A-Z0-9_]+)/i);
 	let mirrorFilter = input.match(/filter: ?(no)?mirrors?/i);
 	if(befFilter) {
 		filters.before = parseInt(befFilter[1]);
@@ -1268,6 +1345,8 @@ function processFilters(dex, msg, bigData) {							//process filters into filter
 		filters.type = [typeFilter[1]];
 	if(mirrorFilter)
 		filters.mirror = true;
+	if(setFilter)
+		filters.set = setFilter[1];
 	if(filters.hasOwnProperty('after'))
 		message += " after " + datify(filters.after);
 	if(filters.hasOwnProperty('before'))
@@ -1276,6 +1355,8 @@ function processFilters(dex, msg, bigData) {							//process filters into filter
 		message += " in " + filters.type + " tournaments";
 	if(filters.hasOwnProperty('type'))
 		message += " in " + filters.type + " tournaments";
+	if(filters.hasOwnProperty('set'))
+		message += " in " + filters.set;
 	if(bigData) {
 		let playerFilter = toolbox.globalCapture(/filter out: ?([^ ]+)/, input);
 		if(playerFilter) {
@@ -1314,6 +1395,8 @@ function processCommands(msg, offline, admincheck) {					//processes commands fr
 	}
 	skipThese = function(cardName) {
 		let test = false;
+		if(filters.set && !cardBase[cardName].prints.includes(filters.set))
+			return true;
 		if(repFilter) {
 			if(!clearedCards.rep.includes(cardName))
 				return true;
@@ -1425,13 +1508,20 @@ function processCommands(msg, offline, admincheck) {					//processes commands fr
 			miniDex.sort(function(a, b) {
 				return dex.cards[b].price[0] - dex.cards[a].price[0];
 			});
-			let output = `Top 10 card prices\n`
-			for(i=0; i<100; i++) {
-				output += `${i+1}: ${dex.cards[miniDex[i]].price[0]} — ${miniDex[i]}\n`
+			let topN = grabTop(miniDex, input);
+			let output = `Top ${topN} card prices\n`
+			let hits = 0;
+			for(i=0; i<miniDex.length; i++) {
+				if(!skipThese(miniDex[i])) {
+					output += `${i+1}: ${dex.cards[miniDex[i]].price[0]} — ${miniDex[i]}\n`
+					hits++;
+					if(hits == topN)
+						break;
+				}
 			}
 			return output;
-		}else if(input.match(/cardPriceSet/i)){
-			let set = "101";
+		}else if(input.match(/cardPriceSet ?[?[A-Z0-9_]+/i)){
+			let set = input.match(/cardPriceSet ?\[?([A-Z0-9_]+)/i)[1].toUpperCase();
 			let rarities = {common: 0, uncommon:0, rare:0, "mythic rare":0, bonus:0}
 			let prices = {common: 0, uncommon:0, rare:0, "mythic rare":0, bonus:0}
 			for(let card in arcana.msem.cards) {
@@ -1445,15 +1535,32 @@ function processCommands(msg, offline, admincheck) {					//processes commands fr
 				}
 			}
 			//get average value of each rarity;
-			console.log(prices);
 			for(let r in prices)
 				prices[r] = prices[r]/rarities[r];
-			let ev = 10*prices.common;
-			ev += 3*prices.uncommon;
-			ev += 1*prices.bonus;
-			ev += 0.865*prices.rare;
-			ev += 0.135*prices["mythic rare"];
-			return ev;
+			let ev = 0;
+			if(set == "101") {
+				ev = 97*prices.rare + 4*prices["mythic rare"];
+			}else if(set == "DOA") {
+				ev = 15*prices.rare;
+			}else if(set == "WAW") {
+				ev = 10*prices.rare;
+				ev += 0.865*5*prices.common;
+				ev += 0.135*5*prices.uncommon;
+			}else if(set == "MAC" || set == "CAC" || set == "STN") {
+				ev = 10*prices.rare;
+			}else{
+				ev = 10*prices.common;
+				ev += 3*prices.uncommon;
+				if(prices.bonus)
+					ev += 1*prices.bonus;
+				if(prices["mythic rare"]) {
+					ev += 0.865*prices.rare;
+					ev += 0.135*prices["mythic rare"];
+				}else{
+					ev += prices.rare;
+				}
+			}
+			return `The EV for a pack of ${set} is $${ev.toFixed(2)}.`;
 		}
 	}
 	if(input.match(/cardWin/i)){						//winrates of a card
@@ -2062,10 +2169,10 @@ function cardPricer(dex, name, playrates) {
 	let medCardPlay = calcMedCount(playrates);
 	let card = arcana.msem.cards[name];
 	if(card.prints.length > 1) { //make sure we use the first print for pulling from statDex
-		name = name.replace(/_[A-Z0-9_]+$/, "_" + card.prints[0]);
+		name = findFirstPrint(card);
 	}
 	let thisSet = arcana.msem.setData[card.setID];
-	let eachSetData = determineAverageSetPlays(card);
+	let eachSetData = determineAverageSetPlays(card, avgSetPlay, avgSetCards);
 	let eachSetPlays = eachSetData[0];
 	let eachSetCards = eachSetData[1];
 	let wr = 0.2;																	//default wr for .7x multi for unplayed cards
@@ -2074,9 +2181,14 @@ function cardPricer(dex, name, playrates) {
 		wr = playrates[0][name].wr/100;												//card's decimal win rate
 		playCount = playrates[0][name].allCount;									//pure # of this card played
 	}
-	let pcMulti = Math.min(8, playCount/medCardPlay).toFixed(2);					//multiplier based on play rate vs median
+	let adjPC = playCount/medCardPlay;
+	if(adjPC < 1) {
+		let dif = 1 - adjPC;
+		adjPC += 0.5*dif
+	}
+	let pcMulti = Math.min(8, adjPC).toFixed(2);									//multiplier based on play rate vs median
 	let wrMulti = Math.pow(wr+0.7, 3).toFixed(2);									//multiplier based on win rate
-	let sprMulti = Math.pow(avgSetPlay / eachSetPlays, 1.2).toFixed(2);				//multiplier based on how opened the set was
+	let sprMulti = Math.max(0.33, Math.pow(avgSetPlay / eachSetPlays, 1.2)).toFixed(2);	//multiplier based on how opened the set was
 	let plbMulti = Math.max(0.9, avgSetCards / eachSetCards).toFixed(2);			//multiplier based on how playable the set was
 	let ageMulti = determineAge(thisSet.releaseDate);								//multiplier based on how old the set is
 	let rpMulti = determineReprints(card).toFixed(2);								//multiplier based on how reprinted the card is
@@ -2088,19 +2200,24 @@ function cardPricer(dex, name, playrates) {
 		finalCost = 0.01;
 	return [finalCost, base, pcMulti, wrMulti, gpMulti, sprMulti, plbMulti, ageMulti, rpMulti];
 }
-function determineAverageSetPlays(card) {	//calculate playability of sets its in
+function determineAverageSetPlays(card, avgSetPR, avgCardPR) {	//calculate playability of sets its in
 	let allcount = 0, uniques = 0, counted = 0;
 	for(let p in card.prints) {
-		if(arcana.msem.setData[card.prints[p]].priceSkip)
+		if(arcana.msem.setData[card.prints[p]].priceSkip || !arcana.msem.setData[card.prints[p]].counter)
 			continue;
-		allcount += arcana.msem.setData[card.prints[p]].counter[0];
-		uniques += arcana.msem.setData[card.prints[p]].counter[1];
+		allcount += Math.min(arcana.msem.setData[card.prints[p]].counter[0], 2*avgSetPR);
+		uniques += Math.min(arcana.msem.setData[card.prints[p]].counter[1], 2*avgCardPR);
 		counted++;
 		if(card.prints[p] == card.setID) { //count the given set twice for some weight
-			allcount += arcana.msem.setData[card.prints[p]].counter[0];
-			uniques += arcana.msem.setData[card.prints[p]].counter[1];
+			allcount += Math.min(arcana.msem.setData[card.prints[p]].counter[0], 2*avgSetPR);
+			uniques += Math.min(arcana.msem.setData[card.prints[p]].counter[1], 2*avgCardPR);
 			counted++;
 		}
+		/*if(card.prints[p].match(/^MS\d+$/)) { //halve MS scores cause they're so crazy opened
+			allcount -= 0.5*arcana.msem.setData[card.prints[p]].counter[0];
+			uniques -= 0.5*arcana.msem.setData[card.prints[p]].counter[1];
+			//counted -= 0.5;
+		}*/
 	}
 	let avgCount = allcount/counted
 	if(arcana.msem.setData[card.setID].counter && arcana.msem.setData[card.setID].counter[0] > avgCount)
@@ -2194,8 +2311,11 @@ function determineReprints(card) {
 		try{
 			let reprinted = arcana.msem.cards[card.fullName + "_" + card.prints[p]];
 			let dif = refValue - vals[reprinted.rarity];
-			if(dif > 0 && card.rarity != "masterpiece" && reprinted.rarity != "masterpiece") { //masterpiece reprints don't affect pricing
-				printVal += dif;
+			if(card.rarity != "masterpiece" && reprinted.rarity != "masterpiece") { //masterpiece reprints don't affect pricing
+				if(div > 0)
+					printVal += dif;
+				if(div < 0)
+					printVal *= 0.80
 				if(reprinted.setID.match(/^MS\d/))
 					printVal *= 1.5;
 				reprints += printVal;
@@ -2283,10 +2403,17 @@ function calcPlayCounts(dex) {		//add counts to each set
 		}
 	}
 }
-console.log(processCommands({content:"cardWin[Intrepid] filter:mirror", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5]))
+//fixFiles()
+console.log(processCommands({content:"cardPriceTop", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5]))
+processCommands({content:"stapleMakerPrint rep:2 min:25 filter after:2004", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
 //console.log(leagueFourOhs('league_20_08'))
 
 //let testDeck = statDexPreBuilt.decklists["/gp_20_08/cajun.json"].cards
 //testDeck = require('./decks/bluestest.json')
 //console.log(countColors(testDeck));
 //colorRipper(statDexPreBuilt, {}, skipThese)
+/*updateStatDex(statDexPreBuilt, ["gp_20_10_archive.json", "league_20_10_archive.json", "tuc_20_10_archive.json"])
+addMatchesToLists(statDexPreBuilt);
+fs.writeFile('./statDexTest.json', JSON.stringify(statDexPreBuilt), function(){
+	console.log("done");
+})*/

@@ -21,6 +21,17 @@
 	"masterpiece":false,
 	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
+"ALR":{
+	"longname":"Alara",
+	"Design":"Mako",
+	"Link":"https://drive.google.com/file/d/1fdJw5ct_T3XHocWT0Ozi5NnawBpozQjf/view?usp=sharing",
+	"releaseNo":"55",
+	"releaseDate":"2020-11-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+},
 "ATB":{
 	"longname":"Al Tabaq",
 	"Design":"CanterburyEgg",
@@ -316,6 +327,17 @@
 	"masterpiece":false,
 	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
+"SOU":{
+	"longname":"Scriptures of Urshad",
+	"Design":"Matt",
+	"Link":"https://drive.google.com/file/d/1VzN2U5MjKBKRHnj9_Kkl8MRWAgPn23Xl/view?usp=sharing",
+	"releaseNo":"56",
+	"releaseDate":"2020-11-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+},
 "SOR":{
 	"longname":"Spark of Revolution",
 	"Design":"WindyDelcarlo",
@@ -469,6 +491,7 @@
 	"basics":0,
 	"masterpiece":false,
 	"reprint":true,
+	"priceSkip": true,
 	"packSlots":[]},
 "L":{
 	"longname":"The Land Bundle",
@@ -488,6 +511,7 @@
 	"basics":0,
 	"masterpiece":false,
 	"reprint":true,
+	"priceSkip": true,
 	"packSlots":[]},
 "L3":{
 	"longname":"The Mana Pool 2",
@@ -498,6 +522,7 @@
 	"basics":0,
 	"masterpiece":false,
 	"reprint":true,
+	"priceSkip": true,
 	"packSlots":[]},
 "MS1":{
 	"longname":"MSEM Masters 2019",
@@ -530,6 +555,7 @@
 	"basics":0,
 	"masterpiece":false,
 	"reprint":true,
+	"priceSkip": true,
 	"packSlots":[]},
 "MPS_HI12":{
 	"longname":"Daisite Outlaws",
@@ -541,6 +567,7 @@
 	"basics":0,"mainSet":"HI12",
 	"masterpiece":false,
 	"reprint":true,
+	"priceSkip": true,
 	"packSlots":[]},
 "MPS_MIS":{
 	"longname":"Mious Divinities",
@@ -552,6 +579,7 @@
 	"basics":0,"mainSet":"MIS",
 	"masterpiece":false,
 	"reprint":true,
+	"priceSkip": true,
 	"packSlots":[]},
 "MPS_OPO":{
 	"longname":"Ophorio Sagas",
@@ -563,6 +591,7 @@
 	"basics":0,"mainSet":"OPH,ORP",
 	"masterpiece":false,
 	"reprint":true,
+	"priceSkip": true,
 	"packSlots":[]},
 "PLAY":{
 	"longname":"Playtest Cards",
@@ -573,6 +602,7 @@
 	"Draft":0,
 	"basics":0,
 	"masterpiece":false,
+	"priceSkip": true,
 	"packSlots":[]},
 "SHRINE":{
 	"longname":"From the Vault: Wayfarer's Shrine",
@@ -584,5 +614,6 @@
 	"basics":0,
 	"masterpiece":false,
 	"reprint":true,
+	"priceSkip": true,
 	"packSlots":[]}
 }

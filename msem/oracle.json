@@ -541,6 +541,7 @@
 	"Dragon Queen's Pupil": "Dragon Queen's Pupil's ability only checks the power of creatures as the ability resolves.",
 	"Viking Packleader": "Viking Packleader's ability only checks the power of creatures as the ability resolves.",
 	"Highlands Champion": "Highlands Champion's replacement effect only applies if it's on the battlefield. It can't save itself from being discarded.",
+	"Chains of Subdual": "This stops death triggers.",
 	
 	"Birth of Whispers": "The effects aren't optional.",
 	"Edith Waunt": "Edith doesn't lose loyalty and can't be attacked while she's not a planeswalker.",
@@ -566,7 +567,7 @@
 	"Rose of Fretport": "If Rose is the only permanent with the greatest converted mana cost among permanents, you won't be able to choose a permanent.",
 	
 	
-	"Azamir, Wayward Titan": "You can't activate Azamir's -3 unless you can target two nonland permanents.",
+	"Azamir, Wayward Titan": "Azamir doesn't care what Azamir planeswalker exiled the card. It can cast cards exiled by different Azamir, Wayward Titans, or other planeswalkers with the Azamir type.",
 	"Golden Company Tactics": "If you control a Soldier and a Knight, you'll get +1/+1 counters three times.",
 	"Icy Secrets": "Icy Secrets is not an Archive. If Icy Secrets leaves the battlefield, the cards it exiled will be stranded and you won't be able to draw them anymore.",
 	"Outsmart": "The number of cards both players have in their hands is checked while Outsmart is resolving.",
@@ -617,7 +618,7 @@
 	"Timid Thunderhorn": "The creature's power is checked as Timid Thunderhorn's ability resolves.",
 	"Duelist's Choice": "If Duelist's Choice equips a creature with menace, that creature can't be blocked.",
 	"Platinum Colossus": "This is checked after all PT modifications from layers have been applied.",
-	"Talent Pool": "Abilities that check what mana a land could produce will know what types Talent Pool can currently tap for based on the creatures you control.\n_ If the enchanted permanent’s mana cost is {2}{W}{U}, add {C}{C}{W}{U}. If its mana cost is {X}{G}, add {G}. If its mana cost is (W/U)(W/U), Talent Pool’s controller chooses whether to add {W}{W}, {W}{U}, or {U}{U}. The choice may be different each time the ability resolves.",
+	"Talent Pool": "Abilities that check what mana a land could produce will know what types Talent Pool can currently tap for based on the creatures you control.\n_ If the enchanted permanent's mana cost is {2}{W}{U}, add {C}{C}{W}{U}. If its mana cost is {X}{G}, add {G}. If its mana cost is (W/U)(W/U), Talent Pool's controller chooses whether to add {W}{W}, {W}{U}, or {U}{U}. The choice may be different each time the ability resolves.",
 	"Chi Lee of the Underworld": "If simultaneous combat damage causes Chi Lee to die and one of her Demons's ability to trigger, that trigger can target Chi Lee, as the trigger will not be put onto the stack until a player gains priority.",
 	"Glistening Chalice": "If you cast a nonartifact spell without paying its mana cost, the {1} tax from Glistening Chalice's second mode still needs to be paid.",
 	
@@ -625,7 +626,7 @@
 	"Throne of the West": "Throne of the West's last level doesn't cause you to regain control of any permanents that were stolen before it reached 5 progress.",
 
 	"Congruous Simulacrum": "You can't spend {C} to cast Congruous Simulacrum.",
-	"Iekin's Portal//Iekin, God of Wisdom": "If an effect says that an opponent wins the game, Iekin, God of Wisdom's effect doesn’t apply.\n_ If you somehow win the game and lose the game simultaneously (for example, having 0 life and ten poison counters while controlling Iekin), you lose the game.",
+	"Iekin's Portal//Iekin, God of Wisdom": "If an effect says that an opponent wins the game, Iekin, God of Wisdom's effect doesn't apply.\n_ If you somehow win the game and lose the game simultaneously (for example, having 0 life and ten poison counters while controlling Iekin), you lose the game.",
 	
 	"Consuming Knowledge": "If another player gains control of Consuming Knowledge after it is cast, they will not get the additional effect even if the bloodprice was paid.",
 	"Beckon the Shadows": "If another player gains control of Beckon the Shadows after it is cast, they will not get the additional effect even if the bloodprice was paid.",
@@ -637,13 +638,14 @@
 	"Root Dancer": "If a card is being affected by multiple replacement effects, the controller of the card chooses the order that the replacement effects are applied in.",
 	"Equilibrium Paladin": "This ability will affect the creature while it is entering the battlefield, so it will lose abilities such as 'This creature enters the battlefield tapped.' and 'As this creature enters the battlefield' abilites.",
 	"Rubble Tender": "The sacrifice isn't optional. If you can't sacrifice a land, you can still search.",
-	"Aerida’s Assistant": "You can pay 'Discard your hand' even if your hand has no cards in it.",
-	"Artist’s Vista": "Those players choose the color of mana.",
+	"Aerida's Assistant": "You can pay 'Discard your hand' even if your hand has no cards in it.",
+	"Artist's Vista": "Those players choose the color of mana.",
 
 	"Faradia, Honored Sovereign": "This cost is paid each time as attackers or blockers are declared.",
-	"Lazaire’s Conjuring": "You can choose any creature you control each time, whether or not it has been flickered by Lazaire’s Conjuring.",
+	"Lazaire's Conjuring": "You can choose any creature you control each time, whether or not it has been flickered by Lazaire's Conjuring.",
 	"Sporeflow Propagator": "A token copy of Sporeflow Propagator will cause its own ETB to trigger.",
-	"Parish Paragon": "If you conntrol two Parish Paragons and damage is dealt to one of them, the damage will really be dealt to that creature.\n_ If you control more than one Parish Paragon, all damage that would be dealt at once to other creatures you control is dealt to one of them of your choice, and the damage that would be dealt to that Parish Paragon is dealt to the second. Otherwise you can’t split the damage between them, and it's not dealt to each of them. The next time damage would be dealt to creatures you control, you may choose a different one of those Parish Paragon's to be dealt that damage.",
+	"Parish Paragon": "If you control more than one Parish Paragon, all damage that would be dealt at once to other creatures you control is dealt to one of them of your choice. The next time damage would be dealt to creatures you control, you may choose a different one of those Parish Paragon's to be dealt that damage.",
+	"Sporeflow Protector": "If both cards aren't exiled for some reason, you won't germinate.",
 	
 	"Grand Expeditions": "Grand Expeditions will count creatures that entered the battlefield before it did to check for the first creature.",
 	"Phantom Threader": "If there is nothing the token can enchant, it will not be created.",
@@ -667,13 +669,13 @@
 	"Amber Reserves": "This creates a land named Plains Island, Island Swamp, Swamp Mountain, Mountain Forest, Forest Plains, Plains Swamp, Island Mountain, Swamp Forest, Mountain Plains, or Forest Island.",
 	"Interplanar Raid": "If the creature that triggered Interplanar Raid has left the battlefield by the time the trigger resolves, Interplanar Raid will use the power that creature had as it left the battlefield.",
 	"Kilnsoul Adept": "Kilnsoul Adept will lose all its other creature types when it becomes a Dragon.",
-	"Possibility Engine": "If you have four or more differently named lands, play a card with Possibility Engine, and temporarily no longer have four or more differently named lands, you won’t be able to play another card with the same Possibility Engine that turn.",
+	"Possibility Engine": "If you have four or more differently named lands, play a card with Possibility Engine, and temporarily no longer have four or more differently named lands, you won't be able to play another card with the same Possibility Engine that turn.",
 	"Voliv Ritualist": "This creates a land named Plains Island, Island Swamp, Swamp Mountain, Mountain Forest, Forest Plains, Plains Swamp, Island Mountain, Swamp Forest, Mountain Plains, or Forest Island.",
 	"Planar Genesis": "This creates lands named Plains Island, Island Swamp, Swamp Mountain, Mountain Forest, Forest Plains, Plains Swamp, Island Mountain, Swamp Forest, Mountain Plains, and Forest Island.",
 	"Sowing Spring": "The name change is a text-changing effect.",
-	"Verdant Renewal": "An activated ability is a mana ability if it meets all of the following criteria: it doesn’t require a target, it could add mana to a player’s mana pool when it resolves, and it’s not a loyalty ability.\n_ A triggered ability is a mana ability if it meets all of the following criteria: it doesn’t require a target, it triggers from the resolution of an activated mana ability  or from mana being added to a player’s mana pool, and it could add mana to a player’s mana pool when it resolves.",
+	"Verdant Renewal": "An activated ability is a mana ability if it meets all of the following criteria: it doesn't require a target, it could add mana to a player's mana pool when it resolves, and it's not a loyalty ability.\n_ A triggered ability is a mana ability if it meets all of the following criteria: it doesn't require a target, it triggers from the resolution of an activated mana ability  or from mana being added to a player's mana pool, and it could add mana to a player's mana pool when it resolves.",
 	"Worldshaping": "This creates a land named Plains Island, Island Swamp, Swamp Mountain, Mountain Forest, Forest Plains, Plains Swamp, Island Mountain, Swamp Forest, Mountain Plains, or Forest Island.",
-	"Aether Road Caravan": "If Aether Road Caravan isn’t on the battlefield when the ability resolves, you’ll never gain control of the permanent.",
+	"Aether Road Caravan": "If Aether Road Caravan isn't on the battlefield when the ability resolves, you'll never gain control of the permanent.",
 	"Blossoming Inspiration": "When those Aura tokens enter the battlefield, attach them to anything they can enchant. This is able to bypass hexproof. If there is nothing the token can enchant, it will not be created.",
 	"Caldera Crawlers": "This is a mana ability.",
 	"Iknan, the Last Gildmane": "Iknan can be either target for the activated ability.",
@@ -685,11 +687,10 @@
 	"Shifting Morass": "This creates a land named Plains Swamp, Island Swamp, Swamp Mountain, or Swamp Forest.",
 	"Urban Plaza": "You can spend this mana to cast face down spells.",
 
-	"Align the Astrolabe": "This is rounded down. If Align the Astrolabe has two counters, you won’t create any Construsts, if it has five counters, you’ll create one, and so on.",
-	"Artistic Vision": "This triggers on your first spell that’s an artifact or an enchantment. If you cast an artifact and an enchantment, it will only trigger once.\n_ Artisitc Vision will check the whole turn for the spells you have cast, so if you cast Artistic Vision this turn, it won’t trigger.",
-	"Mastery of the Veil": "This is an additional cost. You’ll still pay it if you cast the spell without paying it’s mana cost.",
+	"Align the Astrolabe": "This is rounded down. If Align the Astrolabe has two counters, you won't create any Construsts, if it has five counters, you'll create one, and so on.",
+	"Artistic Vision": "This triggers on your first spell that's an artifact or an enchantment. If you cast an artifact and an enchantment, it will only trigger once.\n_ Artisitc Vision will check the whole turn for the spells you have cast, so if you cast Artistic Vision this turn, it won't trigger.",
 	"Reclamation Grovesculptor" :"The growth counter only serves as a reminder. If it is removed, the the permanent remains a Forest.",
-	"Exuberant Inventor": "The additional end step occurs before the cleanup step, so damage won’t wear off, ’until end of turn’ and ’this turn’ effects won’t end, and players won’t discard down to their maximum handsize between the end steps.",
+	"Exuberant Inventor": "The additional end step occurs before the cleanup step, so damage won't wear off, 'until end of turn' and 'this turn' effects won't end, and players won't discard down to their maximum handsize between the end steps.",
 	"Arcane Chronometer": "This includes mana abilities of artifacts.",
 	"Secret Thief": "If an opponent or permanent is chosen multiple times as a target for a single spell or ability, (for example, an escalated Isolation), the sabotage ability will only trigger once for that player or permanent. If different opponents or permanents are being targeted, the sabotage ability will trigger for each one.",
 	"Ambitious Necromancer": "If an opponent or permanent is chosen multiple times as a target for a single spell or ability, (for example, an escalated Isolation), the sabotage ability will only trigger once for that player or permanent. If different opponents or permanents are being targeted, the sabotage ability will trigger for each one.",
@@ -710,12 +711,13 @@
 	"Cross Boundaries": "Cross Boundaries only considers the greatest number of lands you control with the same name. If you control four lands each with a different name, it will only deal 1 damage.",
 	"Ephemeral Adept": "Substantiate is not an alternate mana cost, so you will be able to pay any alternate mana costs of that spell.",
 
-	"Singer of Calamities": "If you target an Aura this way, it will be put into its owner’s graveyard as a state-based effect once Singer of Calamities’ ability has worn off.",
+	"Singer of Calamities": "If you target an Aura this way, it will be put into its owner's graveyard as a state-based effect once Singer of Calamities' ability has worn off.",
 	"Forager's Lore": "If there is exactly one card in your hand and graveyard when you attempt to reappropriate, you will not exile any cards and the second ability will not trigger.",
 	"Makias, Marked Marauder": "You do any one of the four things. Makias doesn't care what you're paying with, as long as it's something.",
+	"Supply Run": "A creature doesn't count as unblocked (or wasn't blocked) until after blockers have been declared.\n• Supply Run will still be discounted if the unblocked creature has died before you cast it.",
 	
 	"Howling Alpha": "Other creatures you control can still be sacrificed, and have to be if you must sacrifice a creature.",
-	"Strategizing": "Strategizing’s first mode doesn’t target any permanent or player. You choose a source of damage as it resolves.",
+	"Strategizing": "Strategizing's first mode doesn't target any permanent or player. You choose a source of damage as it resolves.",
 	"Fighter's Arena": "This effect applies to each type of token created. For example, Celestial Army says \"Create three 1/1 white Soldier creature tokens, two 2/2 white Knight creature tokens with vigilance, and a 4/4 white Angel creature token with flying.\" If you control Fighter's Arena when it resolves, you will create four Soldiers, three Knights, and two Angels.",
 	
 	"Aureate Panorama": "Aureate Panorama can fetch a land that has an ability that, if it resolved at this moment, could add mana of any color, or has one or more abilities that collectively add all five colors of mana. Do not consider any restrictions on the use of the mana or the activation of the ability, but do consider any replacement effects that would apply to that mana.\n_ The ability that adds mana does not have to be a mana ability. For example, Crumbling Vestige and Art Studio can be fetched.\n_ If a land's ability depends on a choice that hasn't been made yet, such as Desert Palace or Nebula of Empty Gold, it can't be fetched.\n_ The ability considers the board state during the resolution of the fetch. For example, you can only fetch Chroma, the Faerie Circle during an opponent's turn, or Leyline Alignment Field while you have cards of all five colors in your graveyard, and you will be unable to find any lands if a Rylei Wakebreaker is on the battlefield.\n_ Remember that the ability is checked while the card is still in your library. You won't be able to find a basic Forest even if you control Chromatic Lantern, and you won't be able to find anything if The Erased is on the battlefield.\n_ Lands that provide access to five colors without explicitly adding mana, such as \"Target land gains all basic land types,\" \"{C} can be spent as though it were mana of any color,\" lands that create Treasure tokens, etc. can't be fetched.",

@@ -96,6 +96,18 @@ function spliceArray(info){ 									//i always forget how to use Array.splice()
 	return array;
 
 }
+function clearElements(array, elArray) {						//removes all instances of given elements from array
+	if(typeof elArray == "string" || typeof elArray == "number")
+		elArray = [elArray];
+	if(!Array.isArray(elArray))
+		return array;
+	let newArray = [];
+	for(let e in array) {
+		if(!elArray.includes(array[e]))
+			newArray.push(array[e]);
+	}
+	return newArray;
+}
 function addIfNew(obj, field, init){ 							//adds field to object but only if its doesn't have it yet
 	if(!obj.hasOwnProperty(field))
 		return obj[field] = init;
@@ -108,6 +120,34 @@ function avgArray(array) { 										//returns the average value of an array of 
 		return parseInt(a)+parseInt(b);
 	});
 	return sum / array.length;
+}
+function maxArray (thisArray, iterations) {						//get the N highest values of a given array
+	var maxedArray = [];
+	thisArray.sort(function(a, b) {
+		return b - a;
+	});
+	for(var i = 0; i < iterations; i++)
+		maxedArray.push(thisArray[i]);
+	return maxedArray;
+}
+function minArray (thisArray, iterations) {						//get the N lowest values of a given array
+	var minedArray = [];
+	thisArray.sort(function(a, b) {
+		return a - b;
+	});
+	for(var i = 0; i < iterations; i++)
+		minedArray.push(thisArray[i]);
+	return minedArray;
+}
+function lastIndex(array) {										//returns last index of an array
+	if(!Array.isArray(array) || !array.length)
+		return undefined;
+	return array.length-1;
+}
+function lastElement(array) {									//returns last element of an array
+	if(!Array.isArray(array) || !array.length)
+		return undefined;
+	return array[array.length-1];
 }
 //helpful functions
 function xor(a, b) { 											//exclusive or, returns true or false
@@ -143,6 +183,9 @@ function timeSince(startTime) { 								//get milliseconds from now to given tim
 function setTheDate (splitter) {								//creates a YY.MM.DD format with a given divider
 	let the_time = new Date();
 	return the_time.getYear()-100 + splitter + (the_time.getMonth() < 10 ? "0" + the_time.getMonth() : the_time.getMonth()) + splitter + (the_time.getDate() < 10 ? "0" + the_time.getDate() : the_time.getDate());
+}
+function nextSquare(num) {										//increase number to the next power of 2
+	return Math.pow(2, Math.ceil(Math.log2(num)));
 }
 //formatting text
 function arrayTheDate (the_time) { 								//creates a [YY,MM,DD,HH,MM]] array
@@ -388,33 +431,42 @@ function convertBases(digit, currentBase, newBase){ 			//converts from any base 
 }
 
 
-
-
 exports.isReal = isReal;
 exports.hasValue = hasValue;
-exports.convertNumbers = convertNumbers;
-exports.arrayTheDate = arrayTheDate;
-exports.toTitleCase = toTitleCase;
-exports.globalCapture = globalCapture;
 exports.arrayDuplicates = arrayDuplicates;
-exports.shuffle = shuffleArray;
 exports.reassignIndex = reassignIndex;
-exports.ordinalize = ordinalize;
 exports.escapify = escapify;
-exports.fillLength = fillLength;
-exports.dateToNumber = dateToNumber;
+exports.globalCapture = globalCapture;
+exports.cloneObj = cloneObj;
+exports.objSort = objSort;
+exports.spliceArray = spliceArray;
+exports.addIfNew = addIfNew;
+exports.avgArray = avgArray;
+exports.maxArray = maxArray;
+exports.minArray = minArray;
+exports.lastIndex = lastIndex;
+exports.lastElement = lastElement;
+
 exports.xor = xor;
 exports.rand = rand;
+exports.shuffle = shuffleArray;
+exports.timeSince = timeSince;
+exports.setTheDate = setTheDate;
+exports.nextSquare = nextSquare;
+
+exports.arrayTheDate = arrayTheDate;
+exports.dateToNumber = dateToNumber;
+exports.toTitleCase = toTitleCase;
+exports.fillLength = fillLength;
+exports.stripEmoji = stripEmoji;
+exports.ordinalize = ordinalize;
+exports.writeIndexes = writeIndexes;
+
+exports.convertNumbers = convertNumbers;
 exports.digiDecimal = digiDecimal;
 exports.digiAlpha = digiAlpha;
 exports.convertDecimal = convertDecimal;
 exports.convertBases = convertBases;
-exports.timeSince = timeSince;
-exports.cloneObj = cloneObj;
-exports.spliceArray = spliceArray;
-exports.avgArray = avgArray;
-exports.addIfNew = addIfNew;
-exports.stripEmoji = stripEmoji;
 
 function test() {
 	console.log(convertBases("jxn", 26, 10))

@@ -11,7 +11,7 @@ const request = require("request");
 const app = express();
 const port = process.env.PORT || 4000;
 const token = process.env.TOKEN;
-const commandNo = 40;
+const mod_magic = require('./magic.js');
 
 var cards = {};
 var instData = {};
@@ -45,8 +45,10 @@ function msecardsStitcher(channel) { //adds newcards.json to msecards.json and s
 	tempSetsArray["MSEMAR"] = {cards:[], promos:[], tokens:[]}; //add MSEMAR to tempSets
 	for(let thisCard in cards) //add cards, promo, and token arrays to tempSets
 		nameStitcher(cards, thisCard);
-	for(let thisCard in newcards)
+	for(let thisCard in newcards) {
+		colorFixer(thisCard);
 		nameStitcher(newcards, thisCard);
+	}
 	for(let thisSet in tempSetsArray) { //for each set, write the normal cards in order
 		if(tempSetsArray[thisSet].cards != []) {
 			writtenCards = rebuildCards(tempcards, tempSetsArray[thisSet].cards);
@@ -74,6 +76,36 @@ function msecardsStitcher(channel) { //adds newcards.json to msecards.json and s
 	console.log(changelog);
 	return tempcards
 }
+function colorFixer(card) {				//adds colors to 3+c cards since MSE has trouble with them
+	if(newcards[card].color == "" && newcards[card].manaCost.match(/\}\{/i)) {
+		let colors = [];
+		if(newcards[card].manaCost.match(/W/))
+			colors.push("W");
+		if(newcards[card].manaCost.match(/U/))
+			colors.push("U");
+		if(newcards[card].manaCost.match(/B/))
+			colors.push("B");
+		if(newcards[card].manaCost.match(/R/))
+			colors.push("R");
+		if(newcards[card].manaCost.match(/G/))
+			colors.push("G");
+		let order = mod_magic.arrangeColors(colors);
+		if(!order.length)
+			return;
+		let longs = {
+			W: "White",
+			U: "Blue",
+			B: "Black",
+			R: "Red",
+			G: "Green"
+		}
+		let out = "{";
+		for(let c in order)
+			out += longs[order[c]] + "/";
+		out = out.replace(/\/$/, "} ");
+		newcards[card].color = out;
+	}
+}
 function addPrints(cardObj) {
 	let refObj = {};
 	let countObj = {};
@@ -92,7 +124,8 @@ function addPrints(cardObj) {
 			refObj[thisName].firstNo = parseInt(cardsSets[cardObj[card].setID].releaseNo);
 			refObj[thisName].firstPrint = card;	
 		}
-		
+		if(thisName == "Endless Reverie")
+			refObj[thisName].firstPrint = "Endless Reverie_ORP";
 		if(!countObj.hasOwnProperty(cardObj[card].setID))
 			countObj[cardObj[card].setID] = {};
 		if(!countObj[cardObj[card].setID].hasOwnProperty(cardObj[card].cardID)) {
@@ -179,7 +212,9 @@ function nameStitcher (database, thisCard) { //creates arrays of card, promo, an
 function majorChange(name) { //checks if a card change is likely to have affected other cards
 	let oldCard = cards[name];
 	let newCard = newcards[name];
-	if(oldCard.ruleText != newCard.ruleText)
+	if(!oldCard)
+		return false; //first printing
+	if(oldCard.rulesText != newCard.rulesText)
 		return true; //rulestext change
 	if(oldCard.typeLine != newCard.typeLine)
 		return true; //type change

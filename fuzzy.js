@@ -254,6 +254,90 @@ function searchCards(library,searchstring,needleWeight) {  //main search functio
 	}
 	return bestMatch[0];
 }
+function newSearchCards(library,searchstring,needleWeight) {  //main search function
+	let database = library.cards;
+	searchstring = searchstring.replace(/[[\]<>]/g,"");
+	searchstring = searchstring.replace(/ \/\/ /g,"//");
+	let bestMatch = ["no", 2];
+	let splitString = searchstring.match(/^([^_|]*)_?([A-Z0-9_]+)?\|?([^\n]+)?/i); 	//check for set codes and scryfall filters
+	splitString[1] = anglicizeLetters(splitString[1]).replace(/-/g," ");			//convert unusual characters into friendly ones
+	if(splitString[2])
+		splitString[2] = splitString[2].toUpperCase();
+	if(library.nicks.hasOwnProperty(splitString[1].toLowerCase()))					//replace nicknames with card names
+		splitString[1] = library.nicks[splitString[1].toLowerCase()];
+	if(database.hasOwnProperty(splitString[1])) { 									//if there is an exact match, it sends that
+		if(database[splitString[1]].versions.hasOwnProperty(splitString[2]))
+			return [splitString[1], splitString[2]];
+		return [splitString[1], database[splitString[1]].prints[0]];
+	}
+	if(splitString[3]) 																//save Scryfall function here so we only generate it once.
+		var scryFilter = stitchScryCode(splitString[3], library);
+	let startTime = new Date().getTime();											//save time to timeout nasty scrysearches
+	for(let entry in database) {													//then check each card
+		var needlescore = 0;														//score for the search
+		let timeSince = 0, narrowedFlag = false;
+		for(let f in database[entry].faces) {										//first check for exact names
+			let name = database[entry].faces[f].cardName;
+			let commaMatch = false;
+			let legendName = name.match(/^([A-Za-z0-9']+)(,)?/i);					//and legendary names
+			if(legendName) {
+				commaMatch = (legendName[2] == ",") //only check noncreature/walkers for this if they have a comma in their name to avoid matching like "Storm the Vault" for "Storm"
+				legendName = legendName[1]; //first word of a legendary's name
+			}
+			//if the search string exactly/i matches a name or legend name
+			if(name.toLowerCase() === searchstring.toLowerCase() || (database[entry].typeLine.match(/Legendary/) && (commaMatch || database[entry].typeLine.match(/(Creature|Planeswalker)/)) && legendName && legendName.toLowerCase() === searchstring.toLowerCase()))
+				narrowedFlag = true;
+		}
+
+		if(narrowedFlag) { 																			//if this is a printing
+			if(!splitString[2]){																		//and doesn't check for sets			
+				return [entry, database[splitString[1]].prints[0]];											//send the first
+			}else if(splitString[2] && database[entry].versions.hasOwnProperty(splitString[2])) {		//and it has the right set
+				return [entry, splitString[2]];																//send it
+			}else{																						//and has the wrong set
+				needlescore += 2;																			//bump our score cause it's likely right
+			}
+		}
+		if(splitString[3]) {																		//if we're scry searching
+			startTime = new Date().getTime();														//watch for timeouts
+			if(!scryFilter(database[entry]))														//if it don't match the filter, skip
+				continue;
+			timeSince = toolbox.timeSince(startTime);
+			needlescore += 2;																		//if we match, up the score
+		}
+		if(splitString[2]) {																		//up score for called set
+			if(database[entry].versions.hasOwnProperty(splitString[2].toUpperCase()))					//if the sets match
+				needlescore += 4;
+			if(splitString[2].match(/PRO/i) && entry.match(/_PRO/)) {									//if promo matches
+				needlescore += 4;
+			}else if(splitString[2].match(/TKN/i) && entry.match(/_TKN/)) {								//or if token matches
+				needlescore += 4;
+			}
+		}
+		if(splitString[1].match(/\.$/) && database[entry].rarity == "special") 						//check for promo dot
+			needlescore += 1;
+		if(needleWeight)
+			needlescore += needleWeight(database[entry]);											//evaluate a passed needleWeight function;
+		let name = anglicizeLetters(entry).replace(/-/g," ");											//convert unusual letters into friendly ones
+		let i = 3 + needlescore;																	//score for filter-only queries
+		let names = [name];
+		if(database[entry].hasOwnProperty('hidden'))												//TODO uhhhhhhhh
+			names.push(database[entry].hidden);
+		if(database[entry].hasOwnProperty('alias'))
+			names.push(database[entry].alias);
+		for(let aName in names) {
+			if(!(splitString[3] && !splitString[1]))												//if not only a filter, fuzzy search
+				i = fuzzySearch(splitString[1],names[aName],needlescore);
+			if(i>bestMatch[1]) {
+				bestMatch=[entry,i]; //whenever a better score is found, score and card name are recorded
+			}
+		}
+		if(splitString[3] && timeSince >= 2000) {// if it takes 2+ seconds to run any card
+			return bestMatch[0]; //time out
+		}
+	}
+	return bestMatch[0];
+}
 function searchPack(pack,searchstring) { //pack search function
 	pack = draft.packs[pack].cards
 	if(pack.hasOwnProperty(searchstring))
@@ -770,6 +854,13 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 		if(matchCheck.match(/useless/i)) { //is:useless island
 			return function(card) {
 				if(card.cardName.match("Island") && card.setID.match("XLN"))
+					return true;
+				return false;
+			};
+		}
+		if(matchCheck.match(/scuttleback/i)) { //is:scuttleback
+			return function(card) {
+				if(card.typeLine.match(/\b(Crab|Fish|Jellyfish|Kraken|Leviathan|Merfolk|Nautilus|Octopus|Oyster|Pirate|Seal|Serpent|Sponge|Squid|Starfish|Trilobite|Turtle|Whale|Island)\b/))
 					return true;
 				return false;
 			};
