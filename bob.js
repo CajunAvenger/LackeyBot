@@ -35,7 +35,7 @@ exports.lackeyColorCondenser = lackeyColorCondenser;
 
 
 function allcardsBuilder () { //builds the Lackey allcards file
-	let allcards = "Name	Set	ImageFile	Color	Cost	ConvertedCost	Type	Power	Toughness	Rarity	Note	Script	Text\r\n";
+	let allcards = "Name	Set	ImageFile	Color	Cost	ConvertedCost	Type	Power	Toughness	Rarity	Note	Script	Text	PackStuff\r\n";
 	for(let card in cards) {
 		if(cards[card].setID != "BOT" && !legal.masterpiece.includes(cards[card].fullName)) {
 			if(cards[card].setID == "tokens") {
@@ -53,7 +53,7 @@ function allcardsBuilder () { //builds the Lackey allcards file
 				allcards += "	" + cards[card].toughness;
 				allcards += "	T		" + setupScripts(cards[card]);
 				allcards += "	" + lackeyTextConverter(cards[card].rulesText);
-				allcards += "\r\n";
+				allcards += "	\r\n";
 			}else{
 				allcards += lackeyBaseWriter(cards[card]);
 			}
@@ -119,7 +119,7 @@ function tokenName(card) { //generates a token's name
 			if(tokenColor == "WR")
 				tokenColor = "red and white ";
 			if(tokenColor == "UG")
-				tokenColor = "blue and green ";
+				tokenColor = "green and blue ";
 			if(tokenColor == "W")
 				tokenColor = "white ";
 			if(tokenColor == "U")
@@ -145,6 +145,10 @@ function tokenName(card) { //generates a token's name
 		tokenName = "1/1 Scout WAY";
 	if(tokenName == "1/1 colorless Scout MS2")
 		tokenName = "1/1 Scout MS2";
+	if(tokenName == "1/1 colorless Scout MPS_MSE")
+		tokenName = "1/1 Scout MPS_MSE";
+	if(tokenName == "8/8 colorless Elemental ALR")
+		tokenName = "8/8 Elemental ALR";
 	return tokenName;
 }
 function pullTokenSet(card, setbase) { //determines what set a token belongs to
@@ -182,8 +186,11 @@ function lackeyBaseWriter(card) { //writes a standard card entry
 	usedNames.push(testName);
 	thisEntry += "	" + card.setID;
 	thisEntry += "	" + card.cardID;
-	if(card.shape == "doubleface")
+	if(card.shape == "doubleface") {
 		thisEntry += "a," + card.cardID + "b";
+	}else if(card.notes == "non-English"){
+		thisEntry += "," + card.cardID + "b"
+	}
 	thisEntry += "	" + lackeyColorCondenser(card.color);
 	if(card.shape == "split")
 		thisEntry += " // " + lackeyColorCondenser(card.color2);
@@ -203,14 +210,21 @@ function lackeyBaseWriter(card) { //writes a standard card entry
 		thisEntry += card.toughness;
 	}
 	thisEntry += "	" + lackeyRarityCondenser(card) + "	";
+	let banhistory = "";
 	if(legal.modernBan.includes(card.fullName) || card.typeLine.match(/Conspiracy/))
-		thisEntry += "Banned";
+		banhistory += "Banned";
+	if(legal.edhBan.includes(card.fullName)) {
+		if(banhistory != "")
+			banhistory += ", "
+		banhistory += "EDH Banned";
+	}
+	thisEntry += banhistory;
 	thisEntry += "	";
 	thisEntry += setupScripts(card);
 	thisEntry += "	" + lackeyTextConverter(card.rulesText);
 	if(card.shape == "split")
 		thisEntry += " // " + lackeyTextConverter(card.rulesText2);
-	if(card.shape == "doubleface") {
+	if(card.shape == "doubleface" || card.shape == "adventure") {
 		thisEntry += " ----- ";
 		thisEntry += card.cardName2 + "|"  + card.typeLine2;
 		if(card.typeLine2.match("Planeswalker"))
@@ -219,6 +233,9 @@ function lackeyBaseWriter(card) { //writes a standard card entry
 			thisEntry += " [" + card.power2 + "/" + card.toughness2 + "] ";
 		thisEntry += lackeyTextConverter(card.rulesText2);
 	}
+	thisEntry += "	"; //add packstuff
+	if(card.notes.includes("reprint"))
+		thisEntry += "reprint,"
 	thisEntry += "\r\n";
 	return thisEntry;
 }
@@ -314,7 +331,7 @@ function setupScripts (card){ //handles the script building
 		}
 	}else{
 		initScript += automagicalScripts(card,card.rulesText);
-		if(card.shape == "doubleface") {
+		if(card.shape == "doubleface" || card.shape == "adventure") {
 			if(card.typeLine2.match("Planeswalker")) {
 				initScript += "<s><l>Ascend</l><f>/cf;/ccgreen=" + card.loyalty2 + "</f></s>";
 				var breakMatch2 = card.rulesText2.match(/[^\n]*\n/g);
@@ -509,6 +526,14 @@ function automagicalScripts (card, textBox) { //generates scripts from card text
 	var exileMatch = textBox.match(/(play|cast) [^\n.]+ (from exile|exiled)/);
 	if(exileMatch)
 		scripts += "<s><l>Cast from Exile reminder</l><f>/spawn Can Be Cast From Exile</f></s>";
+	//MSEMAR Archive
+	var archMatch = textBox.match(/Archive \d/);
+	if(archMatch)
+		scripts += "<s><l>Additional library reminder</l><f>/spawn Additional Library</f></s>";
+	//MSEMAR Research
+	var archMatch = textBox.match(/Eureka \d/);
+	if(archMatch)
+		scripts += "<s><l>Research counter</l><f>/spawn Research Counter</f></s>";
 	//Glory
 	var gloryMatch = textBox.match(/glory counter/);
 	if(gloryMatch)

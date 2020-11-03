@@ -2404,8 +2404,8 @@ function calcPlayCounts(dex) {		//add counts to each set
 	}
 }
 //fixFiles()
-console.log(processCommands({content:"cardPriceTop", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5]))
-processCommands({content:"stapleMakerPrint rep:2 min:25 filter after:2004", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
+//console.log(processCommands({content:"cardPriceTop", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5]))
+//processCommands({content:"stapleMakerPrint rep:2 min:25 filter after:2004", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
 //console.log(leagueFourOhs('league_20_08'))
 
 //let testDeck = statDexPreBuilt.decklists["/gp_20_08/cajun.json"].cards

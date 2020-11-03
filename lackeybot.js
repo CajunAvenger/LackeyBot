@@ -4447,6 +4447,8 @@ function mtgjsonBuilder (thisSet, user, skip, library) {	//builds an mtgjson fil
 	//goal is object of unkeyed objects, ie {{stuff},{stuff},{stuff}}
 	let database = library.cards
 	for(let thisCard in database) {
+		if(thisCard == "Performer of Desire//Pyrus, the Undying Flame (Japanese)_FLP")
+			yeet(database[thisCard].setID);
 		if(database[thisCard].setID != "BOT") {
 			if(legal.masterpiece.includes(database[thisCard].fullName)) {
 				//skip masterpieces
@@ -4543,6 +4545,8 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 			thisEntry.names = [thisEntry.name, thisEntry.name.replace(thisCard.cardName, thisCard.cardName2)];
 		if(thisCard.shape == "doubleface") { //|| thisCard.shape == "split") { //instigatorchange
 			thisEntry.number = thisCard.cardID + "a";
+			if(skip && thisCard.setID == "FLP")
+				thisEntry.number = thisCard.cardID + "sa";
 		}else{
 			thisEntry.number = thisCard.cardID;
 		}
@@ -4624,6 +4628,8 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 			two_names.push(thisEntry.name)
 			thisEntry.names = two_names;
 			thisEntry.number = thisCard.cardID + "b";
+			if(skip && thisCard.setID == "FLP")
+				thisEntry.number = thisCard.cardID + "sb";
 			if(thisCard.shape == "split") //instigatorchange
 				thisEntry.number = thisCard.cardID;
 			if(skip)
@@ -8282,7 +8288,7 @@ async function channelHelpPoster(id, helpMsg, now) {
 	if(!now)
 		now = new Date().getTime();
 	let channel = Client.channels.cache.get(id);
-	let lastTen = await channel.messages.fetch({limit:10});
+	let lastTen = await channel.messages.fetch({limit:50});
 	let post = true;
 	let timeCheck = now - (10*60*1000); //ten minutes ago
 	//don't post if post in the last ten minutes
@@ -8498,7 +8504,7 @@ Client.on("message", (msg) => {
 						let timeCheck = msg.content.match(/pingtime: (\d+) ([^\n]+)/i);
 						let crownCheck = msg.content.match(/crown: (\d+)/i);
 						let regCheck = msg.content.match(/regex: ([^\n]+)/i);
-						let delCheck = msg.content.match(/delete: ? true/i);
+						let delCheck = msg.content.match(/delete: ?true/i);
 						if(delCheck) {
 							if(!matchDex.hasOwnProperty(tourneyname)) {
 								msg.channel.send('Tourney not found.');

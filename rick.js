@@ -61,7 +61,7 @@ function tokenName(card) { //generates a token's name
 			if(tokenColor == "WR")
 				tokenColor = "red and white ";
 			if(tokenColor == "UG")
-				tokenColor = "blue and green ";
+				tokenColor = "green and blue ";
 			if(tokenColor == "W")
 				tokenColor = "white ";
 			if(tokenColor == "U")
@@ -85,6 +85,14 @@ function tokenName(card) { //generates a token's name
 	tokenName += bob.pullTokenSet(card, setsArray);
 	if(tokenName == "colorless Scout 11WAY")
 		tokenName = "Scout 11WAY";
+	if(tokenName == "colorless Scout 11MS2")
+		tokenName = "Scout 11MS2";
+	if(tokenName == "colorless Scout 11MPS_MSE")
+		tokenName = "Scout 11MPS_MSE";
+	if(tokenName == "colorless Elemental 88ALR")
+		tokenName = "Elemental 88ALR";
+	if(tokenName.match(/^Clue L[23]?$/))
+		return "colorless Clue VTM";		
 	return tokenName;
 }
 function allsets(card, dfc) {
