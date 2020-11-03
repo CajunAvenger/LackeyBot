@@ -4938,8 +4938,8 @@ function namelistBuilder(database) {						//creates a list of names for the Name
 	fs.writeFile('namelist.txt', nameString, (err) => {
 		if (err) throw err;
 		});
-	Client.channels.cache.get(config.signinChannel).send("New Namelist", {
-		file: [{attachments:"namelist.txt"}]
+	Client.channels.cache.get(config.signinChannel).send({
+		files: [{attachment:"./namelist.txt", name:"namelist.txt"}]
 		});
 }
 
