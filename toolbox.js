@@ -117,9 +117,39 @@ function avgArray(array) { 										//returns the average value of an array of 
 	if(array.length == 0)
 		return 0;
 	let sum = array.reduce(function(a,b) {
-		return parseInt(a)+parseInt(b);
+		return parseFloat(a)+parseFloat(b);
 	});
 	return sum / array.length;
+}
+function medianArray(array) {									//returns the median value of an array of numbers
+	array.sort();
+	if(array.length%2) { //odd
+		return array[(array.length-1)/2];
+	}else{
+		0123
+		let high = array[array.length/2];
+		let low = array[(array.length/2)-1];
+		return ((high+low)/2);
+	}
+}
+function modeArray(array) {										//returns modes of an array of numbers
+	let counting = {};
+	for(let n in array) {
+		if(!counting.hasOwnProperty(array[n]))
+			counting[array[n]] = 0;
+		counting[array[n]]++;
+	}
+	let max = 0;
+	let out = [];
+	for(let n in counting) {
+		if(counting[n] > max) {
+			max = counting[n];
+			out = [n];
+		}else if(counting[n] == max){
+			out.push(n);
+		}
+	}
+	return out;
 }
 function maxArray (thisArray, iterations) {						//get the N highest values of a given array
 	var maxedArray = [];
@@ -418,7 +448,7 @@ function convertBases(digit, currentBase, newBase){ 			//converts from any base 
 		while(equiv > 0) {
 			let rem = equiv % newBase;
 			let res = (equiv / newBase) - (rem/newBase);
-			equivString += digiAlpha(rem);
+			equivString = digiAlpha(rem) + equivString;
 			equiv = res;
 		}
 		equiv = equivString;
@@ -442,6 +472,8 @@ exports.objSort = objSort;
 exports.spliceArray = spliceArray;
 exports.addIfNew = addIfNew;
 exports.avgArray = avgArray;
+exports.medianArray = medianArray;
+exports.modeArray = modeArray;
 exports.maxArray = maxArray;
 exports.minArray = minArray;
 exports.lastIndex = lastIndex;
@@ -469,5 +501,5 @@ exports.convertDecimal = convertDecimal;
 exports.convertBases = convertBases;
 
 function test() {
-	console.log(convertBases("jxn", 26, 10))
+	console.log(convertBases("174762", 10, 16))
 }

@@ -1,10 +1,16 @@
 /* Rick
  Builds the MSEM Cockatrice files.
 */
-var cards = require('./msem/cards.json');
-var setsArray = require("./msem/setData.json");
-setsArray["MSEMAR"] = {longname:"MSEM Additional Resources"}
+let format = "msem";
+if(process.argv[2] != undefined) {
+	format = process.argv[2];
+}
+var cards = require(`./${format}/cards.json`);
+var setsArray = require(`./${format}/setData.json`);
+if(format == "msem")
+	setsArray["MSEMAR"] = {longname:"MSEM Additional Resources"}
 var bob = require('./bob');
+bob.formatSetter(format);
 var fs = require('fs');
 var toolbox = require('./toolbox');
 var tokensRelated = {};
@@ -16,6 +22,8 @@ function tokenName(card) { //generates a token's name
 		return "revived " + card.cardName + " " + bob.pullTokenSet(card, setsArray);
 	if(card.cardName == "Treasure")
 		return "Treasure " + bob.pullTokenSet(card, setsArray);
+	if(card.cardName == "Gold")
+		return "Gold " + bob.pullTokenSet(card, setsArray);
 	if(card.cardName == "Lotus Petal")
 		return card.fullName;// + " " + bob.pullTokenSet(card, setsArray);
 	if(card.cardName == "Idol")
@@ -87,12 +95,14 @@ function tokenName(card) { //generates a token's name
 		tokenName = "Scout 11WAY";
 	if(tokenName == "colorless Scout 11MS2")
 		tokenName = "Scout 11MS2";
+	if(tokenName == "colorless Scout 11MS3")
+		tokenName = "Scout 11MS3";
 	if(tokenName == "colorless Scout 11MPS_MSE")
 		tokenName = "Scout 11MPS_MSE";
 	if(tokenName == "colorless Elemental 88ALR")
 		tokenName = "Elemental 88ALR";
-	if(tokenName.match(/^Clue L[23]?$/))
-		return "colorless Clue VTM";		
+	//if(tokenName.match(/(colorless )?Clue L[23]?$/))
+	//	return "colorless Clue VTM";
 	return tokenName;
 }
 function allsets(card, dfc) {
@@ -108,49 +118,62 @@ function allsets(card, dfc) {
 function tokenSetBlock(card) {
 	return " <set picURL=\"/"+tokenName(card).replace(/\//g,"")+".jpg\" picURLSt=\"\" picURLHq=\"\">" + bob.pullTokenSet(card, setsArray) + "</set>\r\n";
 }
-function triceTranslator(script, entry) {
+function triceTranslator(script, entry, yeet) {
 	//two scripts we're looking for, tokens and cipt
 	//for tokens, we bank those for later
 	let tokensPull = script.match(/<f>[^<]*\/spawnx?[0-9]* [^<]*/ig);
+	if(yeet)
+		console.log(tokensPull);
 	if(tokensPull && toolbox.hasValue(tokensPull)) {
 		for(let i=0;i<tokensPull.length;i++) {
-		let tokensMatch = tokensPull[i].match(/<f>[^<]*\/spawnx?([0-9]+)? ([^<]*)/i);
-			if(tokensMatch && toolbox.hasValue(tokensMatch)) {
-				for(j=1; j<tokensMatch.length; j++) {
-					let tokenAmount = "1";
-					if(tokensMatch[1] != undefined && tokensMatch[1] != null)
-						tokenAmount = tokensMatch[1];
-					let tokenName = tokensMatch[2] //TODO cull this
-					let ptPull = tokenName.match(/^([0-9]+)\/([0-9]+) /)
-					if(ptPull) {
-						tokenName = tokenName.replace(ptPull[0], "");
-						let setPull = tokenName.match(/([A-Z0-9_]+)$/)
-						if(setPull)
-							tokenName = tokenName.replace(setPull[0], "");
-						tokenName += ptPull[1] + ptPull[2]
-						if(setPull)
-							tokenName += setPull[1];
-					}
-					tokenName = tokenName.replace("’", "'");
-					let triceName = entry;						//normal reprint
-					if(!cards[entry].notes.includes("reprint"))
-						triceName = cards[entry].fullName 		//if normal original printing
-					if(cards[entry].shape == "split") {
-						triceName = cards[entry].cardName + " // " + cards[entry].cardName2; //split original printing
-						if(cards[entry].notes.includes("reprint"))
-							triceName = cards[entry].cardName + "_" + cards[entry].setID + " // " + cards[entry].cardName2  + "_" + cards[entry].setID; //split reprinting
-					}
-					if(cards[entry].shape == "doubleface" || cards[entry].shape == "adventure") {
-						triceName = cards[entry].cardName + '_' + cards[entry].setID; //dfc reprint
+		//let tokensMatch = tokensPull[i].match(/(?:<f>|;)[^<\/]*\/spawnx?([0-9]+)? ([^<;]*)/ig);
+		let tokensGlobalMatch = toolbox.globalCapture(/(?:<f>|;)[^<\/]*\/spawnx?([0-9]+)? ([^<;]*)/, tokensPull[i]);
+			if(tokensGlobalMatch && toolbox.hasValue(tokensGlobalMatch)) {
+				if(yeet)
+					console.log(tokensGlobalMatch);
+				for(let g in tokensGlobalMatch) {
+					let tokensMatch = tokensGlobalMatch[g];
+					for(j=1; j<tokensMatch.length; j++) {
+						let tokenAmount = "1";
+						if(tokensMatch[1] != undefined && tokensMatch[1] != null)
+							tokenAmount = tokensMatch[1];
+						let tokenName = tokensMatch[2] //TODO cull this
+						let ptPull = tokenName.match(/^([0-9]+)\/([0-9]+) /)
+						if(ptPull) {
+							tokenName = tokenName.replace(ptPull[0], "");
+							let setPull = tokenName.match(/([A-Z0-9_]+)$/)
+							if(setPull)
+								tokenName = tokenName.replace(setPull[0], "");
+							tokenName += ptPull[1] + ptPull[2]
+							if(setPull)
+								tokenName += setPull[1];
+						}
+						tokenName = tokenName.replace("’", "'");
+						let triceName = entry;						//normal reprint
 						if(!cards[entry].notes.includes("reprint"))
-							triceName = cards[entry].cardName 		//dfc original printing
+							triceName = cards[entry].fullName 		//if normal original printing
+						if(cards[entry].shape == "split") {
+							triceName = cards[entry].cardName + " // " + cards[entry].cardName2; //split original printing
+							if(cards[entry].notes.includes("reprint"))
+								triceName = cards[entry].cardName + "_" + cards[entry].setID + " // " + cards[entry].cardName2  + "_" + cards[entry].setID; //split reprinting
+						}
+						if(cards[entry].shape == "doubleface" || cards[entry].shape == "adventure") {
+							triceName = cards[entry].cardName + '_' + cards[entry].setID; //dfc reprint
+							if(!cards[entry].notes.includes("reprint"))
+								triceName = cards[entry].cardName 		//dfc original printing
+						}
+						if(yeet)
+							console.log(tokenName);
+						if(!tokensRelated.hasOwnProperty(tokenName))
+							tokensRelated[tokenName] = {};
+						if(!tokensRelated[tokenName].hasOwnProperty(triceName))
+							tokensRelated[tokenName][triceName] = [];
+						if(!tokensRelated[tokenName][triceName].includes(tokenAmount))
+							tokensRelated[tokenName][triceName].push(tokenAmount);
+						if(yeet)
+							console.log(tokensRelated[tokenName]);
+
 					}
-					if(!tokensRelated.hasOwnProperty(tokenName))
-						tokensRelated[tokenName] = {};
-					if(!tokensRelated[tokenName].hasOwnProperty(triceName))
-						tokensRelated[tokenName][triceName] = [];
-					if(!tokensRelated[tokenName][triceName].includes(tokenAmount))
-						tokensRelated[tokenName][triceName].push(tokenAmount);
 				}
 			}
 		}
@@ -254,8 +277,6 @@ function triceBlockWriter(entry) {
 function triceTokenBlocker(entry) {
 
 	let card = cards[entry];
-	if(card.rulesText.match("make and shuffle")) //skip make tokens on trice //todo make this less bad
-		return "";
 	let thisToken = tokenName(card);
 	tokensFile += "<card>\r\n";
 	tokensFile += " <name>"+thisToken+"</name>\r\n";
@@ -289,9 +310,11 @@ function triceTokenBlocker(entry) {
 	var cardScripts = triceTranslator(bob.lackeyScript(card), entry);
 	if(cardScripts != "")
 		tokensFile += " "+cardScripts+"\r\n";
-	let reverseTokens = reverseWriter(tokensRelated[thisToken]);
-	if(reverseTokens)
-		tokensFile += reverseTokens+"\r\n";
+	if(!card.rulesText.match("make and shuffle")) { //skip make tokens on trice //todo make this less bad
+		let reverseTokens = reverseWriter(tokensRelated[thisToken]);
+		if(reverseTokens)
+			tokensFile += reverseTokens+"\r\n";
+	}
 	tokensFile += "</card>\r\n";
 }
 function reverseWriter (token) { //given tokensRelated[tokenName]
@@ -330,7 +353,11 @@ for(let set in setsArray) {
 	cardsFile += "<set>\r\n";
 	cardsFile += "<name>"+set+"</name>\r\n";
 	cardsFile += "<longname>"+setsArray[set].longname+"</longname>\r\n";
-	cardsFile += "<settype>MSEM</settype>\r\n";
+	if(format == "msem") {
+		cardsFile += "<settype>MSEM</settype>\r\n";
+	}else{
+		cardsFile += `<settype>${toolbox.toTitleCase(format)}</settype>\r\n`;
+	}
 	cardsFile += "</set>\r\n";
 	cardsFile += "</sets>\r\n<cards>\r\n";
 	for(let card in cards) {

@@ -4,13 +4,13 @@
 
 var toolbox = require('./toolbox.js');
 var embedCache = {
-	scries: {msem:{}, magic:{}, devDex:{}, myriad:{}},
+	scries: {msem:{}, magic:{}, devDex:{}, myriad:{}, revolution:{}, temp:{}, cajun_standard:{}},
 	prices: {}
 	};
 var scryRegex = buildScryRegex();
 function clearEmbedCache() { //clears cached data for embeds
 	embedCache = {
-		scries: {msem:{}, magic:{}, devDex:{}, myriad:{}, cajun_standard:{}},
+		scries: {msem:{}, magic:{}, devDex:{}, myriad:{}, revolution:{}, temp:{}, cajun_standard:{}},
 		prices: {}
 	};
 }
@@ -117,8 +117,11 @@ function fuzzySearchSimple (needle,thread,needlescore) { //scoring function for 
 	}
 	return needlescore;
 }
-function scryDatabase(library, searchstring, exact) { //collects an array of all card names that pass the given scryfall search
+function scryDatabase(library, searchstring, flags) { //collects an array of all card names that pass the given scryfall search
 	let database = library.cards;
+	if(!flags)
+		flags = {};
+	exact = flags.exact;
 	if(!exact || exact == undefined)
 		exact = false;
 	if(searchstring.match(/!["A-Za-z]/i))
@@ -127,7 +130,7 @@ function scryDatabase(library, searchstring, exact) { //collects an array of all
 	if(embedCache.scries[dataRef].hasOwnProperty(searchstring)) {
 		return [embedCache.scries[dataRef][searchstring], exact]
 	} //if array is stashed, send that
-	let scryFilter = stitchScryCode(searchstring, library);
+	let scryFilter = stitchScryCode(searchstring, library, flags);
 	let valids = [];
 	let matched = [];
 	let timeout = false;
@@ -377,7 +380,7 @@ function searchArray(string, array, scoreObj) { //fuzzy search arrary elements f
 	return bestMatch;
 }
 function buildScryRegex () { //builds the regexes for reading scryfall arguments
-	let keys = '(name|mana|cmc|ft|power|toughness|type|pow|tou|loy|set|artist|art|lore|adds|produces|companion|comp|ci|color|id|in|is|fo|a|c|e|f|m|o|r|t|block|b|border|cube|display|direction|game|frame|lang|new|order|prefer|sort|unique|wm|usd|tix|eur)'
+	let keys = '(designer|name|mana|cmc|ft|power|toughness|type|pow|tou|loy|set|artist|art|lore|adds|produces|companion|comp|ci|color|id|in|is|fo|a|c|e|f|m|o|r|t|block|b|border|cube|display|direction|game|frame|lang|new|order|prefer|sort|unique|wm|usd|tix|eur)'
 	let words = '("[^"]+"|\/[^\/]+\/|[^ ]+)';
 	let standardMatch = '(?:-?' + keys + '(:| ?[=><]{1,2}) ?|!)' + words;
 	let invalMatch = '(?:-?' + '[a-z]+' + '(:| ?[=><]{1,2}) ?|!)' + words;
@@ -389,7 +392,7 @@ function buildScryRegex () { //builds the regexes for reading scryfall arguments
 	let invalRegex = new RegExp(invalMatch, 'g'); //pull individual checks out
 	return [scryRegex, standardRegex, indivRegex, invalRegex];
 }
-function stitchScryCode (testString, library) { //combines the scryfall arguments into one function
+function stitchScryCode (testString, library, flags) { //combines the scryfall arguments into one function
 	//first format for weird characters and things
 	testString = testString.replace(/[”]/g, "\"")
 	//then get major matches;
@@ -425,7 +428,7 @@ function stitchScryCode (testString, library) { //combines the scryfall argument
 		let codeArray = [];
 		for(let check in minorArrays[anArray]) {
 			let thisCheck = minorArrays[anArray][check];
-			let bool = generateScryCode(thisCheck.replace(/^-/, ""), library);
+			let bool = generateScryCode(thisCheck.replace(/^-/, ""), library, flags);
 			let snippit = bool; //needed to return !bool
 			if(thisCheck.match(/^-/)) {
 				snippit = function(card) {
@@ -451,7 +454,7 @@ function stitchScryCode (testString, library) { //combines the scryfall argument
 	};
 	return fullCode
 }
-function generateScryCode (thisCheck, library) { //makes the function for individual scryfall arguments
+function generateScryCode (thisCheck, library, flags) { //makes the function for individual scryfall arguments
 	thisCheck = String(thisCheck);
 	thisCheck = thisCheck.replace(/^\(+/, ""); //remove leading (
 	thisCheck = thisCheck.replace(/\)+$/, ""); //remove trailing )
@@ -473,10 +476,10 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 		return function(){return true} //don't bother checking scryfall-specific keys
 	}
 
-	var keyMatch = new RegExp ("^(!|name:|mana:|m:|cmc:|fo:|o:|ft:|type:|t:|pow:|power:|tou:|toughness:|loy:|e:|set:|artist:|art:|a:|lore:)", "i");
-	var keyArray = ["!", "name:", "mana:", "m:", "cmc:", "fo:", "o:", "ft:", "type:", "t:", "pow:", "power:", "tou:", "toughness:", "loy:", "e:", "set:", "artist:", "art:", "a:", "lore:"];
-	var fieldArray = ["cardName", "fullName", "manaCost", "manaCost", "cmc", "rulesText", "rulesText", "flavorText", "typeLine", "typeLine", "power", "power", "toughness", "toughness", "loyalty", "setID", "setID", "artist", "artist", "artist", "fullName"];
-	var fieldArray2 = ["cardName2", "fullName", "manaCost2", "manaCost2", "cmc2", "rulesText2", "rulesText2", "flavorText2", "typeLine2", "typeLine2", "power2", "power2", "toughness2", "toughness2", "loyalty2", "setID", "setID", "artist2", "artist2", "artist2", "fullName"];
+	var keyMatch = new RegExp ("^(!|designer:|name:|mana:|m:|cmc:|fo:|o:|ft:|type:|t:|pow:|power:|tou:|toughness:|loy:|e:|set:|artist:|art:|a:|lore:)", "i");
+	var keyArray = ["!", "name:", "mana:", "m:", "cmc:", "fo:", "o:", "ft:", "type:", "t:", "pow:", "power:", "tou:", "toughness:", "loy:", "e:", "set:", "artist:", "art:", "a:", "designer:", "lore:"];
+	var fieldArray = ["cardName", "fullName", "manaCost", "manaCost", "cmc", "rulesText", "rulesText", "flavorText", "typeLine", "typeLine", "power", "power", "toughness", "toughness", "loyalty", "setID", "setID", "artist", "artist", "artist", "designer", "fullName"];
+	var fieldArray2 = ["cardName2", "fullName", "manaCost2", "manaCost2", "cmc2", "rulesText2", "rulesText2", "flavorText2", "typeLine2", "typeLine2", "power2", "power2", "toughness2", "toughness2", "loyalty2", "setID", "setID", "artist2", "artist2", "artist2", "designer", "fullName"];
 	var keyPull = thisCheck.match(keyMatch);
 	if(keyPull) { //check all the easy keys first
 		matchCheck = addScryfallExtensions(matchCheck)
@@ -496,6 +499,12 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 			try {
 				if(keyArray[i] == "lore:") {
 					checkCard = (card.cardName.match(checkRegex) || card.flavorText.match(checkRegex))
+				}else if(keyArray[i] == "designer:"){
+					if(!card.designer) {
+						checkCard = true;
+					}else{
+						checkCard = String(card[fieldArray[i]]).match(checkRegex);
+					}
 				}else if(typeof card[fieldArray[i]] == "number" && matchCheck == "even") {
 					checkCard = (card[fieldArray[i]]%2 == 0);
 				}else if(typeof card[fieldArray[i]] == "number" && matchCheck == "odd") {
@@ -507,7 +516,7 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 				}
 			}catch(e) {checkCard = null;}
 			let checkBack;
-			if(card.hasOwnProperty('cardName2')) {//check back face too
+			if(card.hasOwnProperty('cardName2') && !flags.onlyFront) {//check back face too
 				let checkLine2 = matchCheck.replace(/~/g, card.cardName2)
 				if(keyArray[i] == "!") //exact match
 					checkLine = "^" + checkLine2 + "$";
@@ -515,6 +524,12 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 				try {
 					if(keyArray[i] == "lore") {
 						checkBack = (card.cardName2.match(checkAgain) || card.flavorText2.match(checkAgain))
+					}else if(keyArray[i] == "designer:"){
+						if(!card.designer) {
+							checkBack = true;
+						}else{
+							checkBack = String(card[fieldArray[i]]).match(checkRegex);
+						}
 					}else if(typeof card[fieldArray2[i]] == "number" && matchCheck == parseInt(matchCheck)) {
 							checkBack = (card[fieldArray2[i]] == parseInt(matchCheck));
 					}else{
@@ -547,6 +562,10 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 					if(refNum == NaN)
 						refNum = 0;
 					let dif = refNum - checkNum;
+					if(card.cardName == "Trostani's Summoner") {
+						console.log(numKeyArray[i]);
+						console.log(dif);
+					}
 					if(dif == 0 && operMatch.match("=")) //refNum = checkNum
 						return true;
 					if(dif > 0 && operMatch.match(">")) // refNum > checkNum
@@ -702,6 +721,8 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 			};
 		}else{// in:SET
 			return function(card) {
+				if(!card.prints)
+					return false;
 				if(card.prints.includes(matchCheck.toUpperCase()))
 					return true;
 				return false;
@@ -717,8 +738,6 @@ function generateScryCode (thisCheck, library) { //makes the function for indivi
 			if(card.hasOwnProperty('rulesText2'))
 				string += card.rulesText2;
 			let abilities = generateManaArrays(string);
-			if(card.cardName == "Irrigation Trawler")
-				console.log(abilities);
 			if(!abilities)
 				return false;
 			let diffArray = [];
@@ -936,7 +955,7 @@ function generateManaArrays(thisString) {
 		//adds specific mana (Add W; Add W or U; Add W, U, or B)
 		let mat1 = toolbox.globalCapture(/adds? (?:((?:{H?[0-9CWUBRG]})+),? )?(?:((?:{H?[0-9CWUBRG]})+),? )?(?:((?:{H?[0-9CWUBRG]})+),? )?(?:((?:{H?[0-9CWUBRG]})+),? )*(?:or )?((?:{H?[0-9CWUBRG]})+)/, thisString)
 		//adds gold mana 
-		let mat2 = toolbox.globalCapture(/adds? ([^\n]*?) ?mana (?:of|in|equal to) (different|[^\n{]+)? ?(color|type|[^\n]*?mana cost|(?:{H?[0-9CWUBRG]}, )?{H?[0-9CWUBRG]},? and\/or {H?[0-9CWUBRG]})/, thisString)
+		let mat2 = toolbox.globalCapture(/adds? ([^\n]*?) ?mana (?:of|in|equal to) (different|[^\n{]+)? ?(colors?|types?|[^\n]*?mana cost|(?:{H?[0-9CWUBRG]}, )?{H?[0-9CWUBRG]},? and\/or {H?[0-9CWUBRG]})/, thisString)
 		//adds extra or lots of one mana (Add seven R, add an additional G)
 		let mat3 = toolbox.globalCapture(/adds? (an amount of|an additional|five|six|seven|eight|nine|ten|that much) ((?:{H?[0-9CWUBRG]})+)/, thisString)
 		let nope = true;
@@ -1053,6 +1072,7 @@ exports.searchArray = searchArray;
 exports.buildScryRegex = buildScryRegex;
 exports.stitchScryCode = stitchScryCode;
 exports.generateScryCode = generateScryCode;
+exports.generateManaArrays = generateManaArrays;
 exports.formatScryfallKeys = formatScryfallKeys;
 exports.escapify = escapify;
 

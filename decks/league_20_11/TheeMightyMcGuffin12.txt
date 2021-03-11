@@ -1,0 +1,216 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+		document.getElementById('card24').addEventListener('mouseover', function() {
+			change('card24');
+		});
+		document.getElementById('card25').addEventListener('mouseover', function() {
+			change('card25');
+		});
+		document.getElementById('card26').addEventListener('mouseover', function() {
+			change('card26');
+		});
+		document.getElementById('card27').addEventListener('mouseover', function() {
+			change('card27');
+		});
+		document.getElementById('card28').addEventListener('mouseover', function() {
+			change('card28');
+		});
+		document.getElementById('card29').addEventListener('mouseover', function() {
+			change('card29');
+		});
+		document.getElementById('card30').addEventListener('mouseover', function() {
+			change('card30');
+		});
+		document.getElementById('card31').addEventListener('mouseover', function() {
+			change('card31');
+		});
+		document.getElementById('card32').addEventListener('mouseover', function() {
+			change('card32');
+		});
+		document.getElementById('card33').addEventListener('mouseover', function() {
+			change('card33');
+		});
+		document.getElementById('card34').addEventListener('mouseover', function() {
+			change('card34');
+		});
+		document.getElementById('card35').addEventListener('mouseover', function() {
+			change('card35');
+		});
+		document.getElementById('card36').addEventListener('mouseover', function() {
+			change('card36');
+		});
+		document.getElementById('card37').addEventListener('mouseover', function() {
+			change('card37');
+		});
+		document.getElementById('card38').addEventListener('mouseover', function() {
+			change('card38');
+		});
+		document.getElementById('card39').addEventListener('mouseover', function() {
+			change('card39');
+		});
+		document.getElementById('card40').addEventListener('mouseover', function() {
+			change('card40');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>McGuffin's 4c Friends</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Planeswalker (14)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/MS1/30s.jpg" id="card1">3x Mpumo, Who Stands Alone</div>
+		<div url="http://mse-modern.com/msem2/images/DHL/119.jpg" id="card2">2x Rain Zai, Spiritscale</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/95.jpg" id="card3">2x Eli Windsors, Lone Gun</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/171.jpg" id="card4">3x Bahum, the Warden</div>
+		<div url="http://mse-modern.com/msem2/images/KOD/176.jpg" id="card5">2x All-Enduring Mafua</div>
+		<div url="http://mse-modern.com/msem2/images/KOD/201.jpg" id="card6">2x Hembwe, the All-Mother's Hand</div>
+		<br/>
+		<div><b><i>Instant (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/KOD/217.jpg" id="card7">4x Pith Wilt</div>
+		<br/>
+		<div><b><i>Sorcery (12)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/MS2/149.jpg" id="card8">3x Singularity's Grasp</div>
+		<div url="http://mse-modern.com/msem2/images/MPS_MSE/25.jpg" id="card9">4x Recall Forgotten Eons</div>
+		<div url="http://mse-modern.com/msem2/images/WAW/103.jpg" id="card10">3x Remorse</div>
+		<div url="http://mse-modern.com/msem2/images/KOD/34.jpg" id="card11">2x Into Waridi Valley</div>
+		<br/>
+		<div><b><i>Artifact (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/ALR/60.jpg" id="card12">4x Terraformer's Globe</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (26)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/WAY/24s.jpg" id="card13">1x Nereba, Sandchoked Archives</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/209.jpg" id="card14">2x Island</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/212.jpg" id="card15">1x Forest</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/210.jpg" id="card16">1x Swamp</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/208.jpg" id="card17">1x Plains</div>
+		<div url="http://mse-modern.com/msem2/images/L2/100.jpg" id="card18">3x Wayfarer's Shrine</div>
+		<div url="http://mse-modern.com/msem2/images/KOD/250.jpg" id="card19">1x Gleaming River</div>
+		<div url="http://mse-modern.com/msem2/images/KOD/251.jpg" id="card20">1x Murky Peat</div>
+		<div url="http://mse-modern.com/msem2/images/TGE/263.jpg" id="card21">1x Expansive Sprawl</div>
+		<div url="http://mse-modern.com/msem2/images/L2/155.jpg" id="card22">1x Resplendent Substratum</div>
+		<div url="http://mse-modern.com/msem2/images/L2/151.jpg" id="card23">1x Sedate Tundra</div>
+		<div url="http://mse-modern.com/msem2/images/L2/152.jpg" id="card24">1x Murmuring Falls</div>
+		<div url="http://mse-modern.com/msem2/images/L2/156.jpg" id="card25">1x Arctic Mine</div>
+		<div url="http://mse-modern.com/msem2/images/L2/158.jpg" id="card26">1x Nomad's Township</div>
+		<div url="http://mse-modern.com/msem2/images/L2/160.jpg" id="card27">1x Shifting Glade</div>
+		<div url="http://mse-modern.com/msem2/images/L2/1.jpg" id="card28">1x Ocean Monastery</div>
+		<div url="http://mse-modern.com/msem2/images/L2/2.jpg" id="card29">1x Flooded Depths</div>
+		<div url="http://mse-modern.com/msem2/images/L2/5.jpg" id="card30">1x Amber Hills</div>
+		<div url="http://mse-modern.com/msem2/images/L2/6.jpg" id="card31">1x Barren Desolation</div>
+		<div url="http://mse-modern.com/msem2/images/L2/10.jpg" id="card32">1x Mysterious Cataract</div>
+		<div url="http://mse-modern.com/msem2/images/L2/8.jpg" id="card33">1x Grim Bastion</div>
+		<div url="http://mse-modern.com/msem2/images/L/26.jpg" id="card34">1x Ornate Interior</div>
+		<div url="http://mse-modern.com/msem2/images/KOD/263.jpg" id="card35">1x Majestic Dominion</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/TWR/98.jpg" id="card36">3x Seal the Tomb</div>
+		<div url="http://mse-modern.com/msem2/images/LVS/24.jpg" id="card37">3x Out-of-Body Experience</div>
+		<div url="http://mse-modern.com/msem2/images/MS2/8s.jpg" id="card38">2x Xanigan, the Darkened Cloud</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/60.jpg" id="card39">4x Duress</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/95.jpg" id="card40">3x Stand Unassailable</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

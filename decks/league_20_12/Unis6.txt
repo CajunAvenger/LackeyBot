@@ -1,0 +1,142 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>Unis's Lack of Hands</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (22)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/MS2/5s.jpg" id="card1">4x Ammbradu Goliath</div>
+		<div url="http://mse-modern.com/msem2/images/ATB/133.jpg" id="card2">4x Madcap Mercenary</div>
+		<div url="http://mse-modern.com/msem2/images/STN/32.jpg" id="card3">4x Concealed Slasher</div>
+		<div url="http://mse-modern.com/msem2/images/SOR/86.jpg" id="card4">3x Akoum Trailblazer</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/89a.jpg" id="card5">3x Performer of Ambition</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/89b.jpg" id="card6">(Transformed)</div>
+		<div url="http://mse-modern.com/msem2/images/UNR/91.jpg" id="card7">4x Putrid Lurker</div>
+		<br/>
+		<div><b><i>Instant (6)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/KLC/53.jpg" id="card8">4x Distant Thunder</div>
+		<div url="http://mse-modern.com/msem2/images/HVF/60.jpg" id="card9">2x Small Luxuries</div>
+		<br/>
+		<div><b><i>Sorcery (8)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/ALR/96.jpg" id="card10">4x Unearth</div>
+		<div url="http://mse-modern.com/msem2/images/SOR/64.jpg" id="card11">4x Deform Sanity</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (24)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/K15/225.jpg" id="card12">3x Lavatorn Fields</div>
+		<div url="http://mse-modern.com/msem2/images/L/17.jpg" id="card13">4x Shardstone Rift</div>
+		<div url="http://mse-modern.com/msem2/images/IMP/137.jpg" id="card14">4x Wayfarer's Shrine</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/195.jpg" id="card15">4x Crumbling Precipice</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/253.jpg" id="card16">3x Mountain</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/252.jpg" id="card17">4x Swamp</div>
+		<div url="http://mse-modern.com/msem2/images/TGE/269.jpg" id="card18">2x Planar Market</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/KOD/220.jpg" id="card19">4x Rage of the Ravaged</div>
+		<div url="http://mse-modern.com/msem2/images/STN/42.jpg" id="card20">4x Surge of Darkness</div>
+		<div url="http://mse-modern.com/msem2/images/TWR/98.jpg" id="card21">4x Seal the Tomb</div>
+		<div url="http://mse-modern.com/msem2/images/KLC/48.jpg" id="card22">3x Stay Determined</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

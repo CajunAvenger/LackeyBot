@@ -1,4 +1,4 @@
-/* Process
+﻿/* Process
  Processes HTML decklists into statDex jsons
 */
 var fs = require('fs');
@@ -6,9 +6,8 @@ var toolbox = require('./toolbox.js');
 const bye = "343475440083664896";
 var cards = require('./msem/cards.json');
 var archives = [
-	'gp_20_10_archive.json',
-	'league_20_10_archive.json',
-	'tuc_20_10_archive.json'
+	'gp_21_02_archive.json',
+	'league_21_02_archive.json'
 ];
 
 function extractPlain (cardString) { //converts HTML deck back to plain text
@@ -165,6 +164,15 @@ function processJsons(archiveArray) {
 		}
 	}
 }
+function justDecks(){
+	fs.readdir("decks/gp_20_11", function(err, array) {
+		for(let a in array) {
+			console.log(`trying ${array[a]}`);
+			convertDeck(`/gp_20_11/${array[a].replace('.txt', '')}`)
+		}
+	})
+}
+//justDecks()
 processJsons(archives)
 /*
 fs.readdir("tourneyArchives",function(err, array) {

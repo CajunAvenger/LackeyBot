@@ -195,6 +195,10 @@ function blockBuilder(fileType) {
 		if(forceArray.includes(set_code))
 			set_code = fixArray[forceArray.indexOf(set_code)];
 		let set_info = "";
+		if(set_code == "PRO_ARC") {
+			set_code = "ARC";
+			set_info = "_PRO";
+		}
 		if(fileType == junkFiles) {
 			//set_code == thisSet.parentCode;
 			set_info = "_PRO";
@@ -221,7 +225,7 @@ function blockBuilder(fileType) {
 			let clearedFor = "yes";
 			if(thisSet.cards[i].layout == "meld")
 				clearedFor = null;
-			if(thisSet.cards[i].hasOwnProperty('names') && thisSet.cards[i].names.includes("Who"))
+			if(thisSet.cards[i].name == "Who // What // When // Where // Why" || thisSet.cards[i].name == "Smelt // Herd // Saw")
 				clearedFor = null;
 			if(set_info == "_PRO" && !thisSet.cards[i].number.match(/★/))
 				clearedFor = null;
@@ -487,8 +491,8 @@ function blockBuilder(fileType) {
 					}
 					databaseName = temp;
 				}
-				if(!fileType == junkFiles) {
-					if(!pullSets.includes(set_code))
+				if(fileType != junkFiles) {
+					if(!pullSets.includes(set_code) && !thisSet.hasOwnProperty("parentCode"))
 						pullSets.push(set_code)
 				}
 				canonDatabase[databaseName] = thisEntry;

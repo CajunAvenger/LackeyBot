@@ -12,21 +12,24 @@ const app = express();
 const port = process.env.PORT || 4000;
 const token = process.env.TOKEN;
 const mod_magic = require('./magic.js');
-
+let format = "msem";
+if(process.argv[2] != undefined) {
+	format = process.argv[2];
+}
 var cards = {};
 var instData = {};
 var newcards = {};
 var cardsSets = {};
 var cardsSetNames = Object.keys(cardsSets);
-var legal = require('./msem/legal.json');
+var legal = require(`./${format}/legal.json`);
 var tempSetsArray = {};
 var cardNameArray = [];
 var reprintArray = [];
-var uninstallInfo = require('./uninstall.json');
+var uninstallInfo = require(`./${format}/uninstall.json`);
 var allprints = {};
 
 function logInst() { //updates instdata.json
-	fs.writeFile('msem/instdata.json', JSON.stringify(instData), (err) => {
+	fs.writeFile(`${format}/instdata.json`, JSON.stringify(instData), (err) => {
 		if (err) throw err;
 		console.log('instData.json written');
 		});
@@ -42,7 +45,8 @@ function msecardsStitcher(channel) { //adds newcards.json to msecards.json and s
 			tempSetsArray[thisSet] = {cards:[], promos:[], tokens:[]};
 		}
 	}
-	tempSetsArray["MSEMAR"] = {cards:[], promos:[], tokens:[]}; //add MSEMAR to tempSets
+	if(format == "msem")
+		tempSetsArray["MSEMAR"] = {cards:[], promos:[], tokens:[]}; //add MSEMAR to tempSets
 	for(let thisCard in cards) //add cards, promo, and token arrays to tempSets
 		nameStitcher(cards, thisCard);
 	for(let thisCard in newcards) {
@@ -113,6 +117,8 @@ function addPrints(cardObj) {
 		if(cardObj[card].setID == "tokens" || cardObj[card].setID == "BOT")
 			continue;
 		let thisName = cardObj[card].cardName;
+		if(cardObj[card].designer == "")
+			cardObj[card].designer = cardsSets[cardObj[card].setID].Design;
 		if(!refObj.hasOwnProperty(thisName))
 			refObj[thisName] = {entries:[], firstNo:999, firstPrint:"", prints:[], rarities:[]};
 		refObj[thisName].entries.push(card);
@@ -137,11 +143,15 @@ function addPrints(cardObj) {
 	}
 	for(let name in refObj) {
 		let formats = [];
-		if(!legal.modernBan.includes(cardObj[refObj[name].entries[0]].fullName))
-			formats.push("msem");
-		if(!legal.edhBan.includes(cardObj[refObj[name].entries[0]].fullName))
-			formats.push("msedh");
-		
+		if(format == "msem") {
+			if(!legal.modernBan.includes(cardObj[refObj[name].entries[0]].fullName))
+				formats.push("msem");
+			if(!legal.edhBan.includes(cardObj[refObj[name].entries[0]].fullName))
+				formats.push("msedh");
+		}else{
+			if(!legal.banned.includes(cardObj[refObj[name].entries[0]].fullName))
+				formats.push(format);
+		}
 		for(let entry in refObj[name].entries) {
 			let thisEntry = refObj[name].entries[entry];
 			cardObj[thisEntry].formats = formats;
@@ -156,14 +166,14 @@ function addPrints(cardObj) {
 function writeTheFile(cardOb) {
 	//write new file in human readable fashion
 	let words = JSON.stringify(cardOb).replace(/[}],"/g,"},\n	\"");
-	fs.writeFile('msem/cards.json', words, (err) => {
+	fs.writeFile(`${format}/cards.json`, words, (err) => {
 		if (err) throw err;
-		console.log('msem/cards.json written');
+		console.log(`${format}/cards.json written`);
 		});
 	let uninstall = JSON.stringify(uninstallInfo).replace(/[}],"/g,"},\n	\"");
-	fs.writeFile('uninstall.json', uninstall, (err) => {
+	fs.writeFile(`${format}/uninstall.json`, uninstall, (err) => {
 		if (err) throw err;
-		console.log('uninstall.json written');
+		console.log(`${format}/uninstall.json written`);
 	});
 
 	console.log("New instigatorID: " + instData.nextInstigatorID);
@@ -294,10 +304,10 @@ function rebuildCards(database, nameList) { //uses tempSets to create a combined
 	return [changelog,addedCards];
 }
 function stitch() {
-	cards = require("./msem/cards.json");
-	instData = require("./msem/instdata.json");
+	cards = require(`./${format}/cards.json`);
+	instData = require(`./${format}/instdata.json`);
 	newcards = require("./newcards.json");
-	cardsSets = require("./msem/setData.json");
+	cardsSets = require(`./${format}/setData.json`);
 	let newObj = msecardsStitcher();
 	newObj = addPrints(newObj);
 	writeTheFile(newObj);

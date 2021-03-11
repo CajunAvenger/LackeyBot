@@ -44,7 +44,6 @@ server.listen(port, () => console.log(`Listening on ${port}`));
 var Server = require('ws').Server;
 const wss = new Server({ server });*/
 
-const token = process.env.TOKEN;
 const rp = require("request-promise-native");
 var disarm = null, smsNo = 0, errorNo = 0, downloadCount = 0
 let downloadLoop = {devDex: 0, reminderBase: 0};
@@ -66,7 +65,7 @@ var tournamentReges = ['GP[A-Z]', 'league'];
 //arrays to turn letters to regional letter emotes
 const azArray = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
 const azEmoteArray = ["🇦","🇧","🇨","🇩","🇪","🇫","🇬","🇭","🇮","🇯","🇰","🇱","🇲","🇳","🇴","🇵","🇶","🇷","🇸","🇹","🇺","🇻","🇼","🇽","🇾","🇿"]
-const blank = "⬚"; //blank square emote
+const blank = "⬚", resetList = "📄"; //blank square emote
 const leftArrow = "⬅️", rightArrow = "➡️", old_dollarEmote = "💲", old_excEmote = "❗", old_quesEmote = "❓", old_plainText = "💬", old_mag = "🔍", old_ruler = "📏", old_xEmote = "❌"
 const old_hourEmote = "🕐", old_dayEmote = "🌞", old_weekEmote = "📆", old_repeatEmote = "🔄";
 const pinEmotes = ["📌","📍"]
@@ -81,8 +80,10 @@ const boop = "boop"; //boop
 //load modules
 var discClient = require('./discClient.js')		//handles discord client
 var arcana = require('./arcana.js');			//handles all the card databases
+arcana.buildReference(arcana);
 const fuzzy = require('./fuzzy.js');			//handles the general search engine
 const mod_magic = require('./magic.js');		//handles Magic-specific coding
+var matchDexScripts = require('./matchDex.js');	//handles matchDex scripts
 const toolbox = require('./toolbox.js');		//personal toolbox scripts
 var embedStash = fuzzy.embedCache;				//stores extra data for some embeds
 var clearEmbedCache = fuzzy.clearEmbedCache;	//regularly deletes old extra data
@@ -95,6 +96,8 @@ statDexHandler.initialize({arcana:arcana});
 var zipTech = require('./zipTech.js');			//handles zip editing
 var setParser = require('./setParser.js');		//handles set editing
 var imgManip = require('./imgManip.js');		//handles image editing
+//var website = require('./web.js');				//lackeybot.herokuapp.com
+//var pkHold;
 discClient.initialize();
 const Client = discClient.sendClient();
 
@@ -113,7 +116,10 @@ var arttemp = {};
 var creatureTypeArray = [];
 var decklist = {};
 var extras = {}, mechanics = {}, nicks = {}, prompts = {}, sms = [];
-var imgCache = {lastString: [], msem: [], magic: [], devDex: [], myriad:[]};
+var imgCache = {lastString: []};
+for(let l in arcana.libraries) {
+	imgCache[arcana.libraries[l]] = {};
+}
 var instData = {};
 var matchDex = {}, gpbase = {}, gpCell = [];
 var playerArray = [];
@@ -127,6 +133,7 @@ var lastID = 0;
 var looping = 0;
 var holdingCell = {}, bankedChannel = [];
 var arcanaSettings = {};
+var scratchPad = {};
 loadArcanaSettings();
 
 /*website test
@@ -280,7 +287,7 @@ async function sendPSEmbed (outputArray, msg, arcanaData, stringMatchesArray, em
 		let outputArray = extract[0];
 		let output = priceCheck(outputArray, library, msg)								//format the cards
 		if(output != "") {																//post the message if not empty
-			let embedded = buildCardFetchEmbed(output, arcanaData, name, stringMatchesArray, msg.content, 0);//pagify it
+			let embedded = buildCardFetchEmbed(output, arcanaData, "angle", stringMatchesArray, msg.content, 0);//pagify it
 			let callback = function(mess) {
 				switchReacts(mess, emoteOrder, embedded[2]);							//add switch reacts
 				cachePost(mess, embedded[1]);											//save search for switcheroos
@@ -400,9 +407,9 @@ function buildCardFetchEmbed(outputArray, arcanaData, mainArcanaName, strings, m
 		searchStrings += `${arcanaData[mainArcanaName].prefix.replace(/\\+/,"")}img`;
 	if(msg.match(new RegExp(`${arcanaData[mainArcanaName].prefix}rul`,'i')))
 		searchStrings += `${arcanaData[mainArcanaName].prefix.replace(/\\+/,"")}rul`;
-	let altMatch = msg.match(/(\$|\?|!)(msem|myriad|cajun)/i);
+	let altMatch = msg.match(arcana.refSheet.anySwapRegex);
 	if(altMatch)
-		searchStrings += "$" + altMatch[2];
+		searchStrings += "$" + altMatch[1];
 	let content = "";
 	let charCount = 0;
 	let textPages = [];
@@ -438,14 +445,6 @@ function buildCardFetchEmbed(outputArray, arcanaData, mainArcanaName, strings, m
 	let footerText = "";
 	searchStrings = arcanaData[mainArcanaName].data.bigname + " search for " + searchStrings;
 	footerText += searchStrings;
-	/*footerText += "\nMeant something else? React " ;
-	if(base2.data.name != "ps")
-		footerText += `${base2.emote} for ${base2.data.bigname}, `
-	if(base3.data.name != "ps") {
-		footerText += `${base3.emote} for ${base3.data.bigname}`;
-	}else{
-		footerText = footerText.replace(/, $/, "");
-	}*/
 	if(textPages.length > 1)
 		searchStrings += ", Page " + parseInt(page+1) + "/" + textPages.length;
 	let embedded = new Discord.MessageEmbed()
@@ -547,14 +546,19 @@ function postBigRule(input,channel, callback) { 			//breaks up big strings into 
 }
 function cacheImages(channel, card_array, destination) { 	//saves lastCards for $img and $rul
 	if(!imgCache.hasOwnProperty(channel)) {
-		imgCache[channel] = {lastString: [], msem:[], magic: [], devDex: [], myriad:[]};
+		imgCache[channel] = {lastString: []};
+		for(let l in arcana.libraries)
+			imgCache[channel][arcana.libraries[l]] = [];
 	}
 	imgCache[destination] = card_array;
 	imgCache[channel][destination] = card_array;
 }
 function cacheStrings(channel, string_array, destination) { //saves searchstrings for $canon, and $fake
-	if(!imgCache.hasOwnProperty(channel))
-		imgCache[channel] = {lastString: [], msem:[], magic: [], devDex: [], myriad:[], ps:[]};
+	if(!imgCache.hasOwnProperty(channel)) {
+		imgCache[channel] = {lastString: []};
+		for(let l in arcana.libraries)
+			imgCache[channel][arcana.libraries[l]] = [];
+	}
 	imgCache[channel].lastString = string_array;
 	imgCache.lastString = string_array;
 }
@@ -582,29 +586,12 @@ function printImages(card_array, library, first) { 			//generates link from prop
 	return printString.replace(/\n$/,"");
 }
 function buildSearchLink(library, searchString) { 			//generates search link from proper site
-	let output = "<http://msem-instigator.herokuapp.com/card?q=";
-	let site = "Instigator search"
-	let endOfLink = false;
-	switch(library) {
-		case arcana.magic:
-			output = "<https://scryfall.com/search?q=";
-			site = "Scryfall search";
-			break;
-		case arcana.myriad:
-			output = "<http://msem-instigator.herokuapp.com/card?q=";
-			site = "Hub of Innovation search";
-			break;
-		case arcana.devDex:
-			output = "<http://www.planesculptors.net/explore?query=";
-			site = "Custom Projects search"
-			break;
-	}
-	//generate the link
-	if(!endOfLink) {		
+	let output = "";
+	if(library.searchData.site) {
+		output += "<" + library.searchData.site;
+		//generate the link
 		output += encodeURIComponent(searchString);
-		if(site == "Custom Projects search")
-			output += "#cards";
-		output += ">";
+		output += library.searchData.end + ">";
 		output = output.replace(/ /g, "+");
 		output = output.replace(/["“”]/g, "%22");
 	}
@@ -613,24 +600,10 @@ function buildSearchLink(library, searchString) { 			//generates search link fro
 function buildSearchEmbed(searchString, library, page, imgFlag, textFlag) { //builds $search embeds
 	searchString = fuzzy.formatScryfallKeys(searchString);
 	let searchLink = buildSearchLink(library, searchString);
-	let site = "Scryfall search";
-	switch(library) {
-		case arcana.msem:
-			site = "Instigator search";
-			break;
-		case arcana.myriad:
-			site = "Hub of Innovation search";
-			break;
-		case arcana.devDex:
-			site = "Custom Projects search";
-			break;
-		case arcana.cajun_standard:
-			site = "Cajun Standard search";
-			break;
-	}
+	let site = library.searchData.title + " search";
 	let database = library.cards;
 	let valids = fuzzy.scryDatabase(library, searchString);
-	if(valids[1] && site.match(/Scryfall/))
+	if(valids[1] && library.searchData.title == "Scryfall")
 		searchLink = searchLink.replace(">","&unique=prints>");
 	let bumpedPage = parseInt(page+1);
 	let hits = valids[0].length;
@@ -705,10 +678,10 @@ function generateStats(library, thisSet) { 					//generates $stats messages
 	if(setInfo.hasOwnProperty('psSet') && setInfo.psSet) {
 		statput += `\nPlanesculptors Page: http://www.planesculptors.net/set/${setInfo.psSet}`;
 	}
-	if(setInfo.hasOwnProperty("Link") && setInfo.Link)
-		statput += `\nSet Download: <${setInfo.Link}>`;
 	if(extras.hasOwnProperty(thisSet))
 		statput = extras[thisSet]
+	if(setInfo.hasOwnProperty("Link") && setInfo.Link)
+		statput += `\nSet Download: <${setInfo.Link}>`;
 
 	let setCardCount = 0;
 	let setRareDist = {common:0, uncommon:0, rare:0, "mythic rare":0, bonus:0, "basic land":0, special:0, masterpiece:0, token:0};
@@ -1131,6 +1104,9 @@ function logRole(guildID) {									//updates roles.json
 	editVersions();
 	dropboxUpload('/lackeybot stuff/roles.json',JSON.stringify(allRoles, null, 3), function(){doneWriting("role")});
 }
+function logScratchpad() {									//updates scratchPad.json
+	dropboxUpload('/lackeybot stuff/scratchPad.json',JSON.stringify(scratchPad, null, 3), function(){doneWriting("scratchPad")});
+}
 function startWriting(op) {									//tracks which sensitive operations are occuring
 	return writing.push(op);
 }
@@ -1148,7 +1124,6 @@ function deleteMsg(channel,message) {						//deletes a given LackeyBot post
 		.catch(console.error)
 }
 function editMsg(channel,message,newwords) {				//edits a given LackeyBot post
-yeet(newwords)
 	Client.channels.cache.get(channel).messages.fetch(message)
 		.then(msg => msg.edit(newwords))
 		.catch(console.error);
@@ -1180,7 +1155,7 @@ function checkRank(msg) {									//checks the rank of a poster
 	}
 	if(organizers.includes(user))
 			rank.push(1); //TO permissions
-	if(!msg.guild) // pms are always open and have no moderators
+	if(!msg.guild.id) // pms are always open and have no moderators
 		return rank;
 	let guildID = msg.guild.id;
 	if(msg.member.permissions.has("ADMINISTRATOR")){ //server admin
@@ -1219,6 +1194,7 @@ async function startUpFunctions() {							//all the start up functions for nicer
 	let mun = Math.floor(Math.random()*extras.games.length); //sets a random game
 	let newGame = extras.games[mun];
 	Client.user.setPresence( { activity: {name: newGame}});
+	
 	//check versions
 	try {
 		let wait = await readVersionControl();
@@ -1252,6 +1228,7 @@ async function startUpFunctions() {							//all the start up functions for nicer
 	dropboxDownload('msem/gpbase.json','https://www.dropbox.com/s/t9hdhad8ol1c7cu/gpbase.json?dl=0',reloadGPBase)
 	dropboxDownload('draft/draft.json','https://www.dropbox.com/s/i91wp73lshtorir/draft.json?dl=0',reloadDraft);
 	dropboxDownload('dev/devDex.json','/lackeybot stuff/devDex.json',reloadDevDex, true);
+	dropboxDownload('scratchPad.json','/lackeybot stuff/scratchPad.json',reloadScratchpad);
 	try{
 		Client.channels.cache.get(config.signinChannel).send(botname+" has connected.");
 	}catch(e){
@@ -1317,6 +1294,7 @@ function reloadMatchBase() {								//loads matchdex after downloading
 	matchDex = test;
 	let matchString = '(';
 	let tempReges = [];
+	tournamentChannels = [];
 	for(let tourney in matchDex) {
 		if(tourney != "version") {
 			if(!matchDex[tourney].data.submitRegex) {
@@ -1336,8 +1314,11 @@ function reloadMatchBase() {								//loads matchdex after downloading
 			matchString += tourney + '|'
 			if(!organizers.includes(matchDex[tourney].data.TO))
 				organizers.push(matchDex[tourney].data.TO)
-			if(!tournamentChannels.includes(matchDex[tourney].data.channel))
+			if(!tournamentChannels.includes(matchDex[tourney].data.channel)) {
 				tournamentChannels.push(matchDex[tourney].data.channel)
+			}else{
+				Client.users.cache.get(cajun).send(`Duplicated match channel at ${tourney}.`)
+			}
 			if(matchDex[tourney].pairing)
 				delete matchDex[tourney].pairing;
 			if(matchDex[tourney].data.submitRegex)
@@ -1400,6 +1381,10 @@ function reloadRoles() {									//loads roles and roleRegex after downloading
 	fightGuilds = allRoles.fightGuilds;
 	roleRegex = buildRoleRegex();
 }
+function reloadScratchpad() {
+	console.log('Reloading scratchPad');
+	scratchPad = require('./scratchPad.json');
+}
 async function reloadStats() {								//loads stats after downloading
 	console.log('Reloading stats');
 	/*let test = require("./stats/stats.json");
@@ -1438,19 +1423,16 @@ function loadArcanaSettings() {								//loads the arcana settings for the card 
 				data: arcana.msem,
 				prefix: "\\$",
 				emote: dollarEmote,
-				functions: ['img', 'rul', 'legal']
 			},
 			angle: {
 				data: arcana.magic,
 				prefix: "!",
 				emote: excEmote,
-				functions: ['img', 'rul', 'legal']
 			},
 			curly: {
 				data: arcana.devDex,
 				prefix: "\\?",
 				emote: quesEmote,
-				functions: ['img']
 			}
 		},
 		"205457071380889601": { //CM server
@@ -1458,19 +1440,16 @@ function loadArcanaSettings() {								//loads the arcana settings for the card 
 				data: {cards:psScrape.psCache, name:"ps", bigname:"Planesculptors"},
 				prefix: "\\$",
 				emote: dollarEmote,
-				functions: []
 			},
 			angle: {
 				data: arcana.magic,
 				prefix: "!",
 				emote: excEmote,
-				functions: ['img', 'rul', 'legal']
 			},
 			curly: {
 				data: arcana.devDex,
 				prefix: "\\?",
 				emote: quesEmote,
-				functions: ['img']
 			}
 		},
 		"671072859149566003": { //Custom Labs server
@@ -1478,19 +1457,16 @@ function loadArcanaSettings() {								//loads the arcana settings for the card 
 				data: null,
 				prefix: null,
 				emote: null,
-				functions: []
 			},
 			angle: {
 				data: arcana.magic,
 				prefix: "!",
 				emote: excEmote,
-				functions: ['img', 'rul', 'legal']
 			},
 			curly: {
 				data: arcana.devDex,
 				prefix: "\\?",
 				emote: quesEmote,
-				functions: ['img']
 			}
 		},
 		"413055835179057173": { //Primordial server
@@ -1498,19 +1474,16 @@ function loadArcanaSettings() {								//loads the arcana settings for the card 
 				data: null,
 				prefix: null,
 				emote: null,
-				functions: []
 			},
 			angle: {
 				data: null,
 				prefix: null,
 				emote: null,
-				functions: []
 			},
 			curly: {
 				data: arcana.devDex,
 				prefix: "\\?",
 				emote: quesEmote,
-				functions: ['img']
 			}
 		},
 		"584406357017493504": { //Beacon of Creation server
@@ -1518,19 +1491,16 @@ function loadArcanaSettings() {								//loads the arcana settings for the card 
 				data: null,
 				prefix: null,
 				emote: null,
-				functions: []
 			},
 			angle: {
 				data: null,
 				prefix: null,
 				emote: null,
-				functions: []
 			},
 			curly: {
 				data: arcana.devDex,
 				prefix: "\\?",
 				emote: quesEmote,
-				functions: ['img']
 			}
 		},
 		"481200347189084170": { //Custard server
@@ -1538,19 +1508,16 @@ function loadArcanaSettings() {								//loads the arcana settings for the card 
 				data: null,
 				prefix: null,
 				emote: null,
-				functions: []
 			},
 			angle: {
 				data: arcana.magic,
 				prefix: "!",
 				emote: excEmote,
-				functions: ['img', 'rul', 'legal']
 			},
 			curly: {
 				data: arcana.devDex,
 				prefix: "\\?",
 				emote: quesEmote,
-				functions: ['img']
 			}
 		},
 		"643349514203168779": { //Myriad server
@@ -1558,39 +1525,33 @@ function loadArcanaSettings() {								//loads the arcana settings for the card 
 				data: arcana.myriad,
 				prefix: "\\$",
 				emote: dollarEmote,
-				functions: ['img']
 			},
 			angle: {
 				data: arcana.magic,
 				prefix: "!",
 				emote: excEmote,
-				functions: ['img', 'rul', 'legal']
 			},
 			curly: {
 				data: arcana.devDex,
 				prefix: "\\?",
 				emote: quesEmote,
-				functions: ['img']
 			}
 		},
-		"708526831334195272": { //CS server
+		"733313820499640322": { //NN server
 			square: {
-				data: arcana.cajun_standard,
-				prefix: "\\$",
-				emote: dollarEmote,
-				functions: ['img', 'rul']
+				data: null,
+				prefix: null,
+				emote: null,
 			},
 			angle: {
-				data: arcana.magic,
+				data: arcana.msem,
 				prefix: "!",
 				emote: excEmote,
-				functions: ['img', 'rul', 'legal']
 			},
 			curly: {
 				data: arcana.devDex,
 				prefix: "\\?",
 				emote: quesEmote,
-				functions: ['img']
 			}
 		},
 		"190309853296590848": { //test server
@@ -1598,19 +1559,16 @@ function loadArcanaSettings() {								//loads the arcana settings for the card 
 				data: arcana.msem,
 				prefix: "\\$",
 				emote: dollarEmote,
-				functions: ['img', 'rul', 'legal']
 			},
 			angle: {
 				data: arcana.magic,
 				prefix: "!",
 				emote: excEmote,
-				functions: ['img', 'rul', 'legal']
 			},
 			curly: {
 				data: arcana.devDex,
 				prefix: "\\?",
 				emote: quesEmote,
-				functions: ['img']
 			}
 		}
 	}
@@ -2144,24 +2102,15 @@ function priceCustom(test) {								//testing msem price engine
 	return thisPrice;
 }
 //Misc Embeds
-function buildSetsEmbed (setsDatabase, page, textFlag) {	//build $codes embed
+function buildSetsEmbed (library, page, textFlag) {	//build $codes embed
 	let helpout = "";
-	let desc = "MSEM Set Codes";
-	if(setsDatabase == magicSetData)
-		desc = "Magic Set Codes";
-	if(setsDatabase == devDex.setData)
-		desc = "Custom Project Set Codes";
-	if(setsDatabase == arcana.myriad.setData)
-		desc = "Myriad Set Codes";
-	for(let thisSet in setsDatabase)
+	let desc = library.bigname + " Set Codes";
+	let setsDatabase = library.setData;
+	let setCount = 0;
+	for(let thisSet in setsDatabase) {
 		helpout += "**" + thisSet + "**: " + setsDatabase[thisSet].longname + "\n";
-	if(setsDatabase == msemSetData) { //msem nonsets that go in
-		helpout += "**_BOT**: LackeyBot\n";
-		helpout += "**_PRO**: Promo\n";
-		helpout += "**_TKN**: Tokens\n";
-		helpout += "**_MSEMAR**: MSEM Additional Resources"
+		setCount++;
 	}
-	
 	let lines = helpout.split('\n');
 	if(textFlag) {
 		let start = 0 + 20*page;
@@ -2187,11 +2136,14 @@ function buildSetsEmbed (setsDatabase, page, textFlag) {	//build $codes embed
 		let third = i+thirds+thirds;
 		if(third >= lines.length)
 			third = null;
-		inlines[0].push(lines[first])
-		inlines[1].push(lines[second])
-		if(third !== null)
+		if(lines[first])
+			inlines[0].push(lines[first])
+		if(lines[second])
+			inlines[1].push(lines[second])
+		if(lines[third])
 			inlines[2].push(lines[third])
 	}
+	end = Math.min(setCount, end);
 	let embedded = new Discord.MessageEmbed()
 		.setDescription('**' + desc + '**')
 		.setFooter('Page ' + parseInt(page+1) + '/' + pages)
@@ -2286,7 +2238,7 @@ function buildGeneralEmbed(array, header, page, perPage, textFlag) { //converts 
 
 	return [embedInfo, pages];
 }
-function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, altIndex) { //moves to the left or right page of a 1d embed
+function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, altIndex, newPost) { //moves to the left or right page of a 1d embed
 	let emoteArray = msg.reactions.cache.array();
 	let thisPage = parseInt(pageCheck[1]);
 	let lastPage = parseInt(pageCheck[2]);
@@ -2298,14 +2250,14 @@ function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, altIndex) {
 	let saveArray = [];
 	let go = false;
 	for(let anEmote in emoteArray) {
-		if(emoteArray[anEmote].users.cache.array().length != 1 || emoteArray[anEmote]._emoji.name == plainText) {
+		if(emoteArray[anEmote].users.cache.array().length != 1 || emoteArray[anEmote]._emoji.name == plainText || emoteArray[anEmote]._emoji.name == resetList) {
 			go = true;
 			for(let user in emoteArray[anEmote].users.cache.array()) {
 				if(emoteArray[anEmote].users.cache.array()[user].id != Client.user.id)
 					userIDs.push(emoteArray[anEmote].users.cache.array()[user].id);
 			}
 			let emote = emoteArray[anEmote]._emoji.name;
-			if(emote == rightArrow || emote == leftArrow || update) {
+			if(emote == rightArrow || emote == leftArrow || emote == resetList ||update) {
 				if(emote == rightArrow) { //right
 					thisPage++;
 					if(thisPage > lastPage)
@@ -2316,6 +2268,8 @@ function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, altIndex) {
 					if(thisPage < 0)
 						thisPage = lastPage;
 				}
+				if(emote == resetList)
+					thisPage = 0;
 				if(altIndex && thisPage == 0)
 					thisPage = altIndex;
 				for(let id in userIDs) {
@@ -2327,14 +2281,22 @@ function turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, altIndex) {
 	}
 	let exampleEmbed = embedBuild(thisPage);
 	if(textFlag) {
-		let deadEmbed = exampleEmbed[1]
-		msg.edit(exampleEmbed[0],deadEmbed)
-		//	.then(removeCallback())
-		//	.catch(function(e){console.log(e)})
+		let deadEmbed = exampleEmbed[1];
+		if(newPost != undefined) {
+			msg.channel.send(exampleEmbed[0],deadEmbed)
+				.then(mess => newPost(mess))
+				.catch()
+		}else{
+			msg.edit(exampleEmbed[0],deadEmbed)
+		}
 	}else{
-		msg.edit("",exampleEmbed)
-		//	.then(removeCallback())
-		//	.catch(function(e){console.log(e)})
+		if(newPost != undefined) {
+			msg.channel.send("",exampleEmbed)
+				.then(mess => newPost(mess))
+				.catch()
+		}else{
+			msg.edit("",exampleEmbed)
+		}
 	}
 }
 
@@ -2677,8 +2639,7 @@ function shuffleArray(array) {								//shuffles arrays for packs and seating
     }
     return array;
 }
-function testPackFilters(packSlots, setID) {				//tests pack filters are valid for devDex
-	let library = devDex;
+function testPackFilters(packSlots, library, setID) {				//tests pack filters are valid for devDex
 	if(setID == "")
 		return "packSlots have still been saved, but LackeyBot doesn't have set data, so can't test pack filters.";
 	let filterArrays = {};
@@ -2690,18 +2651,20 @@ function testPackFilters(packSlots, setID) {				//tests pack filters are valid f
 			if(!thisFilter.match(/e:/))
 				thisFilter += " e:" + setID //add set filter if it doesn't have a filter
 			if(!filterArrays.hasOwnProperty(thisFilter)) {//add new filters to the object
-				filterArrays[thisFilter] = shuffleArray(fuzzy.scryDatabase(library, thisFilter));
-				if(filterArray[thisFilter][2]) //lackeybot timed out
+				let scryResults = fuzzy.scryDatabase(library, thisFilter);
+				filterArrays[thisFilter] = shuffleArray(scryResults[0]);
+				if(scryResults[2]) //lackeybot timed out
 					timeLine += thisFilter + '\n';
-				if(filterArrays[thisFilter][0].length == 0)
+				if(filterArrays[thisFilter].length == 0)
 					borkLine += thisFilter + "\n";
 			}
 		}
 	}
-	borkLine += 'The following filters timed out. For best results, use a simpler filter:\n' + timeLine;
 	if(borkLine != "")
-		return "packSlots have still been saved, but the following filters match no cards. This may result in packs missing cards:\n" + borkLine;
-	return null;
+		borkLine = "packSlots have still been saved, but the following filters match no cards. This may result in packs missing cards:\n" + borkLine;
+	if(timeLine != "")
+		borkLine += 'The following filters timed out. For best results, use a simpler filter:\n' + timeLine;
+	return borkLine;
 }
 function generatePack(set, library, extraFilter) {		//generates a pack given a set code
 	let database = library.cards;
@@ -2821,21 +2784,7 @@ function buildPickEmbed(library, packCards, expansion, textFlag) { //build $p1p1
 	packObj.cards = packCards;
 	packObj.set = expansion;
 	packObj.database = library.name;
-	let embedColor;
-	switch(library){
-		case arcana.magic:
-			embedColor = "#00aaaa";
-			break;
-		case arcana.msem:
-			embedColor = "#01aaaa";
-			break;
-		case arcana.devDex:
-			embedColor = "#02aaaa";
-			break;
-		case arcana.myriad:
-			embedColor = "#03aaaa";
-			break;
-	}
+	let embedColor = library.encodeColor;
 	let embedText = "";
 	for(let i=0; i<packCards.length; i++) {
 		embedText += "\n";
@@ -2862,6 +2811,84 @@ function buildPickEmbed(library, packCards, expansion, textFlag) { //build $p1p1
 		.setColor(embedColor)
 		.setFooter("1/1")
 		.setDescription(embedText)
+	return [exampleEmbed, packObj];
+}
+function supremePicker (user, picked) {
+	let ind = azEmoteArray.indexOf(picked);
+	if(ind == -1)
+		return [0, "Not an alpha emote."];
+	let stash = packStash[user];
+	if(ind >= stash.cards.length)
+		return [0, "Pick outside of range."];
+	if(stash.picks.includes(picked))
+		return [0, "That card has already been picked."];
+	let spool = scratchPad.supreme[user].pool;
+	let zeName = unFoil(stash.cards[ind])
+	if(!spool.hasOwnProperty(zeName))
+		spool[zeName] = 0;
+	spool[zeName]++;
+	stash.picks.push(picked)
+	return [1, "Card added to pool"];
+}
+function buildSupremeEmbed(library, packCards, expansion, pickData, page, textFlag) { //build $supreme embed
+	let database = library.cards;
+	let packObj = {};
+	packObj.cards = packCards;
+	packObj.set = expansion;
+	packObj.database = library.name;
+	packObj.picks = [];
+	let embedColor = library.encodeColor;
+	var exampleEmbed = new Discord.MessageEmbed()
+		.setTitle(`Supreme Draft, Pack ${pickData.pack}, Pick ${pickData.pick}: ${expansion}`)
+		.setColor(embedColor)
+		.setFooter(`${page+1}/${packObj.cards.length+1} React with 💬 to change to plaintext mode.`)
+	let embedText = "";
+	if(page == 0) {
+		for(let i=0; i<packCards.length; i++) {
+			let line = azEmoteArray[i] + ": ";
+			if(isFoil(packCards[i]))
+				line += "★ ";
+			let zeName = unFoil(packCards[i])
+			if(!database.hasOwnProperty(zeName)) {
+				zeName = zeName + "_" + expansion;
+				if(!database.hasOwnProperty(zeName)) {
+					zeName = searchCards(library, zeName)
+				}
+			}
+			line += database[zeName].fullName;
+			if(pickData.picks.includes(azEmoteArray[i]))
+				line = "~~" + line + "~~";
+			embedText += line + "\n";
+		}
+	}else{
+		let ind = page-1;
+		let total_name = packCards[ind];
+		let card_name = unFoil(total_name);
+		let foil_name = database[card_name].fullName;
+		if(isFoil(total_name))
+			foil_name = makeFoil(foil_name);
+		let cardText = database[card_name].typeLine + "\n" + database[card_name].rulesText.replace(/\n$/,"");
+		if(database[card_name].power)
+			cardText += "\n" + database[card_name].power + "/" + database[card_name].toughness;
+		let cardTitle = "**" + foil_name + "**";
+		if(pickData.picks.includes(azEmoteArray[ind]))
+			cardTitle = "~~" + cardTitle + "~~";
+		cardTitle = azEmoteArray[ind] + ": " + cardTitle;
+		exampleEmbed.setThumbnail(printImages([unFoil(packCards[(ind+1)%packCards.length])], library, true))
+		exampleEmbed.addField(cardTitle, cardText)
+		exampleEmbed.setImage(printImages([unFoil(card_name)], library, true));
+	}
+	embedText += `\nReact with 🇦 🇧 ... 🇿 to pick a card.\nReact with ${leftArrow}${rightArrow} to see card images or ${resetList} to return to the list.\nSend $poolsupreme to see your current pool.`;
+	if(textFlag) {
+		if(page == 0)
+			embedText += cardTitle + "\n" + cardText;
+		let nullEmbed = new Discord.MessageEmbed()
+			.setTitle(`Supreme Draft, Pack ${pickData.pack}, Pick ${pickData.pick}: ${expansion}`)
+			.setColor(embedColor)
+			.setFooter(`${page+1}/${packObj.cards.length+1} React with 💬 to change to embed mode.`)
+		return [[embedText, nullEmbed], packObj];
+	}
+	exampleEmbed.setDescription(embedText)
 	return [exampleEmbed, packObj];
 }
 
@@ -3077,7 +3104,7 @@ function giveSealedDeck (count, deckChecking) {											//give sealed deck of 
 		for(let card in pack) {
 			if(pack[card].match(/^★ (Plains|Island|Swamp|Mountain|Forest)( [a-z]|\d+)_/)) {
 				//be nice to sealed players and give them a random foil common instead of foil basic. Snow and Dry basics stay though.
-				let randtemp = fuzzy.scryDatabase(randBase, 'e:' + deckChecking[1] + ' r=c', true)[0];
+				let randtemp = fuzzy.scryDatabase(randBase, 'e:' + deckChecking[1] + ' r=c', {exact:true})[0];
 				if(randtemp.length > 0) {
 					let num = Math.floor(Math.random()*randtemp.length);
 					pack[card] = "★ " + shuffleArray(randtemp)[0];
@@ -3125,7 +3152,12 @@ function giveFancyDeck (deckString, user, deckName, save, deckChecking, library)
 					decks.push(thatDeck);
 			}
 		}
-		fancyDeck[1] = tucChecker(decks, library);
+		fancyDeck[1] = tucChecker(decks, library, ["MSEM"]);
+	}else if(deckChecking && deckChecking[0] == "Gladiator" && deckChecking[1] == "King of the Hill") {
+		let decks = [matchDex.gladiator.players[user.id].deckObj];
+		for(let d in matchDex.gladiator.players[user.id].decks)
+			decks.push(matchDex.gladiator.players[user.id].decks[d]);
+		fancyDeck[1] = tucChecker(decks, library, ["Gladiator"]);
 	}
 	let legalArray = fancyDeck[1];
 	fancyDeck = fancyDeck[0];
@@ -3185,6 +3217,8 @@ function makeFancyDeck (deckString, deckName, toggle, deckChecking, library, use
 	let legal = [];
 	if(deckChecking[0] == "Team Unified Constructed") {
 		matchDex.tuc.players[user.id].deckObj = deckObject;
+	}else if(deckChecking[0] == "Gladiator" && deckChecking[1] == "King of the Hill") {
+		matchDex.gladiator.players[user.id].deckObj = deckObject;
 	}else if(deckChecking) {
 		legal = checkLegal(deckObject, deckChecking, library);
 	}
@@ -3427,18 +3461,25 @@ function checkLegal (deckObject, deckChecking, library) {								//checks if dec
 			warning.push("Mainboard has more than forty cards.");
 		if(cardCount[1] < 8)
 			warning.push("Sideboard has fewer than eight cards.");
-	}else if(format == "MSEM") {
+	}else if(format == "MSEM" || format == "Gladiator" || format == "Pauper") {
+		let maxCount = [4, "four copies"];
+		if(format == "Gladiator")
+			maxCount = [1, "one copy"];
 		for(let thisCard in deckObject){
 			cardCount[0] += deckObject[thisCard].decks.main;
 			cardCount[1] += deckObject[thisCard].decks.side;
 			let trimname = thisCard.replace(/_[^\n]+/i,"");
-			if(deckObject[thisCard].count > 4 && checkBasic(searchCards(library,thisCard)) == 0)
-				legal.push("More than four copies of " + trimname + " detected.");
+			if(deckObject[thisCard].count > maxCount[0] && checkBasic(searchCards(library,thisCard)) == 0)
+				legal.push(`More than ${maxCount[1]} of ${trimname} detected.`);
 			let banned = checkBanned(trimname, "MSEM", library);
 			if(banned == 1 || library.cards[searchCards(library,thisCard)].typeLine.match("Conspiracy"))
 				legal.push(trimname + " is banned in MSEModern.");
 			if(banned == 2)
 				legal.push(trimname + " is masterpiece only and not legal in MSEModern.");
+			if(format == "Pauper") {
+				if(!library.cards[searchCards(library,thisCard)].rarities.includes("common") && !library.cards[searchCards(library,thisCard)].rarities.includes("basic land"))
+					legal.push(trimname + " is not common and not legal in MSEM Pauper.")
+			}
 		}
 		if(cardCount[0] < 60)
 			legal.push("Mainboard has fewer than sixty cards.");
@@ -3462,9 +3503,9 @@ function checkLegal (deckObject, deckChecking, library) {								//checks if dec
 	}
 	return [legal, warning];
 }
-function tucChecker(decks, library) {													//deckchecks for Team Unified Constructed
+function tucChecker(decks, library, format) {											//deckchecks for Team Unified Constructed
 	let cardNames = [];
-	let legalMess = checkLegal(decks[0], ["MSEM"], library) //make sure the individual deck is legal
+	let legalMess = checkLegal(decks[0], format, library) //make sure the individual deck is legal
 	for(let i=0; i<decks.length; i++) {
 		for(let card in decks[i]) {
 			let thisCard = library.cards[decks[i][card].refName];
@@ -3529,7 +3570,7 @@ function primordialReferences(library, deckObject, addon) {								//creates an 
 	let refs = [], cardsToCheck = "";
 	if(!addon)
 		addon = "";
-	let referrals = fuzzy.scryDatabase(library, "o:/(card|creature|spell|land|permanent|artifact|enchantment|planeswalker)s? named/ "+addon, false)[0];
+	let referrals = fuzzy.scryDatabase(library, "o:/(card|creature|spell|land|permanent|artifact|enchantment|planeswalker)s? named/ "+addon, {exact:false})[0];
 	if(referrals.length) {
 		for(let aCard in deckObject)
 			cardsToCheck += aCard + "|";
@@ -3556,6 +3597,9 @@ function primordialReferences(library, deckObject, addon) {								//creates an 
 function triceListTrimmer(list) {														//preformats cocktrice decklists
 	list = list.replace(/^\n+/, ""); //remove leading linebreaks
 	list = list.replace(/(_[A-Z0-9_]+)? ?\/\/ ?/g, "//"); //format split cards
+	//GHQ land fix
+	list = list.replace(/Mountain_GHQ/gi, "Mountain a_GHQ")
+	list = list.replace(/Forest_GHQ/gi, "Forest a_GHQ")
 	if(list.match(/SB: /)){ //annotated
 		list = list.replace(/\/\/ \d+ [^\n]+\n/g, "");
 		list = list.replace(/^\n+/, ""); //remove leading linebreaks again
@@ -4321,10 +4365,17 @@ function buildRoleEmbed(guildID, page, textFlag) {								//builds a page of the
 function buildInRoleEmbed(guild, roleName, page, textFlag) {					//build inrole embed
 	roleName = roleName.replace(/ $/, "")
 	let members;
+	let roleColor = "00ff33";
 	if(allRoles.guilds[guild.id].roles.hasOwnProperty(roleName)) { //exact role
-		members = guild.roles.cache.get(allRoles.guilds[guild.id].roles[roleName].id).members.array();
+		let roleData = guild.roles.cache.get(allRoles.guilds[guild.id].roles[roleName].id);
+		members = roleData.members.array();
+		if(roleData.color)
+			roleColor = roleData.color;
 	}else if(allRoles.guilds[guild.id].countable.hasOwnProperty(roleName)) { //exact countable
-		members = guild.roles.cache.get(allRoles.guilds[guild.id].countable[roleName].id).members.array();		
+		let roleData = guild.roles.cache.get(allRoles.guilds[guild.id].countable[roleName].id);
+		members = roleData.members.array();
+		if(roleData.color)
+			roleColor = roleData.color;
 	}else{ //fuzzy
 		let first = fuzzy.searchArray(roleName, Object.keys(allRoles.guilds[guild.id].roles), {percent:0.33});
 		let second = fuzzy.searchArray(roleName, Object.keys(allRoles.guilds[guild.id].countable), {percent:0.33});
@@ -4332,14 +4383,28 @@ function buildInRoleEmbed(guild, roleName, page, textFlag) {					//build inrole 
 			return ["Role not found.", null];
 		if(first[1] > second[1]) {
 			roleName = first[0];
-			members = guild.roles.cache.get(allRoles.guilds[guild.id].roles[roleName].id).members.array();
+			let roleData = guild.roles.cache.get(allRoles.guilds[guild.id].roles[roleName].id);
+			members = roleData.members.array();
+			if(roleData.color)
+				roleColor = roleData.color;
 		}else{
 			roleName = second[0];
-			members = guild.roles.cache.get(allRoles.guilds[guild.id].countable[roleName].id).members.array();
-		}
+			let roleData = guild.roles.cache.get(allRoles.guilds[guild.id].countable[roleName].id);
+			members = roleData.members.array();
+			if(roleData.color)
+				roleColor = roleData.color;
+			}
 	}
-	if(members.length == 0)
-		return ["No one has the " + roleName + " role.", null]
+	if(members.length == 0) {
+		let embedded = new Discord.MessageEmbed()
+			.setTitle("List of users in " + roleName + " role - " + members.length)
+			.setColor(roleColor)
+			.addField("Users", "No one has the " + roleName + " role.")
+			.setFooter("Page 1/1")
+		if(textFlag)
+			return [["No one has the " + roleName + " role.", embedded], null]
+		return [embedded, 1];
+	}
 	let memberArray = [];
 	for(let mem in members)
 		memberArray.push(members[mem].user.username);
@@ -4359,7 +4424,7 @@ function buildInRoleEmbed(guild, roleName, page, textFlag) {					//build inrole 
 	}
 	let embedInfo = buildGeneralEmbed(memberArray, "Users", page, 20)
 	let embedded = embedInfo[0];
-	embedded.setColor("00ff33")
+	embedded.setColor(roleColor);
 	embedded.setTitle("List of users in " + roleName + " role - " + members.length);
 	return [embedded, embedInfo[1]];
 }
@@ -4413,12 +4478,13 @@ function objectFindAll(obj, key, match, returnKey) {							//returns array of ob
 	return output;
 }
 //mtgjson/instigator
-function mtgjsonSetsBuilder(user) {							//build jsons for instigator or trice
+function mtgjsonSetsBuilder(user, library) {							//build jsons for instigator or trice
 	let ASA = {};//require('./triceFiles/AllCanonSets.json');
-	for(let set in msemSetData) {
-		ASA[set] = mtgjsonBuilder(set,user,1)
+	for(let set in library.setData) {
+		ASA[set] = mtgjsonBuilder(set,user,1,library)
 	}
-	let words = JSON.stringify(ASA).replace(/’/g, "'");
+	let v5ASA = {meta:{}, data:ASA};
+	let words = JSON.stringify(v5ASA).replace(/’/g, "'");
 	fs.writeFile('jsons/AllSets.json', words, (err) => {
 		if (err) throw err;
 		console.log('AllSets.json written');
@@ -4447,10 +4513,8 @@ function mtgjsonBuilder (thisSet, user, skip, library) {	//builds an mtgjson fil
 	//goal is object of unkeyed objects, ie {{stuff},{stuff},{stuff}}
 	let database = library.cards
 	for(let thisCard in database) {
-		if(thisCard == "Performer of Desire//Pyrus, the Undying Flame (Japanese)_FLP")
-			yeet(database[thisCard].setID);
 		if(database[thisCard].setID != "BOT") {
-			if(legal.masterpiece.includes(database[thisCard].fullName)) {
+			if(library.name == "msem" && legal.masterpiece.includes(database[thisCard].fullName)) {
 				//skip masterpieces
 			}else if(!skip && database[thisCard].setID == thisSet) { //if its instigator, send them all
 				cardsArray.push(thisCard);
@@ -4496,6 +4560,15 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 	for(let thisName in nameArray){
 		let thisCard = library.cards[nameArray[thisName]];
 		let thisEntry = {};
+		let reprint = library.name == "msem" && thisCard.notes.includes("reprint") && thisCard.setID != "SHRINE" && thisCard.setID != "LAIR";
+		let cardNames = [thisCard.cardName, ""];
+		if(thisCard.hasOwnProperty("cardName2"))
+			cardNames[1] = thisCard.cardName2;
+		if(thisCard.hasOwnProperty("hidden")) {
+			cardNames = thisCard.hidden.split("//")
+			cardNames.push("");
+		}
+
 		//TODO redo this
 		thisEntry.artist = thisCard.artist.replace(/ ?(on |—|-|[(]) ?(DeviantArt|DA|ArtStation|pixiv|pivix)[)]?/i, "");
 		thisEntry.convertedManaCost = thisCard.cmc;
@@ -4506,6 +4579,7 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 				thisEntry.colors[color] = flipColors(thisEntry.colors[color]);
 		}
 		thisEntry.color_identity = thisEntry.colors;
+		thisEntry.colorIdentity = thisEntry.colors;
 		thisEntry.designer = "";
 		if(thisCard.designer != "") {
 			thisEntry.designer = thisCard.designer;
@@ -4515,9 +4589,11 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 		if(thisCard.flavorText != "")
 			thisEntry.flavor = thisCard.flavorText.replace(/[*]/g, "");
 		thisEntry.id = nameArray[thisName];
-		thisEntry.imageName = thisCard.cardName.toLowerCase().replace(/’/g,"'");
+		thisEntry.imageName = cardNames[0].toLowerCase().replace(/’/g,"'");
 		thisEntry.layout = thisCard.shape.replace("doubleface", "double-faced").replace("adventure", "normal");
-		thisEntry.legalities = arrayifyLegal(thisCard.cardName.replace(/’/g,"'"), library);
+		if(skip && thisCard.shape == "doubleface")
+			thisEntry.layout = "transform";
+		thisEntry.legalities = arrayifyLegal(cardNames[0].replace(/’/g,"'"), library);
 		if(thisCard.loyalty !== "")
 			thisEntry.loyalty = thisCard.loyalty;
 		thisEntry.manaCost = thisCard.manaCost;
@@ -4531,18 +4607,28 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 		}else if(thisCard.hasOwnProperty('multiverseid')){
 			thisEntry.multiverseid = thisCard.multiverseid;
 		}
-		thisEntry.name = thisCard.cardName.replace(/’/g,"'");
-		if(thisCard.hasOwnProperty("hidden"))
-			thisEntry.name = thisCard.hidden;
-		let two_names = [];
-		if(skip) {//cockatrice
-			if(thisCard.notes.includes("reprint") && thisCard.setID != "SHRINE") {
+		thisEntry.name = cardNames[0].replace(/’/g,"'");
+		if(skip) {
+			if(thisCard.shape == "split")
+				thisEntry.name = thisCard.fullName.replace(/’/g,"'").replace("//", " // ");
+			(thisCard.shape == "doubleface")
+				thisEntry.name = cardNames[0].replace(/’/g,"'")
+			if(reprint) {
 				thisEntry.name += "_" + thisCard.setID;
 			}
 		}
+		let two_names = [];
 		two_names.push(thisEntry.name)
-		if(thisCard.shape == "doubleface" || thisCard.shape == "split")
-			thisEntry.names = [thisEntry.name, thisEntry.name.replace(thisCard.cardName, thisCard.cardName2)];
+		if(thisCard.shape == "doubleface" || thisCard.shape == "split") {
+			thisEntry.names = [thisEntry.name, thisEntry.name.replace(cardNames[0].replace("’","'"), cardNames[1].replace("’","'"))];
+			if(skip && thisCard.shape == "doubleface")
+				thisEntry.name = cardNames[0] + (reprint ? "_" + thisCard.setID:"") + " // " + cardNames[1] + (reprint ? "_" + thisCard.setID:"")
+			thisEntry.id = cardNames[0] + "_" + thisCard.setID;
+			thisEntry.uuid = cardNames[0] + "_" + thisCard.setID;
+			thisEntry.otherFaceIds = [cardNames[1] + "_" + thisCard.setID];
+			thisEntry.side = "a";
+			thisEntry.faceName = cardNames[0] + (reprint ? "_" + thisCard.setID:"");
+		}
 		if(thisCard.shape == "doubleface") { //|| thisCard.shape == "split") { //instigatorchange
 			thisEntry.number = thisCard.cardID + "a";
 			if(skip && thisCard.setID == "FLP")
@@ -4562,9 +4648,11 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 		thisEntry.rarity = thisCard.rarity.replace(/(masterpiece|bonus)/, "special");
 		if(skip && thisEntry.rarity == "special")
 			thisEntry.rarity = "s";
+		if(thisCard.setID == "MPS_MSE")
+			thisEntry.rarity = "special";
 		if(!skip) {
-			if(oracle.hasOwnProperty(thisCard.cardName.replace(/’/g,"'")))
-				thisEntry.rulings = arrayifyRulings(thisCard.cardName.replace(/’/g,"'"));
+			if(oracle.hasOwnProperty(cardNames[0].replace(/’/g,"'")))
+				thisEntry.rulings = arrayifyRulings(cardNames[0].replace(/’/g,"'"));
 		}
 		if(thisCard.typeLine.match("—"))
 			thisEntry.subtypes = arrayifyTypes(thisCard.typeLine.replace(/[A-Z ]+—/i, ""));
@@ -4597,13 +4685,15 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 				for(let color in thisEntry.colors)
 					thisEntry.colors[color] = flipColors(thisEntry.colors[color]);
 			}
+			thisEntry.color_identity = thisEntry.colors;
+			thisEntry.colorIdentity = thisEntry.colors;
 			thisEntry.designer = "";
 			if(thisCard.designer != undefined)
 				thisEntry.designer = thisCard.designer;
 			if(thisCard.flavorText2 != "")
 				thisEntry.flavor = thisCard.flavorText2.replace(/[*]/g, "");
-			thisEntry.id = nameArray[thisName] + "b";
-			thisEntry.imageName = thisCard.cardName2.toLowerCase().replace(/’/g,"'");
+			thisEntry.id = cardNames[0] + "_" + thisCard.setID + "b";
+			thisEntry.imageName = cardNames[1].toLowerCase().replace(/’/g,"'");
 			thisEntry.layout = thisCard.shape.replace("doubleface", "double-faced");
 			thisEntry.legalities = arrayifyLegal(thisCard.cardName.replace(/’/g,"'"), library);
 			if(thisCard.loyalty !== "")
@@ -4618,11 +4708,21 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 				thisEntry.multiverseid = thisCard.multiverseid;
 			}
 			
-			thisEntry.name = thisCard.cardName2.replace(/’/g,"'");
-			
+			thisEntry.name = cardNames[1].replace(/’/g,"'");
 			if(skip) {//cockatrice
-				if(thisCard.notes.includes("reprint")) {
+				if(thisCard.shape == "split")
+					thisEntry.name = thisCard.fullName.replace(/’/g,"'").replace("//", " // ");
+				if(thisCard.shape == "doubleface") {
+					thisEntry.name = cardNames[1].replace(/’/g,"'");
+					thisEntry.layout = "transform";
+				}
+				if(reprint) {
 					thisEntry.name += "_" + thisCard.setID;
+				}
+				thisEntry.side = "b";
+				if(thisCard.shape == "doubleface") {//cockatrice
+					if(thisCard.shape == "doubleface")
+						thisEntry.name = cardNames[0] + (reprint ? "_" + thisCard.setID:"") + " // " + cardNames[0] + (reprint ? "_" + thisCard.setID:"")
 				}
 			}
 			two_names.push(thisEntry.name)
@@ -4632,8 +4732,13 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 				thisEntry.number = thisCard.cardID + "sb";
 			if(thisCard.shape == "split") //instigatorchange
 				thisEntry.number = thisCard.cardID;
-			if(skip)
+			if(skip) {
 				thisEntry.number = thisEntry.number.replace(/s/g, "");
+				thisEntry.id = cardNames[1] + "_" + thisCard.setID;
+				thisEntry.uuid = cardNames[1] + "_" + thisCard.setID;
+				thisEntry.otherFaceIds = [cardNames[0] + "_" + thisCard.setID];
+				thisEntry.faceName = cardNames[1] + (reprint ? "_" + thisCard.setID : "");
+			}
 			if(!skip) {
 				if(thisCard.rulesText2 != "\n")
 					thisEntry.originalText = thisCard.rulesText2.replace(/[*]/g, "");
@@ -4641,9 +4746,12 @@ function mtgjsonCardsBuilder(nameArray, skip, library) {	//creates the cards arr
 			}
 			if(thisCard.power2 !== "")
 				thisEntry.power = thisCard.power2.toString();
+			
 			thisEntry.rarity = thisCard.rarity.replace(/(masterpiece|bonus)/, "special");
 			if(skip && thisEntry.rarity == "special")
 				thisEntry.rarity = "s"
+			if(thisCard.setID == "MPS_MSE")
+				thisEntry.rarity = "special";
 			if(!skip) {
 				if(oracle.hasOwnProperty(thisCard.cardName.replace(/’/g,"'")))
 					thisEntry.rulings = arrayifyRulings(thisCard.cardName.replace(/’/g,"'"));
@@ -4915,7 +5023,7 @@ function instigate(thisSet) {								//creates an instigatorID for each card in 
 		});
 }
 //MSE
-function namelistBuilder(database) {						//creates a list of names for the Name Exporter
+function namelistBuilder(database, user) {					//creates a list of names for the Name Exporter
 	let namelistArray = [];
 	let nameString = "";
 	for(let thisCard in database) {
@@ -4938,7 +5046,7 @@ function namelistBuilder(database) {						//creates a list of names for the Name
 	fs.writeFile('namelist.txt', nameString, (err) => {
 		if (err) throw err;
 		});
-	Client.channels.cache.get(config.signinChannel).send({
+	user.send({
 		files: [{attachment:"./namelist.txt", name:"namelist.txt"}]
 		});
 }
@@ -5713,6 +5821,16 @@ function generateBracketSeeds (powers) {					//generate bracket with 2^input pai
 	}
 	return primeArray;
 }
+function matchPermit(msg, tourney) {
+	tourney = tourney.toLowerCase();
+	if(msg.author.id == cajun)
+		return true;
+	if(msg.author.id == matchDex[tourney].data.TO)
+		return true;
+	if(matchDex[tourney].data.EO && msg.member.roles.cache.find(val => val.id == matchDex[tourney].data.EO))
+		return true;
+	return false;
+}
 function resetTourney(tourney) {							//archives tourney data
 	startWriting("match")
 	let leagueArchive = {};
@@ -5821,20 +5939,23 @@ function resetTourney(tourney) {							//archives tourney data
 	dropboxUpload("/tourneyArchives/"+archName,leagueText, function(){doneWriting("match")})
 	
 	flag[tourney] = 1;
-	return [flag, "The " + tourney + " database has been archived. If the tournament is over, send !delete " + tourney + " to reset its database or `!continue league` to start a new month in the same season."];
+	return [flag, "The " + tourney + " database has been archived. If the tournament is over, send `!delete " + tourney + "` to reset its database or `!continue league` to start a new month in the same season."];
 }
 function deleteTourney (tourney) {							//resets a tourney to nothing/base data
 		startWriting("match")
 		let oldName = tourney;															//save name
 		if(matchDex[tourney].data.name)
 			oldName = matchDex[tourney].data.name;										//then reset the data
+		let oldData = matchDex[tourney].data;
 		matchDex[tourney] = {};
 		matchDex[tourney].matches = [];													//blank matches
+		matchDex[tourney].awaitingMatches = [];											//blank matches
 		matchDex[tourney].players = {};													//blank players
-		matchDex[tourney].data = {TO: login.TO, channel:login.comp, pairing:"league", runLength:null, rematch:null, name:oldName};
+		matchDex[tourney].data = oldData;
 		matchDex[tourney].round = 0;													//and the round
 		if(tourney == "gp") {															//change the data defaults for recurring tournaments
 			matchDex[tourney].data.pairing = "swiss-knockout";
+			matchDex[tourney].data.channel = login.comp;
 			matchDex[tourney].awaitingMatches = [];
 			let gpLetter = matchDex[tourney].data.name.match(/GP([A-Z])/i);				//figure out the next GP letter
 			if(gpLetter){
@@ -5844,7 +5965,8 @@ function deleteTourney (tourney) {							//resets a tourney to nothing/base data
 				gpIndex = gpIndex%azArray.length;
 				gpLetter = azArray[gpIndex].toUpperCase();
 				matchDex[tourney].data.name = "GP" + gpLetter;
-				matchDex[tourney].data.submitRegex = "GP" + gpLetter + "?";
+				matchDex[tourney].data.submitRegex = "GP" + gpLetter;
+				matchDex[tourney].data.time = [3, "days"];
 			}
 		}else if(tourney == "league") {
 			matchDex[tourney].data.channel = login.league;
@@ -5856,7 +5978,7 @@ function deleteTourney (tourney) {							//resets a tourney to nothing/base data
 			matchDex[tourney].data.pairing = "swiss";
 			matchDex[tourney].data.channel = login.cnm;
 			matchDex[tourney].awaitingMatches = [];
-			matchDex[tourney].time = [50, "minutes"];
+			matchDex[tourney].data.time = [50, "minutes"];
 			matchDex[tourney].name = "Custom Night Magic";
 			matchDex[tourney].submitRegex = "cnm|cmn";
 		}else if(tourney == "sealed") {
@@ -5864,6 +5986,7 @@ function deleteTourney (tourney) {							//resets a tourney to nothing/base data
 			matchDex[tourney].data.rematch = 2;
 			matchDex[tourney].data.name = "Sealed League";
 			matchDex[tourney].data.submitRegex = "sealed";
+			matchDex[tourney].data.EO = "745439259795652649";
 		}else if(tourney == "primordial") {
 			matchDex[tourney].data.channel = "762822819196960809";
 			matchDex[tourney].data.runLength = 5;
@@ -5871,6 +5994,15 @@ function deleteTourney (tourney) {							//resets a tourney to nothing/base data
 			matchDex[tourney].data.crown = "762835408580640780";
 			matchDex[tourney].data.name = "Primordial League";
 			matchDex[tourney].data.submitRegex = "primordial [A-Z0-9_]+";
+		}else if(tourney == "gamenight") {
+			matchDex[tourney].data.pairing = "swiss";
+			matchDex[tourney].data.channel = "704798871666294855";
+			matchDex[tourney].data.TO = "380481522416746502";
+			matchDex[tourney].awaitingMatches = [];
+			matchDex[tourney].data.time = [24, "hours"];
+			matchDex[tourney].name = "Game Night";
+			matchDex[tourney].submitRegex = "game ?night";
+			matchDex[tourney].EO = "813132398668546118";
 		}
 		logMatch();
 		doneWriting("match");
@@ -6547,11 +6679,12 @@ function fourWinPoster(tourney, id, runInfo) {				//posts decks that go 4-1 or b
 	if(runScore[2] >= 4 && !runInfo.hasOwnProperty('printed')) {
 		let pullLink = runInfo.dropLink;
 		let deck = runInfo.deckName;
+		let deckFixed = runInfo.deckName.replace(/[\/\\:*?"<>|]/g, "");
 		dbx.filesDownload({path:pullLink})
 			.then(function(data) {
-				fs.writeFile(deck+'.txt', data.fileBinary, 'binary', function(err) {
+				fs.writeFile(deckFixed+'.txt', data.fileBinary, 'binary', function(err) {
 					if(err) throw err;
-					fs.readFile(deck+'.txt', "utf8", function read(err, data) {
+					fs.readFile(deckFixed+'.txt', "utf8", function read(err, data) {
 						if(err) throw err;
 						let deckData = extractPlain(data);
 						let chan = "475851199812337695", name = "League";
@@ -6579,10 +6712,11 @@ function fourWinPoster(tourney, id, runInfo) {				//posts decks that go 4-1 or b
 	}
 }
 //gp specific scripts
-function renderGPLeaderBoard (tourney, showBreakers) {		//renders the gp leaderboard
+function renderGPLeaderBoard (tourney, showBreakers, page) {		//renders the gp leaderboard
 	let players = Object.keys(matchDex[tourney].players);
 	let sortedArray = sortWithBreakers(tourney, players);
 	let infoArray = [];
+	let pageObj = {current:0, 0:""};
 	let longestString = 7; //minimum length, for "Players"
 	//big tournaments ran into the character limit, determine the maximum length of names
 	let maximumString = 32; //maximum length of a name, may need to be truncated due to character limit
@@ -6597,14 +6731,11 @@ function renderGPLeaderBoard (tourney, showBreakers) {		//renders the gp leaderb
 	let matchesRemaining = `\n**${matchDex[tourney].awaitingMatches.length} matches** remain this round.`
 	matchesRemaining = matchesRemaining.replace("*1 matches** remain", "*1 match** remains");
 	
-	let minLength = lenOfBlocks + lenOfBlocks + longestString; //```Players```
-	minLength += (lenOfData * (noOfPlayers+1)); 			 //+all the score columns
-	minLength += 3*noOfPlayers + Math.max(0, noOfPlayers-9); //+all the rank numbers
-	minLength += nameLine.length + matchesRemaining.length;  //+title and matches remaning
+	let minLength = lenOfBlocks + lenOfBlocks;					//```Players```
+	minLength += lenOfData; 			 						//+the score columns
+	minLength += nameLine.length + matchesRemaining.length;		//+title and matches remaning
 	let remaining = 2000 - minLength; //remaining characters for names
-	maximumString = Math.floor(remaining/noOfPlayers)
 	//build the table
-	let output = "";
 	let ranks = {rank: 1, score: 0, tw: 0, mb: 0, pd: 0}
 	let byeCorrect = 0; //bye doesn't always sort to bottom, so correct for people ranking "under" it
 	for(let i=0; i<sortedArray.length; i++) {
@@ -6613,14 +6744,14 @@ function renderGPLeaderBoard (tourney, showBreakers) {		//renders the gp leaderb
 		}else{
 			let thisArray = [];
 			thisArray.push(i+1-byeCorrect);                                                  	//thisArray[0] = rank
-			let theirUsername = toolbox.stripEmoji(pullUsername(sortedArray[i]).substring(0,maximumString));
+			let theirUsername = toolbox.stripEmoji(pullUsername(sortedArray[i]));
 			thisArray.push(theirUsername);											//thisArray[1] = username
 			thisArray.push(matchDex[tourney].players[sortedArray[i]].gpWin);     	//thisArray[2] = gpWin
 			thisArray.push(matchDex[tourney].players[sortedArray[i]].gpLoss);    	//thisArray[3] = gpLoss
 			thisArray.push(matchDex[tourney].players[sortedArray[i]].gpDraw);    	//thisArray[4] = gpDraw
 			thisArray.push(thisArray[2] + (0.5*thisArray[4]));                   	//thisArray[5] = Score
 			thisArray.push(omw(tourney, sortedArray[i]));    		  				//thisArray[6] = OM%
-			thisArray.push(gameWinPercentage(tourney, sortedArray[i], 0));      		//thisArray[7] = GW%
+			thisArray.push(gameWinPercentage(tourney, sortedArray[i],0));			//thisArray[7] = GW%
 			thisArray.push(ogw(tourney, sortedArray[i])); 							//thisArray[8] = OGW%
 			//bank stuff for real ranks
 			if(ranks.score == thisArray[5] && ranks.tw == thisArray[6] && ranks.mb == thisArray[7] && ranks.pd == thisArray[8]) {
@@ -6638,26 +6769,38 @@ function renderGPLeaderBoard (tourney, showBreakers) {		//renders the gp leaderb
 			infoArray.push(thisArray);
 		}
 	}
+	remaining -= longestString;
 	for(i=0; i<infoArray.length; i++) {
+		let output = "";
 		output += toolbox.fillLength(infoArray[i][0] + ": " + infoArray[i][1], longestString, "", " ") + " | "; //add rank and name, fill with spaces to keep first column even
-		output += infoArray[i][2] + "-" + infoArray[i][3] + "-" + infoArray[i][4] + " | "; 				//add W-L-T
+		output += infoArray[i][2] + "-" + infoArray[i][3] + "-" + infoArray[i][4] + " | "; 							//add W-L-T
 		if(showBreakers) {
-			output += " " + infoArray[i][5].toFixed(1) + " " + " | "; 										//add Score
+			output += " " + infoArray[i][5].toFixed(1) + " " + " | "; 												//add Score
 			output += toolbox.fillLength(infoArray[i][6].toFixed(2), 5, " ", "") + " | "; 							//add OM%
 			output += toolbox.fillLength(infoArray[i][7].toFixed(2), 5, " ", "") + " | "; 							//add GW%
 			output += toolbox.fillLength(infoArray[i][8].toFixed(2), 5, " ", "") + " |"; 							//add OG%
 		}
 		if(i<sortedArray.length-1)
 			output += "\n";
+		if((output.length + pageObj[pageObj.current].length + 1) > remaining) { //add
+			pageObj.current++;
+			pageObj[pageObj.current] = output;
+		}else{
+			pageObj[pageObj.current] += output;
+		}
 	}
 	let headers = " | W-L-T |";
 	if(showBreakers)
 		headers += " Score |  OMP  |  GWP  |  OGP  |"
-	output = nameLine + "```" + toolbox.fillLength("Players", longestString, "", " ") + headers + "\n" + output + "```";
+	let output = nameLine + "```" + toolbox.fillLength("Players", longestString, "", " ") + headers + "\n"
+	output += pageObj[page];
+	output += "```";
 	output = output.replace(/\|  0\.00 \|/g, "|  0.0  |");
 	output = output.replace(/\| 100\.00 \|/g, "| 100.0 |");
 	output += matchesRemaining;
-	return output;
+	let pageEmbed = new Discord.MessageEmbed()
+		.setFooter(`${page+1}/${pageObj.current+1} ${tourney} leaderboard`)
+	return [output, pageEmbed];
 }
 function dropTourneyPlayer (tourney, id, playing) {			//removes or adds player from tourney, adds or removes bye as needed
 	let output = "";
@@ -6917,6 +7060,16 @@ function auditGPMatches (tourney, id) {						//ensures the GP scores stay correc
 	matchDex[tourney].players[id].gpLoss = loss;
 	matchDex[tourney].players[id].gpDraw = draw;
 	matchDex[tourney].players[id].awaitingMatches = awaiting;
+	if(tourney == "gladiator") {
+		if(loss < 3) {
+			matchDex[tourney].players[id].currentRun = loss+1;
+		}else{
+			matchDex[tourney].players[id].currentRun = 3;
+			matchDex[tourney].players[id].playing = 0;
+			
+		}
+		
+	}
 	
 }
 function swissCount (num) {									//number of swiss rounds for num players
@@ -6963,14 +7116,14 @@ function swissPair (tourney) {								//pairs players swiss style
 	let pingParty = "";
 	let byeTemp = "";
 	
-	if(matchDex[tourney].round <= 1) {
+	if(matchDex[tourney].round <= 1 || matchDex[tourney].data.pairing == "random") {
 		//random
 		let tName = matchDex[tourney].data.name;
 		if(!tName)
 			tName = tourney;
 		let defTime = "3 days";
 		if(matchDex[tourney].data.time)
-			defTime = matchDex[tourney].data.time[0] + " " + matchDex[tourney].data.time[1] + (matchDex[tourney].data.time[0] != 1 ? "s" : "")
+			defTime = matchDex[tourney].data.time[0] + " " + matchDex[tourney].data.time[1] + (matchDex[tourney].data.time[0] != 1 && !matchDex[tourney].data.time[1].match(/s$/) ? "s" : "")
 		pingParty = "Round " + matchDex[tourney].round + " of " + tName + ". You have " + defTime + " to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
 		for(let thisPlayer in matchDex[tourney].players) {
 			if(matchDex[tourney].players[thisPlayer].playing)
@@ -6998,7 +7151,7 @@ function swissPair (tourney) {								//pairs players swiss style
 		tName = tourney;
 	let defTime = "3 days";
 	if(matchDex[tourney].data.time)
-		defTime = matchDex[tourney].data.time[0] + " " + matchDex[tourney].data.time[1] + (matchDex[tourney].data.time[0] != 1 ? "s" : "")
+		defTime = matchDex[tourney].data.time[0] + " " + matchDex[tourney].data.time[1] + (matchDex[tourney].data.time[0] != 1 && !matchDex[tourney].data.time[1].match(/s$/) ? "s" : "")
 	pingParty = "Round " + matchDex[tourney].round + " of " + tName + ". You have " + defTime + " to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
 	let recordArray = [];
 	for(let thisPlayer in matchDex[tourney].players) {
@@ -7138,7 +7291,7 @@ function beginKnockoutRounds(tourney) {						//pairs players seeded bracket styl
 		tName = tourney;
 	let defTime = "3 days";
 	if(matchDex[tourney].data.time)
-		defTime = matchDex[tourney].data.time[0] + " " + matchDex[tourney].data.time[1] + (matchDex[tourney].data.time[0] != 1 ? "s" : "")
+		defTime = matchDex[tourney].data.time[0] + " " + matchDex[tourney].data.time[1] + (matchDex[tourney].data.time[0] != 1 && !matchDex[tourney].data.time[1].match(/s$/) ? "s" : "")
 	let pingParty = "Round " + matchDex[tourney].round + " of " + tName + ". You have " + defTime + " to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
 	let players = matchDex[tourney].players;
 	let matches = matchDex[tourney].matches;
@@ -7266,7 +7419,7 @@ function knockoutRound (tourney) {							//handles knockout matches
 		tName = tourney;
 	let defTime = "3 days";
 	if(matchDex[tourney].data.time)
-		defTime = matchDex[tourney].data.time[0] + " " + matchDex[tourney].data.time[1] + (matchDex[tourney].data.time[0] != 1 ? "s" : "")
+		defTime = matchDex[tourney].data.time[0] + " " + matchDex[tourney].data.time[1] + (matchDex[tourney].data.time[0] != 1 && !matchDex[tourney].data.time[1].match(/s$/) ? "s" : "")
 	let pingParty = "Round " + matchDex[tourney].round + " of " + tName + ". You have " + defTime + " to complete your round. Contact <@!" + matchDex[tourney].data.TO + "> for extensions.\n";
 	let newMatches = [];
 	for(let i=0; i<matchDex[tourney].knockoutMatches.length; i+=2) {
@@ -7310,7 +7463,7 @@ function gameWinPercentage(tourney, player, min) {			//finds a player's game win
 	let wins = 0, games = 0; //set these as new numbers to avoid references
 	for(let match in thisPlayer.runs[0].matches) {
 		let matchNo = thisPlayer.runs[0].matches[match]
-		if(!byed[2].includes(matchNo)) { //for each match that isn't a bye
+		if(!byed[2].includes(matchNo) && !matchDex[tourney].matches[matchNo-1].knockout) { //for each match that isn't a bye or knockout round
 			let thisMatch = matchDex[tourney].matches[matchNo-1];
 			let res = playerMatchResults(thisMatch, player); //[#wins, #losses, #draws, boolean(win?)]
 			wins += parseInt(res[0]);
@@ -7328,7 +7481,7 @@ function oppWinPercentage(tourney, player, percentageFunction) { //find a player
 	for(let opp in opps[0]) {
 		let thisOpp = opps[0][opp];
 		if(thisOpp != bye)
-			omws.push(percentageFunction(tourney, thisOpp, 0.3333)); //for opponents MW or GW, minimum is 0.33
+			omws.push(percentageFunction(tourney, thisOpp, 0.3333).toFixed(2)); //for opponents MW or GW, minimum is 0.33
 	}
 	let omw = toolbox.avgArray(omws);
 	if(omw < 33.33)
@@ -7337,6 +7490,33 @@ function oppWinPercentage(tourney, player, percentageFunction) { //find a player
 }
 function omw(tourney, player) {return oppWinPercentage(tourney, player, matchWinPercentage)}
 function ogw(tourney, player) {return oppWinPercentage(tourney, player, gameWinPercentage)}
+function matchPatch(tourney, number, data) {
+	let p1 = data.match(/p1: ?(\d+)/);
+	let p1w = data.match(/p1w: ?(\d+)/);
+	let p1r = data.match(/p1r: ?(\d+)/);
+	let p2 = data.match(/p2: ?(\d+)/);
+	let p2w = data.match(/p2w: ?(\d+)/);
+	let p2r = data.match(/p2r: ?(\d+)/);
+	if(p1 && p2 && p1w && p2w) {
+		if(!p1r && !p2r) {
+			return updateGPMatch(tourney, p1[1], p2[1], p1w[1], p2w[1], number);
+		}else if(p1r && p2r) {
+			return updateMatch(tourney, p1[1], p2[1], p1w[1], p2w[1], number)
+		}else{
+			return "Incomplete data."
+		}
+	}
+	
+}
+function addKeys(){
+	for(let m in matchDex) {
+		if(m != "version" && matchDex[m].data.key) {
+			matchDex[m].data.key = m;
+		}
+	}
+	logMatch();
+}
+
 //Project channels
 function fetchHelpMessage() {								//devDex help message
 	let output = "LackeyBot can now support fetching for custom sets!\n";
@@ -7353,7 +7533,36 @@ function fetchHelpMessage() {								//devDex help message
 	output += "Then upload that exported file to LackeyBot's DM with the `?fetch upload` command and LackeyBot will attempt to add it to the database. To fetch, use {{Card Name}} and ?img.";
 	return output;
 }
-function sanitizeDevData(designer, channel, file) {			//download devDex patches and verify there's nothing amiss
+function addNewDevCards(designer, channel, file) {
+	let set_code = devDex.devData[designer].setCode;
+	let sani = sanitizeCardData(designer, channel, file, set_code);
+	if(sani[1]) {
+		let safeSet = sani[1];
+		for(let thisCard in devDex.cards) {
+			if(devDex.cards[thisCard].setID == set_code)
+				delete devDex.cards[thisCard]
+		}
+		for(let thisCard in safeSet) {
+			devDex.cards[thisCard] = safeSet[thisCard]
+		}
+		let card_list = Object.keys(devDex.cards);
+		card_list.sort(function(a, b) {
+			return setSort(a, b, devDex.cards, devDex.setData);
+		});
+		let tempcards = {};
+		for(let thisCard in card_list)
+			tempcards[card_list[thisCard]] = devDex.cards[card_list[thisCard]];
+		
+		devDex.cards = tempcards;
+		logDev(designer);
+		channel.stopTyping(100);
+		doneWriting("dev");
+		return sani[0];
+	}else{
+		return sani[0];
+	}
+}
+function sanitizeCardData(designer, channel, file, set_code) {			//download devDex patches and verify there's nothing amiss
 	let holdingCell = {};
 	try{
 		holdingCell = require("./dev/" + file + "devtest.json");
@@ -7362,13 +7571,12 @@ function sanitizeDevData(designer, channel, file) {			//download devDex patches 
 		console.log("Failed attempt to update project database by " + pullUsername(designer));
 		channel.stopTyping(100);
 		doneWriting("dev");
-		return "LackeyBot was unable to read your file."
+		return ["LackeyBot was unable to read your file."];
 	}
 	let psWarn = "";
 	let psArray = [];
 	let safeArray = ["fullName","cardName","manaCost","typeLine","rarityLine","rulesText","flavorText","power","toughness","loyalty","color","cmc","cardType","cardName2","manaCost2","typeLine2","rarityLine2","rulesText2","flavorText2","power2","toughness2","loyalty2","color2","cmc2","cardType2","rarity","shape","cardID","designer","script","notes","artist","artist2","instigatorID"];
 	let safeSet = {};
-	let set_code = devDex.devData[designer].setCode;
 	for(let thisCard in holdingCell) {
 		if(holdingCell[thisCard].fullName != "") {
 			let card_name = holdingCell[thisCard].fullName;
@@ -7405,7 +7613,7 @@ function sanitizeDevData(designer, channel, file) {			//download devDex patches 
 		channel.stopTyping(100);
 		doneWriting("dev");
 		console.log("Failed attempt to update project database by " + pullUsername(designer));
-		return "There are numerous errors in your set. Please re-export and try to upload again. If this continues, ping Cajun.";
+		return ["There are numerous errors in your set. Please re-export and try to upload again. If this continues, ping Cajun."];
 	}
 	if(toolbox.hasValue(errors)) {
 		for(let thisCard in errors)
@@ -7414,31 +7622,12 @@ function sanitizeDevData(designer, channel, file) {			//download devDex patches 
 		channel.stopTyping(100);
 		doneWriting("dev");
 		console.log("Failed attempt to update project database by " + pullUsername(designer));
-		return errorList;
+		return [errorList];
 	}
-	for(let thisCard in devDex.cards) {
-		if(devDex.cards[thisCard].setID == set_code)
-			delete devDex.cards[thisCard]
-	}
-	for(let thisCard in safeSet) {
-		devDex.cards[thisCard] = safeSet[thisCard]
-	}
-	let card_list = Object.keys(devDex.cards);
-	card_list.sort(function(a, b) {
-		return setSort(a, b, devDex.cards, devDex.setData);
-	});
-	let tempcards = {};
-	for(let thisCard in card_list)
-		tempcards[card_list[thisCard]] = devDex.cards[card_list[thisCard]];
-	
-	devDex.cards = tempcards;
-	logDev(designer);
-	channel.stopTyping(100);
 	if(psWarn != "")
 		psWarn = "\nDuplicate card names were detected. LackeyBot can support a normal card, promo card, and token card with the same name, but others will be overwritten. Attempting to upload to Planesculptors will cause errors. " + psWarn;
 	psWarn = psWarn.replace(/, $/, "");
-	doneWriting("dev");
-	return "Cards database downloaded successfully." + psWarn;
+	return ["Cards database downloaded successfully."+psWarn, safeSet];
 }
 function reassignDevCode(currentCode, newCode, id) {		//changes the set code for a project
 	try{
@@ -7487,6 +7676,86 @@ function setSort (a, b, database, setDatabase) {			//sorts the sets
 		result = alphaArray.indexOf(a) - alphaArray.indexOf(b);
 	}
 	return result
+}
+function commonSorter(packArray, library) {					//sorts the commons in a pack array
+	let newArray = [];
+	let sorted = false;
+	for(let card in packArray) {
+		let cardName = packArray[card];
+		let cardData = library.cards[cardName];
+		if(cardData.rarity == "common" && !sorted) {
+			newArray.push(cardName);					//add initial commons
+		}else if(!sorted){								//on first noncommon, sort commons
+			newArray.sort(function(a, b) {
+				return library.cards[newArray[a]].cardID - library.cards[newArray[b]].cardID;
+			})
+		}else{
+			newArray.push(cardName);
+		}
+	}
+	return newArray;
+}
+function generalCollater (library, set_code, count, user) {//print out pre-generated packs for Planesculptors
+	let packCount = 15;
+	let packs = [];
+	let output = "";
+	let rolling = 0;
+	let thisSetData = library.setData[set_code];
+	let addon = [ //ensure there's at least one common of each color
+		{filters: ["r=c c=w", "r=c"], chances: [1, 1]},
+		{filters: ["r=c c=u", "r=c"], chances: [1, 1]},
+		{filters: ["r=c c=b", "r=c"], chances: [1, 1]},
+		{filters: ["r=c c=r", "r=c"], chances: [1, 1]},
+		{filters: ["r=c c=g", "r=c"], chances: [1, 1]}
+	]
+	for(let i=1; i<6; i++) {//make sure we have five to replace, skip first slot for foil replace
+		if(thisSetData.packSlots[i].filters.length == 1 && thisSetData.packSlots[i].filters[0] == "r=c" && thisSetData.packSlots[i].chances[0] == 1) {
+			if(rolling == 6) {
+				thisSetData.packSlots[i] = addon[i];
+			}else{
+				rolling++;
+			}
+		}
+		if(rolling == 5) {
+			rolling = 6;
+			i=0;
+		}
+	}
+	for(let i=0; i<count; i++) {
+		let thisPack = generatePack(set_code, library);
+		if(thisPack.length < packCount)
+			packCount = thisPack.length;
+		packs.push(thisPack);
+	}
+	for(let thisPack in packs) {
+		packs[thisPack] = psPackSorter(packs[thisPack], library);
+		for(let i=0; i<packCount;i++) {
+			if(isFoil(packs[thisPack][9]))
+				output += "FOIL "
+			output += library.cards[unFoil(packs[thisPack][i])].cardName + "\n";
+		}
+		output += "===========\n";
+	}
+	fs.writeFile(`packOutput_${user.id}.txt`, output, function(err){
+		if(err) throw err;
+		user.send("Collated packs for Planesculptors:", {
+			files: [{attachment:`packOutput_${user.id}.txt`}]
+		})
+	})
+}
+function psPackSorter (packArray, library) {
+	rarityArray = ["basic land", "common", "uncommon", "special", "bonus", "rare", "mythic rare", "masterpiece"];
+	packArray.sort(function(a, b) {
+		let result = (isFoil(a) == null) - (isFoil(b) == null);
+		if(result)	//sort by foil
+			return result;
+		result = rarityArray.indexOf(library.cards[unFoil(b)].rarity) - rarityArray.indexOf(library.cards[unFoil(a)].rarity);
+		if(result) //then by rarity
+			return result;
+		result = library.cards[unFoil(a)].cardID - library.cards[unFoil(b)].cardID;
+		return result; //then by color
+	})
+	return packArray;
 }
 function escapify(string) {return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');} //escape regex characters
 //cr engine
@@ -8260,11 +8529,11 @@ function MSECardWriter(cardData) {
 function reportGuilds() {
 	let guilds = Client.guilds.cache.array();
 	for(let guild in guilds) {
-		yeet(guilds[guild].name);
+		console.log(guilds[guild].name);
 		let emotes = guilds[guild].emojis.cache.array();
 		for(let e in emotes)
-			yeet(emotes[e].id, emotes[e].name);
-		yeet();
+			console.log(emotes[e].id, emotes[e].name);
+		console.log();
 	}
 }
 function channelReminders() {					//posts help messages to channels after inactivity
@@ -8295,15 +8564,29 @@ async function channelHelpPoster(id, helpMsg, now) {
 	//don't post if last ten has a pin reminder
 	if(lastTen.filter(m => m.createdTimestamp > timeCheck).size) {
 		post = false; //message in the last 10 minutes
-		yeet("fail to ten minute rule");
 	}
 	if(lastTen.filter(m => m.content == helpMsg).size) {
 		post = false;
-		yeet("fail to pin reminder rule");
 	}
 	if(post)
 		channel.send(helpMsg);
 		
+}
+function wildcardVoter(user, content) {
+	let wildcardChannel = Client.channels.cache.get('777455867725479966')
+	if(!scratchPad.wildcard[user]) {
+		wildcardChannel.send(content)
+			.then(mess => logVotes(mess.id, user))
+			.catch(e => console.log(e))
+	}else{
+		let theirPost = wildcardChannel.messages.fetch(scratchPad.wildcard[user])
+			.then(mess => mess.edit(content))
+			.catch(e => console.log(e))
+	}
+}
+function logVotes(messID, userID) {
+	scratchPad.wildcard[userID] = messID;
+	logScratchpad();
 }
 var date = new Date();
 console.log(`${date.getDate()}/${(date.getMonth()<10)? "0"+date.getMonth() : date.getMonth()} ${(date.getHours()<10) ? "0"+date.getHours() : date.getHours()}:${(date.getMinutes()<10)? "0"+date.getMinutes() : date.getMinutes()} Loading database.`);
@@ -8326,37 +8609,24 @@ Client.on("message", (msg) => {
 		grab = msg.guild.id;
 	let arcanaData = toolbox.cloneObj(arcanaSettings[grab]);
 	var psActive = msg.content.match(/\$pl?a?n?e?sc?u?l?p?t?o?r?/i);
-	var swapSquares = msg.content.match(/\$(msem|myriad|cajun)/);
+	var swapSquares = msg.content.match(arcana.refSheet.anySwapRegex);
 	if(swapSquares || psActive) {
 		delete arcanaData.square;
 		arcanaData.square = {};
 		arcanaData.square.prefix = "\\$";
 		arcanaData.square.emote = dollarEmote;
-		let switchName = (swapSquares ? swapSquares[1] : "ps");
-		switch(switchName) {
-			case "ps":
-				arcanaData.square.data = {cards:psScrape.psCache, name:"ps"};
-				arcanaData.functions = [null];
-				break;
-			case "myriad":
-				arcanaData.square.data = arcana.myriad;
-				arcanaData.functions = ['img'];
-				break;
-			case "msem":
-				arcanaData.square.data = arcana.msem;
-				arcanaData.functions = ['img', 'rul', 'legal'];
-				break;
-			case "cajun":
-				arcanaData.square.data = arcana.cajun_standard;
-				arcanaData.functions = ['img', 'rul', 'legal'];
-				break;
+		if(psActive) {
+			arcanaData.square.data = {cards:psScrape.psCache, name:"ps"}
+		}else{
+			let dataName = arcana.refSheet.swapCommands[swapSquares[1]];
+			arcanaData.square.data = arcana[dataName];
 		}
 	}
 	var codeCheck = msg.content.match(/`/);
 	let gpName, isLeague;
 	for(let t in matchDex) {
 		if(matchDex[t].hasOwnProperty('data') && matchDex[t].data.hasOwnProperty('channel')) {
-			if(matchDex[t].data.channel == msg.channel.id) {
+			if(matchDex[t].data.channel == msg.channel.id && !gpName) {
 				gpName = t;
 				isLeague = (matchDex[gpName].data.pairing == "league");
 			}
@@ -8385,6 +8655,36 @@ Client.on("message", (msg) => {
 			if(admincheck.includes(0)) { //commands limited to bot admin
 				if(msg.content.match(/!arttest/))
 					channelReminders();
+				if(msg.content.match(/!force/)) {
+					if(msg.content.match(/!forceplayer/)) {
+						let id = msg.content.match(/id: ?([0-9]+)/);
+						let tourney = msg.content.match(/tourna?m?e?n?t?y?: ?([^\n]+)/);
+						if(id[1] && tourney[1]) {
+							msg.channel.send(addNewPlayer(tourney[1], id[1], true));
+						}
+					}else if(msg.content.match(/!forcematch/)) {
+						let p1 = msg.content.match(/p1: ?([0-9]+)/);
+						let p2 = msg.content.match(/p2: ?([0-9]+)/);
+						let tourney = msg.content.match(/tourna?m?e?n?t?y?: ?([^\n]+)/);
+						let koM = msg.content.match(/ko/);
+						let ko = false;
+						if(koM)
+							ko = true;
+						if(p1[1] && p2[1] && tourney[1]) {
+							msg.channel.send(newGPMatch(tourney[1], p1[1], p2[1], ko))
+						}
+					}
+				}
+				if(msg.content.match("hey lackeybot does your library support replies yet?"))
+					msg.reply("Looks like it does.")
+				if(msg.content.match(/!addkeys/))
+					addKeys();
+				if(msg.content.match(/!matchpatch/)) {
+					let t = msg.content.match(/tourney: ?([^\n]+)/i);
+					let m = msg.content.match(/match: ?(\d+)/i);
+					if(t && m)
+						msg.channel.send(matchPatch(t[1], m[1], msg.content))
+				}
 				let moxPurge = msg.content.match(/!mox ?purge ([^\n]+)\n([^\n]+)/);
 				if(moxPurge) {
 						var moxcbs = function(name, fieldText, killNote){
@@ -8410,6 +8710,18 @@ Client.on("message", (msg) => {
 								dropboxUpload('/moxtober/Moxtober '+ moxPurge[2] + '.mse-set', Buffer.from(data))
 							})
 						});
+				}
+				let votepoke = msg.content.match(/!votepoke (\d+)/i);
+				if(votepoke) {
+					for(let u in scratchPad.wildcard) {
+						if(scratchPad.wildcard[u] == votepoke[1]) {
+							let content = msg.content.replace(votepoke[0], "");
+							Client.users.cache.get(u).send(content);
+							msg.channel.send("Voter poked");
+							return;
+						}
+					}
+					msg.channel.send("Voter not found.");
 				}
 				if(msg.content.match(/!moxadd/i)) { //add all the mtg.d cards to moxtober files
 					moxtoberAddMTGDCards("Day 13 Dread");
@@ -8490,12 +8802,13 @@ Client.on("message", (msg) => {
 				let tourneyAdder = msg.content.match(/!editmatch/i);
 				if(tourneyAdder) {
 					let tourneyname = msg.content.match(/name: ([^\n]+)/i);
-					if(tourneyname) {
+					if(tourneyname && matchPermit(msg, tourneyname[1])) {
 						tourneyname = tourneyname[1];
-						let pairing = null, TO = null, channel = null, rematch = null, runLength = null, set = null, subName = null, pingtime = null, crownID = null, reg = null;
+						let pairing = null, TO = null, EO = null, channel = null, rematch = null, runLength = null, set = null, subName = null, pingtime = null, crownID = null, reg = null;
 
 						let pairCheck = msg.content.match(/pairing: (swiss-knockout|swiss|league)/i);
 						let toCheck = msg.content.match(/TO: ([^\n]+)/i);
+						let eoCheck = msg.content.match(/EO: ([^\n]+)/i);
 						let channelCheck = msg.content.match(/channel: ([^\n]+)/i);
 						let rematchCheck = msg.content.match(/rematch: ([^\n]+)/i);
 						let runsCheck = msg.content.match(/runLength: ([^\n]+)/i);
@@ -8519,8 +8832,13 @@ Client.on("message", (msg) => {
 						}else{
 							if(pairCheck)
 								pairing = pairCheck[1];
-							if(toCheck)
+							if(toCheck) {
 								TO = toCheck[1];
+								if(TO.match(/me/i))
+									TO = msg.author.id;
+							}
+							if(eoCheck)
+								EO = eoCheck[1];
 							if(channelCheck)
 								channel = channelCheck[1];
 							if(rematchCheck)
@@ -8546,6 +8864,8 @@ Client.on("message", (msg) => {
 							}
 							if(TO)
 								matchDex[tourneyname].data.TO = TO;
+							if(EO)
+								matchDex[tourneyname].data.EO = EO;
 							if(pairing)
 								matchDex[tourneyname].data.pairing = pairing;
 							if(channel)
@@ -8582,13 +8902,19 @@ Client.on("message", (msg) => {
 						tournamentNames = matchString;
 						if(TO && !organizers.includes(TO))
 							organizers.push(TO);
-						if(channel && !tournamentChannels.includes(channel))
-							tournamentChannels.push(channel);
+						if(channel) {
+							if(!tournamentChannels.includes(channel)) {
+								tournamentChannels.push(channel);
+							}else{
+								msg.channel.send("This channel is already set for another tournmanent.")
+							}
+						}
 					}else{
 						let output = "Use !editmatch to edit matchDex tournaments.\n";
 						output += "**name**: name of the tournament behind the scenes. Determines the name of $gpleader and $report gp.\n";
 						output += "**subtitle**: the name used for front facing things. Used for things like \"Your CNM Matches\" and \"Round 1 of GPL\"\n";
 						output += "**TO**: id of Tournament Organizer\n";
+						output += "**EO**: id of Event Organizer role\n";
 						output += "**pairing**: tournament pairing. Supports swiss, knockout, swiss-knockout, and league\n";
 						output += "**channel**: the channel id where the tournament is housed\n";
 						output += "**rematch**: in leagues, the number of rematches allowed\n";
@@ -8759,9 +9085,9 @@ Client.on("message", (msg) => {
 				*/
 				//old and depreciated scripts
 				if(msg.content.match("!namebuild custom")) //builds a namelist for MSEM
-					namelistBuilder(arcana.msem.cards);
+					namelistBuilder(arcana.msem.cards, msg.author);
 				if(msg.content.match("!namebuild canon")) //builds a namelist for MSE
-					namelistBuilder(arcana.magic.cards);
+					namelistBuilder(arcana.magic.cards, msg.author);
 				let bankcheck = msg.content.match(/([0-9]+)!bank (all|[A-Z0-9_]+)/i)
 				if(bankcheck != null)
 					buildStacks(bankcheck[1],bankcheck[2]);
@@ -8777,50 +9103,55 @@ Client.on("message", (msg) => {
 					Client.destroy()
 				}
 			}
-			if(admincheck.includes(1)) { //commands limited to bot admin and tournament mod
+			if(!admincheck.includes(9)) { //commands limited to bot admin and tournament mod
+					let permCheckMatch  = msg.content.match(/!permit ([^\n]+)/)
+					if(permCheckMatch && matchDex.hasOwnProperty(permCheckMatch[1].toLowerCase())) {
+						msg.channel.send(matchPermit(msg, permCheckMatch[1]))
+					}
+
 				//gp update commands
-				if(msg.author.id == login.TO || msg.author.id == cajun) {
+				if(msg.author.id == cajun || msg.author.id == login.TO) {
 					var gpUpdateCheck = msg.content.match(/!(gp|pt)(\d+|[a-z]\d?)/i);
 					var skirmCheck = msg.content.match(/!skirmish/i);
 					if(skirmCheck !== null || gpUpdateCheck !== null)
 						gpUpdate(msg);
-					var archiveMatch = msg.content.match(/!end ?(.*)/i);
-					var killMatch = msg.content.match(/!delete ?(.*)/i);
-					if(killMatch && !killMatch[1].match(/^ ?https:\/\//)) {
-						if(gpCell[0] && gpCell[0][killMatch[1]]) {
-							if(killMatch[1] != 'league')
-								msg.channel.send(deleteTourney(killMatch[1]));
-							if(killMatch[1] == 'league')
-								msg.channel.send(rolloverTourney('league',1));
-							gpCell = [];
-						}else{
-							archiveMatch = killMatch
-						}
+				}
+				var archiveMatch = msg.content.match(/!archive ?(.*)/i);
+				var killMatch = msg.content.match(/!delete ?(.*)/i);
+				if(killMatch && !killMatch[1].match(/^ ?https:\/\//) && matchPermit(msg, killMatch[1])) {
+					if(gpCell[0] && gpCell[0][killMatch[1]]) {
+						if(killMatch[1] != 'league')
+							msg.channel.send(deleteTourney(killMatch[1]));
+						if(killMatch[1] == 'league')
+							msg.channel.send(rolloverTourney('league',1));
+						gpCell = [];
+					}else{
+						archiveMatch = killMatch
 					}
-					let contCheck = msg.content.match(/!continue ?(league|primordial)/);
-					if(contCheck && gpCell[0] && gpCell[0][contCheck[1]])
-						msg.channel.send(rolloverTourney(contCheck[1],0));
-					if(archiveMatch) {
-						gpCell = resetTourney(archiveMatch[1])
-						msg.channel.send(gpCell[1]);
-						setTimeout(function() {
-							matchDex = require('./msem/matchDex.json');
-							console.log('matchDex has reloaded');
-						}, 1000*60*5)
-					}
+				}
+				let contCheck = msg.content.match(/!continue ?(league|primordial)/);
+				if(contCheck && gpCell[0] && gpCell[0][contCheck[1]] && matchPermit(msg, contCheck[1]))
+					msg.channel.send(rolloverTourney(contCheck[1],0));
+				if(archiveMatch) {
+					gpCell = resetTourney(archiveMatch[1])
+					msg.channel.send(gpCell[1]);
+					setTimeout(function() {
+						matchDex = require('./msem/matchDex.json');
+						console.log('matchDex has reloaded');
+					}, 1000*60*5)
 				}
 				//matchDex maintenance
 				let nulRegex = new RegExp('!null ' + tournamentNames + ' ([0-9]+)','i')
 				var nulMatch = msg.content.match(nulRegex)
-				if(toolbox.hasValue(nulMatch) && (msg.author.id == cajun || msg.author.id == matchDex[nulMatch[1]].data.TO)) {
+				if(toolbox.hasValue(nulMatch) && matchPermit(msg, nulMatch[1])) {
 					msg.channel.send(nullMatch(nulMatch[1], parseInt(nulMatch[2])));
 				}
 				let pushRegex = new RegExp('!push ?' + tournamentNames,'i')
 				let pushMatch = msg.content.match(pushRegex);
-				if(pushMatch) { //move to next round
+				if(pushMatch && matchPermit(msg, pushMatch[1])) { //move to next round
 					let message = "";
 					let tourney = pushMatch[1].toLowerCase();
-					if(matchDex[tourney].data.pairing != "league" && (msg.author.id == cajun || msg.author.id == matchDex[tourney].data.TO)) {
+					if(matchDex[tourney].data.pairing != "league") {
 						if(matchDex[tourney].matches.length == 0) {
 							matchDex[tourney].round++;
 							message = startTourney(tourney);
@@ -8834,25 +9165,24 @@ Client.on("message", (msg) => {
 						}
 					}
 				}
-				if(msg.content.match(/!ping ?gp/i)) {
+				/*if(msg.content.match(/!ping ?gp/i)) {
 					msg.channel.send("```\n"+pingTourney('gp')+"```");
-				}
+				}*/
 				let playerRegex = new RegExp('!players ?' + tournamentNames,'i');
 				let playerMatch = msg.content.match(playerRegex);
-				if(playerMatch && (msg.author.id == cajun || msg.author.id == matchDex[playerMatch[1].toLowerCase()].data.TO)) {
+				if(playerMatch && matchPermit(msg, playerMatch[1])) {
 					msg.channel.send(writePlayerIndexes(playerMatch[1].toLowerCase()));
 				}
 				let dropRegex = new RegExp('!(un)?drop ?' + tournamentNames + ' ?player ([0-9]+)','i')
 				let dropMatch = msg.content.match(dropRegex);
-				if(dropMatch) {
+				if(dropMatch && matchPermit(msg, dropMatch[2])) {
 					let tourney = dropMatch[2].toLowerCase();
-					if(msg.author.id == cajun || msg.author.id == matchDex[tourney].data.TO) {
-						let playing = 0;
-						if(dropMatch[1])
-							playing = 1;
-						let refIndex = Object.keys(matchDex[tourney].players);
-						msg.channel.send(dropTourneyPlayer(tourney, refIndex[dropMatch[3]], playing));
-					}
+					let playing = 0;
+					if(dropMatch[1])
+						playing = 1;
+					let refIndex = Object.keys(matchDex[tourney].players);
+					msg.channel.send(dropTourneyPlayer(tourney, refIndex[dropMatch[3]], playing));
+					logMatch();
 				}
 				if(msg.content.match(/!match ?h?elp/i)){
 					let message = "**MatchDex Help Message!**\n";
@@ -9188,7 +9518,7 @@ Client.on("message", (msg) => {
 						}else{																			//which has exception for judgebot
 							rulRegex = new RegExp(`(^${info.prefix}rul(?!e [0-9]{3})|.${info.prefix}rul)`, 'i');
 						}
-						if(info.functions && info.functions.includes('img') && msg.content.match(imgRegex)) {//post cached images
+						if(library.functions && library.functions.includes('img') && msg.content.match(imgRegex)) {//post cached images
 							if(imgCache.hasOwnProperty(msg.channel.id)) {								//if we have data for this channel
 								let showCard = imgCache[msg.channel.id][library.name];					//use that instead
 								showCard = printImages(showCard, library)								//format it
@@ -9208,7 +9538,7 @@ Client.on("message", (msg) => {
 								msg.channel.send(noLastCardError);										//send the error if no card data
 							}
 						}
-						if(info.functions.includes('rul') && msg.content.match(rulRegex)) {				//post rulings for cached cards
+						if(library.functions && library.functions.includes('rul') && msg.content.match(rulRegex)) {				//post rulings for cached cards
 							let ruling = "Can't find anything on that one, boss.";						//default message
 							if(imgCache.hasOwnProperty(msg.channel.id)) {								//if we have data for this channel
 								let showCard = imgCache[msg.channel.id][library.name];					//use that instead
@@ -9413,7 +9743,7 @@ Client.on("message", (msg) => {
 				}
 			}
 			//generates a pack of a given set
-			let packcheck = msg.content.match(/(\$|\?|!)(open|p1p1) ([A-Z0-9]+)/i)
+			let packcheck = msg.content.match(/(\$|\?|!)(open|p1p1|supreme) ([A-Z0-9]+)/i)
 			if(packcheck) {
 				let library = arcanaData.square.data;
 				if(packcheck[1] == "!") {
@@ -9448,6 +9778,23 @@ Client.on("message", (msg) => {
 								.then(() => mess.react(rightArrow))
 								.then(() => mess.react(plainText))})
 							.catch(function(e){console.log(e)})
+					}else if(packcheck[2].toLowerCase() == "supreme"){
+						let embedInfo = buildSupremeEmbed(library, psPackSorter(genPack, library), expacName, {pack:1, pick:1, picked:null, picks:[]}, 0);
+						let packEmbed = embedInfo[0];
+						packStash[msg.author.id] = embedInfo[1];
+						msg.channel.send(packEmbed)
+							.then(function(mess){
+								mess.react(plainText);
+								mess.react(leftArrow);
+								mess.react(rightArrow);
+								packStash[msg.author.id].msg = mess.id;
+								if(!scratchPad.supreme)
+									scratchPad.supreme = {};
+								scratchPad.supreme[msg.author.id] = {};
+								scratchPad.supreme[msg.author.id].mID = mess.id;
+								scratchPad.supreme[msg.author.id].pool = {};
+							})
+							.catch(function(e){console.log(e)}) //TODO come back
 					}else{
 						let embedInfo = buildPickEmbed(library, genPack, expacName);
 						let packEmbed = embedInfo[0];
@@ -9456,6 +9803,15 @@ Client.on("message", (msg) => {
 							.catch(function(e){console.log(e)})
 					}
 				}
+			}
+			if(msg.content.match(/\$poolsupreme/i)) {
+				if(!scratchPad.supreme || !scratchPad.supreme[msg.author.id])
+					msg.channel.send("You don't have a Supreme pool.");
+				let pool = "**Supreme Pool**\n";
+				for(let c in scratchPad.supreme[msg.author.id].pool) {
+					pool += scratchPad.supreme[msg.author.id].pool[c] + " " + c.replace(/_.*/, "") + "\n";
+				}
+				msg.channel.send(pool)
 			}
 			//show the user their current pack
 			if(msg.content.match(/\$viewpack/i)) {
@@ -9568,7 +9924,7 @@ Client.on("message", (msg) => {
 				}
 				var rando;
 				if(scryRand[2]) {
-					let randtemp = fuzzy.scryDatabase(randBase, scryRand[2], true)[0];
+					let randtemp = fuzzy.scryDatabase(randBase, scryRand[2], {exact:true})[0];
 					if(randtemp.length > 0) {
 						let num = Math.floor(Math.random()*randtemp.length);
 						rando = shuffleArray(randtemp)[0];
@@ -9805,7 +10161,6 @@ Client.on("message", (msg) => {
 									let path = toolbox.lastElement(matchDex.tuc.players[user.id].runs).dropLink;
 									dropboxUpload(path, deckContent[0])
 									let confirmM = uploadcheck[1] + " decklist submitted!"
-									console.log(confirmM);
 									if(confirmM)
 										msg.channel.send(confirmM);
 								}
@@ -9814,15 +10169,73 @@ Client.on("message", (msg) => {
 					}else{
 						msg.channel.send("You are not registered for the Team Unified Constructed event.")
 					}
-				}else if(uploadcheck[1].match(/(gp[a-z]|league|cnm|cmn)/)) { //msem deckcheck
+				}else if(uploadcheck[1].match(/gladiator \d+/i)){
+					if(!listMatch) {
+						uploadcheck = null;
+					}else{
+						let listNo = uploadcheck[1].match(/gladiator (\d+)/i)[1];
+						listNo = parseInt(listNo)-1;
+						if(listNo != 0 && listNo != 1 && listNo != 2) {
+							msg.channel.send("Please include the run number; `$submit gladiator 2 User's Deck`");
+							return;
+						}
+						tourney = 'gladiator';
+						let joinM = addNewPlayer("gladiator", msg.author.id)
+						if(joinM) {
+							msg.channel.send(joinM);
+							matchDex.gladiator.players[user.id].decks = [];
+							matchDex.gladiator.players[user.id].currentRun = 1;
+						}
+						let username = toolbox.stripEmoji(user.username)
+						if(!matchDex[tourney].players[msg.author.id].runs[listNo]) { //new run
+							var deckContent = giveFancyDeck(msg.content, msg.author, deckName, 0, ['Gladiator', 'King of the Hill'], arcana.msem);
+							if(deckContent[1].match(/This deck is legal/)) {
+								listNo = matchDex.gladiator.players[user.id].runs.length;
+								let newRun = {matches:[], deckName:deckName, dropLink:`/gladiator/${username}${listNo+1}.txt`};
+								matchDex.gladiator.players[user.id].runs.push(newRun);
+								matchDex.gladiator.players[user.id].decks.push(matchDex.gladiator.players[user.id].deckObj);
+								delete matchDex.gladiator.players[user.id].deckObj
+								logMatch();
+							}else{
+								delete matchDex.gladiator.players[user.id].deckObj
+							}
+						}else{ //edit run
+							let hold = toolbox.cloneObj(matchDex.gladiator.players[user.id].decks[listNo]);
+							matchDex.gladiator.players[user.id].decks[listNo] = {};
+							var deckContent = giveFancyDeck(msg.content, msg.author, deckName, 0, ['Gladiator', 'King of the Hill'], arcana.msem);
+							if(deckContent[1].match(/This deck is legal/)) {
+								matchDex.gladiator.players[user.id].runs[listNo].deckName = deckName;
+								matchDex.gladiator.players[user.id].decks[listNo] = matchDex.gladiator.players[user.id].deckObj;
+								delete matchDex.gladiator.players[user.id].deckObj;
+								logMatch();
+							}else{
+								delete matchDex.gladiator.players[user.id].deckObj;
+								matchDex.gladiator.players[user.id].decks[listNo] = hold;
+							}
+						}
+						if(deckContent[1].match(/This deck is legal/)) {
+							let path = matchDex.gladiator.players[user.id].runs[listNo].dropLink;
+							dropboxUpload(path, deckContent[0])
+							let confirmM = uploadcheck[1] + " decklist submitted!"
+							if(confirmM)
+								msg.channel.send(confirmM);
+						}
+					}
+					
+				}else if(uploadcheck[1].match(/(gp[a-z]|league|cnm|cmn|pauper)/i)) { //msem deckcheck
 					if(!listMatch) {
 						uploadcheck = null;
 					}else{
 						tourneyname = tourneyname.replace(" ", "");
+						let legality = ["MSEM"];
 						let tourney = "gp"
-						if(tourneyname.match(/(cnm|cmn)/))
+						if(tourneyname.match(/(cnm|cmn)/i))
 							tourney = 'cnm';
-						let deckContent = giveFancyDeck(msg.content, msg.author, deckName,0,['MSEM'], arcana.msem);
+						if(tourneyname.match(/pauper/i)) {
+							tourney = 'pauper';
+							legality = ['Pauper'];
+						}
+						let deckContent = giveFancyDeck(msg.content, msg.author, deckName,0, legality, arcana.msem);
 						if(tourneyname == "league") {
 							tourney = "league";
 							let joinM = addNewPlayer("league",msg.author.id);
@@ -9840,11 +10253,10 @@ Client.on("message", (msg) => {
 						}else{
 							if(matchDex[tourney].round > 0) {
 								deckContent[1] = "";
-								msg.author.send("Sorry, but deck submissions for the GP are closed!");
+								msg.author.send("Sorry, but deck submissions for this tournament are closed!");
 							}
 							if(matchDex[tourney].round == 0) {
 								let addM = addNewPlayer(tourney, msg.author.id).replace("gp", tourneyname);
-								console.log(addM);
 								if(addM)
 									msg.channel.send(addM);
 								addNewRun(tourney,msg.author.id,toolbox.stripEmoji(msg.author.username), deckName, tourneyname)
@@ -9904,7 +10316,8 @@ Client.on("message", (msg) => {
 				}
 			}
 			let deckCommands = msg.content.match(/\$(deckcheck|convert|plain)/i);
-			if(!uploadcheck && !canonUploadCheck && !deckCommands && (subMatch || (msg.channel.type == 'dm' && listBulk && listBulk.length > 2))){
+			let ignoreCommands = msg.content.match(/\$pack/i)
+			if(!uploadcheck && !canonUploadCheck && !deckCommands && !ignoreCommands && (subMatch || (msg.channel.type == 'dm' && listBulk && listBulk.length > 2))){
 				let submitHelp = "To submit a decklist, use the form ";
 				let currentGP = "GPJ";
 				if(matchDex.gp.data.hasOwnProperty('name') && matchDex.gp.data.name != "")
@@ -9951,17 +10364,17 @@ Client.on("message", (msg) => {
 				msg.channel.send(helpout)
 				bribes++;
 			}
-			let scodeMatch = msg.content.match(/(\$|\?|!)code/i);
+			let scodeMatch = msg.content.match(/(\$|\?|!)(set|code)/i);
 			if(scodeMatch){
 				bribes++;
-				let setDatabase;
+				let library;
 				if(scodeMatch[1] == "$")
-					setDatabase = arcanaData.square.data.setData;
+					library = arcanaData.square.data;
 				if(scodeMatch[1] == "!")
-					setDatabase = arcanaData.angle.data.setData;
+					library = arcanaData.angle.data;
 				if(scodeMatch[1] == "?")
-					setDatabase = arcanaData.curly.data.setData;
-				let embedded = buildSetsEmbed(setDatabase, 0)
+					library = arcanaData.curly.data;
+				let embedded = buildSetsEmbed(library, 0)
 				let messyCallback = function (mess) {
 					mess.react(plainText)
 						.then(function() {
@@ -10033,7 +10446,7 @@ Client.on("message", (msg) => {
 						if(legal.modernBan.length > 1)
 							banlist += ", ";
 					}
-					banlist += "and 11 conspiracy cards are banned in MSEM.\r\n\r\n";
+					banlist += "and 16 conspiracy cards are banned in MSEM.\r\n\r\n";
 					for(var i = 0; i < legal.edhBan.length; i++) {
 						banlist += "**" + legal.edhBan[i] + "**";
 						if(legal.edhBan.length == 1 && i == 0)
@@ -10043,7 +10456,7 @@ Client.on("message", (msg) => {
 						if(legal.edhBan.length > 1 && i == legal.edhBan.length-2)
 							banlist += ", and ";
 					}
-					banlist += ", and 11 conspiracy cards are banned in MSEDH.";			
+					banlist += ", and 16 conspiracy cards are banned in MSEDH.";			
 					msg.channel.send(banlist);
 					bribes++;
 				}
@@ -10083,11 +10496,11 @@ Client.on("message", (msg) => {
 			if(msg.content.match(/\$(cocka)?trice/)) {
 				bribes++;
 				output = "Cockatrice Installation:\n";
-				output += "For easiest updates, you'll want a separate version of Cockatrice for MSEM. This can be done by downloading a portable version of Cockatrice from here: <https://cockatrice.github.io/>\n";
-				output += "• Open Cockatrice and run Oracle.\n";
-				output += "• For the file sources, paste `http://mse-modern.com/msem2/notlackey/AllSets.json` in the first window, then `http://mse-modern.com/msem2/notlackey/tokens.xml` after that has downloaded.\n";
-				output += "• On the top menu, navigate to Cockatrice -> Settings -> Card Sources.\n";
-				output += "• Add the two links from Image download paths below. Ensure they are in the same order, and that \"Download images on the fly\" is checked.\n";
+				output += "For easiest updates, you'll want a separate version of Cockatrice for MSEM. This can be done selecting \"Portable version\" when downloading Cockatrice: <https://cockatrice.github.io/>\n";
+				output += "• Open Cockatrice and run Oracle. This is usually labled \"Check for card updates\" under the Cockatrice or Help menu, depending on your version.\n";
+				output += "• For Oracle's file sources, paste `http://mse-modern.com/msem2/notlackey/AllSets.json` in the first window, then `http://mse-modern.com/msem2/notlackey/tokens.xml` after that has downloaded.\n";
+				output += "• On the top menu, navigate to Cockatrice -> Settings -> Card Sources on Windows or Cockatrice -> Preferences on Mac.\n";
+				output += "• Add the two links from Image download paths below. Ensure they are the first links, are in the same order, and that \"Download images on the fly\" is checked.\n";
 				output += "`http://mse-modern.com/msem2/images/!setcode!/!set:num!!set:rarity!.jpg`\n";
 				output += "`http://mse-modern.com/msem2/images/!setcode!/!set:num!.jpg`\n";
 				output += "• After patches, click the \"Delete all downloaded images\" button here to allow cards to update.";
@@ -10097,7 +10510,7 @@ Client.on("message", (msg) => {
 				msg.channel.send("For more in-depth searching options, check out Instigator!\n<https://msem-instigator.herokuapp.com/>");
 				bribes++;
 			}if(msg.content.match(/\$font/i)){
-				msg.channel.send("https://www.dropbox.com/s/1hw9xmtmjx2pjj0/Magic%20Fonts.zip?dl=0");
+				msg.channel.send("Compact MSE Fonts file.\nDownload and unzip this folder.\n• On Windows, either select all the .ttf files and right click -> Install All, or open each .ttf and click install if that's not available.\n• On WINE, there will be a font folder the .ttfs will need to be moved to, such as `~/.wine/drive_c/windows/Fonts`.\nhttps://www.dropbox.com/s/1hw9xmtmjx2pjj0/Magic%20Fonts.zip?dl=0");
 				bribes++;
 			}
 			let hmMatch = msg.content.match(/!hm ?(easy|medium|hard)?/i)
@@ -10106,6 +10519,18 @@ Client.on("message", (msg) => {
 				msg.channel.send(generateHangman(hmMatch[1]))
 					.then(mess => hangmanCallback(mess, msg.channel))
 					.catch(e => console.log(e))
+			}
+			let lackeybotMS3Converter = msg.content.match(/\$lackeyb?o?t? ?roll ([0-9]+)/i);
+			if(lackeybotMS3Converter) {
+				let query = "-r=mp -is:reprint t:Artifact -t:Token cmc<=" + lackeybotMS3Converter[1];
+				let valids = fuzzy.scryDatabase(arcana.msem, query, {onlyFront:true});
+				bribes++;
+				if(valids[0].length) {
+					let i = toolbox.rand(valids[0].length-1);
+					msg.channel.send(`Randomly chosen artifact, CMC ${lackeybotMS3Converter[1]} or less:\n${arcana.msem.cards[valids[0][i]].cardName}`)
+				}else{
+					msg.channel.send("No cards found.")
+				}
 			}
 			let searchCheck = msg.content.match(/(\$|!|\?)(s?earch|li?mitfy|scryf?a?l?l?) ([^\n]+)/i);
 			if(searchCheck != null) {
@@ -10163,16 +10588,51 @@ Client.on("message", (msg) => {
 				msg.channel.send("[" + prompts.colors[num1] + "] " + prompts.prompts[num2]);
 				bribes++;
 			}
-			if(msg.content.match(/\$(chaos)? ?limited/i)) {
+			let limMatch = msg.content.match(/\$(chaos)? ?limited ?(4|5|10)?/i)
+			if(limMatch) {
 				bribes++;
-				let output;
-				if(msg.content.match(/chaos/)) {
-					let num1 = toolbox.rand(prompts.combos.length);
-					let num2 = toolbox.rand(prompts.archetypes.length);
-					output = `${prompts.combos[num1]} ${prompts.archetypes[num2]}`;
+				let output = "";
+				let count = 1;
+				if(limMatch[2])
+					count = parseInt(limMatch[2]);
+				if(msg.content.match(/chaos/i)) {
+					let colors;
+					if(count == 1) {
+						colors = [prompts.combos[toolbox.rand(prompts.combos.length-1)]];
+					}else{
+						colors = prompts.presetCombos[count][toolbox.rand(prompts.presetCombos[count].length-1)];
+					}
+					for(let c in colors) {
+						let num2 = toolbox.rand(prompts.archetypes.length-1);
+						output += `${colors[c]} ${prompts.archetypes[num2]}\n`;
+					}
 				}else{
-					let num = toolbox.rand(prompts.paired_archetypes.length);
-					output = prompts.paired_archetypes[num];
+					if(count == 1) {
+						output = prompts.paired_archetypes[toolbox.rand(prompts.paired_archetypes.length-1)];
+					}else{
+						let colors;
+						let num = 0;
+						if(count == 5) {
+							num = toolbox.rand(11)
+							colors = prompts.presetCombos["5"][num];
+						}else{
+							colors = prompts.presetCombos["10"][num];
+						}
+						let shuffled = shuffleArray(prompts.paired_archetypes);
+						let inputs = 0;
+						for(let s in shuffled) {
+							let pair = shuffled[s].match(/^([WUBRG][WUBRG])/);
+							let ind = colors.indexOf(pair[1]);
+							if(ind != -1) {
+								colors[ind] = shuffled[s];
+								inputs++;
+							}
+							if(inputs == colors.length)
+								break;
+						}
+						for(let c in colors)
+							output += colors[c]+"\n";
+					}
 				}
 				msg.channel.send(output);
 			}
@@ -10508,7 +10968,7 @@ Client.on("message", (msg) => {
 			}
 			if(msg.content.match(/\$dies/i)) {
 				bribes++;
-				msg.channel.send("http://magicseteditor.boards.net/thread/456/defense-dies-removal");
+				msg.channel.send("https://custommagiccodex.wordpress.com/2021/01/14/what-does-dies-to-removal-mean/");
 			}
 			if(msg.content.match(/\$broken/i)) {
 				bribes++;
@@ -10521,6 +10981,14 @@ Client.on("message", (msg) => {
 			if(msg.content.match(/\$layers/i)) {
 				bribes++;
 				msg.channel.send("http://magicseteditor.boards.net/thread/516/mse-101-card-breaks-layers");
+			}
+			if(msg.content.match(/\$(hornet|hsq|hsf)/i)) {
+				bribes++;
+				msg.channel.send("https://custommagiccodex.wordpress.com/2021/01/14/the-hornet-sting-quandary/");
+			}
+			if(msg.content.match(/\$(lion|leq)/i)) {
+				bribes++;
+				msg.channel.send("https://custommagiccodex.wordpress.com/2021/01/14/the-lions-eye-quotient/");
 			}
 			if(msg.content.match(/\$(faction|combination)/i)) {
 				bribes++;
@@ -10541,9 +11009,11 @@ Client.on("message", (msg) => {
 			}
 			if(msg.content.match(/\$articles/)) {
 				let links = "";
-				links += "[In Defense of Dies to Removal](http://magicseteditor.boards.net/thread/456/defense-dies-removal)";
+				links += "[What does \"Dies to Removal\" mean?](https://custommagiccodex.wordpress.com/2021/01/14/what-does-dies-to-removal-mean/)";
 				links += "\n[How Death's Shadow and Storm Ruined Card Evaluation Skills](http://magicseteditor.boards.net/thread/511/deaths-shadow-ruined-evaluation-skills)";
 				links += "\n[Strictly Better: Should You Care?](http://magicseteditor.boards.net/thread/498/strictly-care)";
+				links += "\n[The Hornet Sting Quandry](https://custommagiccodex.wordpress.com/2021/01/14/the-hornet-sting-quandary/)";
+				links += "\n[The Lion's Eye Quotient](https://custommagiccodex.wordpress.com/2021/01/14/the-lions-eye-quotient/)";
 				links += "\n[MSE101: Layers](http://magicseteditor.boards.net/thread/516/mse-101-card-breaks-layers)";
 				links += "\n[Color Combinations Primer](https://rentry.co/faction-primer)";
 				let embedded = new Discord.MessageEmbed()
@@ -10574,11 +11044,12 @@ Client.on("message", (msg) => {
 				links += "[MSE Current Release](https://github.com/twanvl/MagicSetEditor2/releases)";
 				links += "\n[Cajun Style Templates](https://magicseteditor.boards.net/thread/77)";
 				links += "\n[Now also on github](https://github.com/CajunAvenger/Cajun-Style-Templates)";
-				links += "\n[2.1.1 Update](https://magicseteditor.boards.net/post/29474/thread)";
+				links += "\n[Mainframe Extravangza](https://magicseteditor.boards.net/post/32647/thread)";
 				links += "\n[Custom Indexing help](https://magicseteditor.boards.net/post/26481/thread)";
 				links += "\n[Mainframe Mana, Watermarks, and other custom images](https://magicseteditor.boards.net/post/26482/thread)";
 				links += "\n[Design Skeleton Generator help](https://magicseteditor.boards.net/post/26483/thread)";
 				links += "\n[Mainframe Levelers help](https://magicseteditor.boards.net/post/26485/thread)";
+				links += "\n[How to do popout art video](https://www.youtube.com/watch?v=oc6Fy8_BkKo&feature=youtu.be)";
 				let embedded = new Discord.MessageEmbed()
 					.setTitle('MSE Template Links')
 					.setDescription(links)
@@ -10634,7 +11105,7 @@ Client.on("message", (msg) => {
 				}
 			}
 			//reminder engine
-			var remindMatch = msg.content.match(/(?:\$|!|<@!?341937757536387072> )reminde?r? (?:<#([0-9]+)> )?([0-9\.]+) ?(second|s|minute|min|hour|hr?|day|d|week|wk?|month|m|year|yr|decade)s? ?([\s\S]*)/i);
+			var remindMatch = msg.content.match(/(?:\$|!|<@!?341937757536387072> )reminde?r? (?:<#([0-9]+)> )?([0-9\.]+) ?(second|s|minute|min|hour|hr?|day|week|wk?|month|m|year|yr|decade|d)s? ?([\s\S]*)/i);
 			if(remindMatch) {
 				startWriting("reminder")
 				bribes++;
@@ -10894,7 +11365,16 @@ Client.on("message", (msg) => {
 					logReminders();
 				}
 			}
-
+			/* wildcard voting
+			if(msg.content.match(/\$vote/)) {
+				let voter = Client.guilds.cache.get("317373924096868353").roles.cache.get("747659270765543555").members.find(v => v.id == msg.author.id);
+				if(voter) {
+					wildcardVoter(msg.author.id, msg.content.replace(/\$vote ?/i, ""));
+					msg.channel.send('Wildcard vote submitted.')
+				}else{
+					msg.channel.send('You do not have the VOTE! role, which is needed to vote in the wildcard.');
+				}
+			}*/
 			//matchDex commands
 			let leagueName = "league";
 			if(msg.guild && msg.guild == "413055835179057173")
@@ -10910,6 +11390,8 @@ Client.on("message", (msg) => {
 			if(msg.content.match(/\$(sealed ?)?league/i)) {
 				bribes++;
 				let player = msg.author.id;
+				if(admincheck.includes(5) && msg.content.match(/override:? ?(\d+)/))
+					player = msg.content.match(/override:? ?(\d+)/)[1];
 				if(matchDex[leagueName].players[player] && toolbox.hasValue(matchDex[leagueName].players[player].runs) && !msg.content.match(/\$leaguehelp/i)) {
 					let lookback = 0;
 					if(partLeagueMatch)
@@ -10989,6 +11471,39 @@ Client.on("message", (msg) => {
 				msg.channel.send(renderLeaderBoard(leagueName,msg.author.id,"month"));
 			}
 
+			//judge warnings
+			let warnRegEx = new RegExp('\\$(un)?warn ?' + tournamentNames + '? <@!?(\\d+)>([\\s\\S]+)', 'i');
+			let warnMatch = msg.content.match(warnRegEx);
+			let judgeID = "770088341865496596";
+			if(warnMatch && msg.member.roles.cache.find(val => val.id == judgeID)) {
+				let unWarn = warnMatch[1];
+				let tourn = warnMatch[2];
+				if(!tourn || !matchDex[tourn])
+					tourn = 'gp';
+				let playerID = warnMatch[3];
+				let warnStack = warnMatch[4];
+				if(!matchDex[tourn].players[playerID]) {
+					msg.channel.send("Player is not in that tournament.");
+				}else{
+					msg.channel.send(matchDexScripts.warnHandler(matchDex[tourn], playerID, msg.author.id, warnStack, unWarn));
+					//logMatch();
+				}
+			}
+			let warnCheck = msg.content.match(/\$warnings/i);
+			let mentionMatch = msg.content.match(/<@!?(\d+)>/);
+			if(warnCheck) {
+				let playerID = msg.author.id;
+				if(msg.member.roles.cache.find(val => val.id == judgeID) && mentionMatch)
+					playerID = mentionMatch[1];
+				let outM = "";
+				for(let t in matchDex) {
+					if(matchDex[t].players && matchDex[t].players[playerID] && matchDex[t].players[playerID].warns)
+						outM += "__" + matchDex[t].data.name + "__\n" + matchDexScripts.writeCurrentWarns(matchDex[t].players[playerID]) + "\n";
+				}
+				if(!outM)
+					outM = "Player has no warnings.";
+				msg.channel.send(outM);
+			}
 			let gpBoardRegex = new RegExp('\\$' + tournamentNames + '(leader|board|score)', 'i');
 			gpBoardMatch = msg.content.match(gpBoardRegex);
 			if(gpBoardMatch) {
@@ -10997,8 +11512,13 @@ Client.on("message", (msg) => {
 				if(isLeague) {
 					msg.channel.send(renderLeaderBoard(tourneyname));					
 				}else{
-					msg.channel.send(renderGPLeaderBoard(tourneyname, false))
-						.then(mess => mess.react(tieEmote))
+					let board = renderGPLeaderBoard(tourneyname, false, 0)
+					msg.channel.send(board[0], board[1])
+						.then(function(mess) {
+							mess.react(tieEmote);
+							mess.react(leftArrow);
+							mess.react(rightArrow);
+						})
 						.catch(e => console.log(e))
 				}
 			}
@@ -11199,6 +11719,53 @@ Client.on("message", (msg) => {
 					.then(() => mess.react(plainText)))
 					.catch(e => console.log(e))
 			}
+			if(msg.content.match(/(\?|\$)pack(gen|print)/)) {
+				let count = 1000;
+				let countCheck = msg.content.match(/(\?|\$)pack(gen|print) (\d+)/);
+				if(countCheck && parseInt(countCheck[3]) < 1000)
+					count = parseInt(countCheck[3]);
+				let attached = msg.attachments.array();
+				let packSlotsMatch = msg.content.match(/packSlots: ?([\s\S]+)/i);
+				if(attached[0] && packSlotsMatch) { //separate file
+					let attachURL = attached[0].url;
+					let filename = attached[0].name;
+					let newName = new Date().getTime()
+					download(attachURL, {directory:"./dev/", filename: newName + "devtest.json"}, function(err) {
+						if(err) throw err;
+						msg.channel.startTyping(100);
+						setTimeout(function() {
+							let sani = sanitizeCardData(user, msg.channel, newName, "NEW");
+							if(sani[1]) {
+								msg.channel.send(sani[0] + " Attempting to generate packs...");
+								let safeLib = {cards:sani[1], setData:{"NEW":{packSlots:[]}}, name:"temp"};
+								let packSlotData = packSlotsMatch[1];
+								let testPacks = packgen.buildPackSlotsFrom(packSlotData);
+								if(!Array.isArray(testPacks) || testPacks.length == 0) {
+									msg.channel.send("Something went wrong with the packSlot builder. This is likely a problem with LackeyBot rather than your code, so please alert Cajun for debugging.");
+								}else if(testPacks[0] && typeof testPacks[0] == 'string' && testPacks[0].match(/Invalid packSlot structure/)) {
+									msg.channel.send(testPacks[0]);
+								}else{
+									safeLib.setData["NEW"].packSlots = testPacks;
+									let testFilters = testPackFilters(testPacks, safeLib, "NEW");
+									if(testFilters)
+										msg.channel.send(testFilters)
+									generalCollater(safeLib, "NEW", count, msg.author);
+								}
+							}else{
+								msg.channel.send(sani[0]);
+							}
+						}, 2000);
+						setTimeout(function() {
+							fs.unlink("./dev/" + newName + "devtest.json", (err) => {if (err) throw err;});
+						}, 20000);
+					});
+				}else if(attached[0]){
+					msg.channel.send("Please include a packSlots code with your file to collate with. Send `?packdocs` for information for how to construct a packSlots code.")
+				}else{ //devDex
+					let devData = devDex.devData[msg.author.id];
+					generalCollater(arcana.devDex, devData.setCode, count, msg.author);
+				}
+			}
 			if(msg.channel.type == 'dm') { //DevDex Management
 				let devUpMatch = msg.content.match(/(\$|\?)fetch ?setup/i);
 				if(devUpMatch) {
@@ -11307,7 +11874,7 @@ Client.on("message", (msg) => {
 							}else{
 								devDex.setData[devDex.devData[user].setCode].packSlots = testPacks;
 								changes++;
-								let testFilters = testPackFilters(testPacks, devDex.devData[user].setCode);
+								let testFilters = testPackFilters(testPacks, arcana.devDex, devDex.devData[user].setCode);
 								if(testFilters)
 									msg.channel.send(testFilters)
 							}
@@ -11338,7 +11905,7 @@ Client.on("message", (msg) => {
 						if(err) throw err;
 						msg.channel.startTyping(100);
 						setTimeout(function() {
-							msg.channel.send(sanitizeDevData(user, msg.channel, newName));
+							msg.channel.send(addNewDevCards(user, msg.channel, newName));
 						}, 2000);
 						setTimeout(function() {
 							fs.unlink("./dev/" + newName + "devtest.json", (err) => {if (err) throw err;});
@@ -11439,30 +12006,76 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 									turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag);
 								}
 							}
-							let pickMatch = embedData.title.match(/Pack 1, Pick 1: ([^\n]+)/)
+							if(embedData.title.match(/^Supreme Draft/i)) { //pack pages
+								let this_user = "";
+								for(let user in packStash) {
+									if(packStash[user].msg == msg.id)
+										this_user = user;
+								}
+								if(this_user == "") {
+									cullReacts(msg, [Client.user.id, this_user])
+								}else{
+									let pageCheck = embedData.footer.text.match(/([0-9]+)\/([0-9]+)/);
+									let pickNos = embedData.title.match(/Pack (\d+), Pick (\d+): ([^\n]+)/);
+									let newPack = parseInt(pickNos[1]);
+									let newPick = parseInt(pickNos[2]);
+									let newFlag;
+									if(azEmoteArray.includes(emittedEmote)) {
+										let pickResult = supremePicker(this_user, emittedEmote);
+										if(pickResult[0]) {
+											newPick = (newPick+1)%3
+											if(newPick == 0) {
+												newPick++;
+												newPack++;
+												packStash[this_user].cards = psPackSorter(generatePack(packStash[this_user].set, arcana[packStash[this_user].database], " -is:bonus"), arcana[packStash[this_user].database]);
+												packStash[this_user].picks = [];
+												pageCheck[1] = 1;
+												if(msg.channel.type == "dm") {
+													newFlag = function(mess) {
+														packStash[this_user].msg = mess.id;
+														mess.react(leftArrow);
+														mess.react(rightArrow);
+														mess.react(plainText);
+													};
+												}else{
+													cullReacts(msg, [Client.user.id])
+												}
+											}
+										}
+									}
+									if(newPack == 19) {
+										let pool = "**Supreme Pool**\n";
+										for(let c in scratchPad.supreme[this_user].pool) {
+											pool += scratchPad.supreme[this_user].pool[c] + " " + c.replace(/_.*/, "") + "\n";
+										}
+										msg.channel.send(pool)
+										delete scratchPad.supreme[this_user];
+										delete packStash[this_user];
+									}else{
+										let database = arcana[packStash[this_user].database];
+										let pickData = {
+											pack: newPack,
+											pick: newPick,
+											picks: packStash[this_user].picks,
+											picked: emittedEmote,
+											user: this_user,
+										}
+										let embedBuild = function(thisPage) {return buildSupremeEmbed(database, packStash[this_user].cards, packStash[this_user].set, pickData, thisPage, textFlag)[0]};
+										turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, false, newFlag);
+									}
+								}
+							}
+							let pickMatch = embedData.title.match(/^Pack 1, Pick 1: ([^\n]+)/)
 							if(pickMatch) {
 								let packArray;
 								if(embedData.description)
 									packArray = embedData.description.split("\n");
 								if(msg.content)
 									packArray = msg.content.split("\n");
-								let database;
-								switch(embedData.color) {
-									case 43690:
-										database = arcana.magic;
-										break;
-									case 109226:
-										database = arcana.msem;
-										break;
-									case 174762:
-										database = arcana.devDex;
-										break;
-									case 240298:
-										database = arcana.myriad;
-										break;
-									default:
-										database = arcana.magic;
-								}
+								let database = arcana.magic;
+								let dataName = arcana.decodeColor(embedData.color);
+								if(dataName)
+									database = arcana[dataName];
 								let embedBuild = function(thisPage) {return buildPickEmbed(database, packArray, pickMatch[1], textFlag)[0]};
 								turnEmbedPage(msg, [0, 1, 1], embedBuild, update, textFlag);
 							}
@@ -11482,11 +12095,20 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 									if(embedData.image)
 										imageFlag = true;
 									if(emittedEmote == excEmote && closestCanon) {
+										msg.reactions.removeAll();
+										let arcanaData = toolbox.cloneObj(arcanaSettings[grab]);
+										let emoteOrder = [
+											arcanaData.square.emote,
+											arcanaData.angle.emote,
+											arcanaData.curly.emote
+										]
 										let showCard = priceCheck([closestCanon], arcana.magic, msg);
+										let embedded = buildCardFetchEmbed(showCard, arcanaData, "angle", [closestCanon], msg.content, 0)
+										cachePost(msg, embedded[1]);
 										let deadEmbed = new Discord.MessageEmbed()
 											.setDescription('PS search converted to canon search')
 										msg.edit(showCard, deadEmbed);
-										msg.reactions.removeAll();
+										switchReacts(msg, emoteOrder, embedded[2]);
 										return;
 									}
 									if(emittedEmote == mag)
@@ -11509,29 +12131,15 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 									turnEmbedPage(msg, pageCheck, embedBuild, update, textFlag, 1)
 								}
 							}
-						}
+						}else
 						if(embedData.description) { //embeds that depend on description data
-							let searchTurn = embedData.description.match(/\[(Cajun Standard|Instigator|Scryfall|Custom projects|Hub of Innovation) search\]\([^\n]+ '([^\n]+)'\)/i)
+							let searchTurn = embedData.description.match(arcana.refSheet.searchRegex)
 							if(searchTurn) { //flips pages for Instigator/Scryfall searches
 								let pageCheck = embedData.footer.text.match(/Page ([0-9]+)\/([0-9]+)/);
-								let database;
-								switch(searchTurn[1]) {
-									case "Scryfall":
-										database = arcana.magic;
-										break;
-									case "Instigator":
-										database = arcana.msem;
-										break;
-									case "Custom Projects":
-										database = arcana.devDex;
-										break;
-									case "Hub of Innovation":
-										database = arcana.myriad;
-										break;
-									case "Cajun Standard":
-										database = arcana.cajun_standard;
-										break;
-								}
+								let database = arcana.magic;
+								let dataName = arcana.decodeTitle(searchTurn[1])
+								if(dataName)
+									database = arcana[dataName];
 								let imageFlag = false;
 								if(embedData.image)
 									imageFlag = true;
@@ -11565,14 +12173,10 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 							if(hangCheck && !embedData.footer.text.match(/^Game over/)) { //hangman games
 								hangmanParser(msg, embedData, emittedEmote, textFlag)
 							}
-							let scodeCheck = embedData.description.match(/(Magic|MSEM|Custom Project) Set Codes/) //flip setcode pages
+							let scodeCheck = embedData.description.match(/(Magic|MSEM|devDex) Set Codes/) //flip setcode pages
 							if(scodeCheck) {
 								let pageCheck = embedData.footer.text.match(/Page ([0-9]+)\/([0-9]+)/);
-								let database = msemSetData;
-								if(scodeCheck[1] == "Magic")
-									database = magicSetData;
-								if(scodeCheck[1] == "Custom Project")
-									database = devDex.setData;
+								let database = arcana.libFromBig(scodeCheck[1]);
 								let embedBuild = function(thisPage) {return buildSetsEmbed(database, thisPage, textFlag)[0]};
 								//if(pageFlag)
 								//	embedBuild = function() {return buildSetsEmbed(database, -1, textFlag)[0]};
@@ -11612,80 +12216,80 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 									}
 								}
 							}
-						}
+						}else{
 						//embeds that depend on footer data
-						if(embedData.footer.text == "MSEM Patch Info") { 	//msem patch embed
-							let embedBuild = function() {return buildPatchEmbed(textFlag)[0]};
-							turnEmbedPage(msg, [0,1,1], embedBuild, update, textFlag);
-						}
-						if(embedData.footer.text.match(/^Previous/)) {		//cr embed
-							if(emittedEmote == leftArrow) {
-								let crCheck = embedData.footer.text.match(/Previous ([^\n]+)/);
-								if(crCheck) {
-									let embedBuild = buildCREmbed(crCheck[1], textFlag)
-									msg.edit(embedBuild[0], embedBuild[1])
-								}
-							}else if(emittedEmote == rightArrow) {
-								let crCheck = embedData.footer.text.match(/Next ([^\n]+)/);
-								if(crCheck) {
-									let embedBuild = buildCREmbed(crCheck[1], textFlag)
-									msg.edit(embedBuild[0], embedBuild[1])
-								}
-							}else if(emittedEmote == plainText && embedData.title != "Comprehensive Rules") {
-								let embedBuild = buildCREmbed(embedData.title, textFlag)
-								msg.edit(embedBuild[0], embedBuild[1])
+							if(embedData.footer.text == "MSEM Patch Info") { 	//msem patch embed
+								let embedBuild = function() {return buildPatchEmbed(textFlag)[0]};
+								turnEmbedPage(msg, [0,1,1], embedBuild, update, textFlag);
 							}
-							cullReacts(msg, [Client.user.id])
-						}
-						if(emittedEmote == plainText && embedData.footer.text == collectToPlainMsg) { //plain text link collections
-							let trimmedEmbed = new Discord.MessageEmbed(embedData)
-								.setFooter(plainToCollectMsg)
-								.setDescription('')
-							let embedText = '';
-							if(embedData.title)
-								embedText += "**" + embedData.title + "**\n";
-							embedText += embedData.description.replace(/\(/g, ": <").replace(/\)/g, ">")
-							msg.edit(embedText, trimmedEmbed)
-						}else if(emittedEmote == plainText && embedData.footer.text == plainToCollectMsg) {
-							let embedText = msg.content.replace(/\*\*[^\*]+\*\*\n/, "").replace(/: </g, "(").replace(/>/g, ")")
-							let filledEmbed = new Discord.MessageEmbed(embedData)
-								.setDescription(embedText)
-								.setFooter(collectToPlainMsg)
-							msg.edit('', filledEmbed);
-						}
-						if(embedData.footer.text.match(/Reminder slot/)){	//ping me too reminders
-							if(emittedEmote == pingStar) {
-								let reminderslot = embedData.footer.text.match(/Reminder slot (\d+)\[(\d+)/);
-								let remTime = reminderslot[1];
-								let remSlot = reminderslot[2];
-								if(reminderBase[remTime][remSlot]) {
-									let user = cullReacts(msg, [Client.user.id, reminderBase[remTime][remSlot].id]); //get ids of reactors
-									if(user[0]) {
-										if(!reminderBase[remTime][remSlot].hasOwnProperty('cc')) //add a CC if we don't have it yet
-											reminderBase[remTime][remSlot].cc = [];
-										let addMess = "";
-										if(!reminderBase[remTime][remSlot].cc.includes(user)) {
-											for(let u in user) {
-												if(!reminderBase[remTime][remSlot].cc.includes(user[u])) { //add the users
-													reminderBase[remTime][remSlot].cc.push(user[u]);
-													addMess = pullUsername(user[u]) + " " + addMess; //let them know they've been added
+							else if(embedData.footer.text.match(/^Previous/)) {		//cr embed
+								if(emittedEmote == leftArrow) {
+									let crCheck = embedData.footer.text.match(/Previous ([^\n]+)/);
+									if(crCheck) {
+										let embedBuild = buildCREmbed(crCheck[1], textFlag)
+										msg.edit(embedBuild[0], embedBuild[1])
+									}
+								}else if(emittedEmote == rightArrow) {
+									let crCheck = embedData.footer.text.match(/Next ([^\n]+)/);
+									if(crCheck) {
+										let embedBuild = buildCREmbed(crCheck[1], textFlag)
+										msg.edit(embedBuild[0], embedBuild[1])
+									}
+								}else if(emittedEmote == plainText && embedData.title != "Comprehensive Rules") {
+									let embedBuild = buildCREmbed(embedData.title, textFlag)
+									msg.edit(embedBuild[0], embedBuild[1])
+								}
+								cullReacts(msg, [Client.user.id])
+							}
+							else if(emittedEmote == plainText && embedData.footer.text == collectToPlainMsg) { //plain text link collections
+								let trimmedEmbed = new Discord.MessageEmbed(embedData)
+									.setFooter(plainToCollectMsg)
+									.setDescription('')
+								let embedText = '';
+								if(embedData.title)
+									embedText += "**" + embedData.title + "**\n";
+								embedText += embedData.description.replace(/\(/g, ": <").replace(/\)/g, ">")
+								msg.edit(embedText, trimmedEmbed)
+							}else if(emittedEmote == plainText && embedData.footer.text == plainToCollectMsg) {
+								let embedText = msg.content.replace(/\*\*[^\*]+\*\*\n/, "").replace(/: </g, "(").replace(/>/g, ")")
+								let filledEmbed = new Discord.MessageEmbed(embedData)
+									.setDescription(embedText)
+									.setFooter(collectToPlainMsg)
+								msg.edit('', filledEmbed);
+							}
+							else if(embedData.footer.text.match(/Reminder slot/)){	//ping me too reminders
+								if(emittedEmote == pingStar) {
+									let reminderslot = embedData.footer.text.match(/Reminder slot (\d+)\[(\d+)/);
+									let remTime = reminderslot[1];
+									let remSlot = reminderslot[2];
+									if(reminderBase[remTime][remSlot]) {
+										let user = cullReacts(msg, [Client.user.id, reminderBase[remTime][remSlot].id]); //get ids of reactors
+										if(user[0]) {
+											if(!reminderBase[remTime][remSlot].hasOwnProperty('cc')) //add a CC if we don't have it yet
+												reminderBase[remTime][remSlot].cc = [];
+											let addMess = "";
+											if(!reminderBase[remTime][remSlot].cc.includes(user)) {
+												for(let u in user) {
+													if(!reminderBase[remTime][remSlot].cc.includes(user[u])) { //add the users
+														reminderBase[remTime][remSlot].cc.push(user[u]);
+														addMess = pullUsername(user[u]) + " " + addMess; //let them know they've been added
+													}
+												}
+												if(addMess != "") {
+													addMess += "added to reminder."
+													msg.channel.send(addMess);
+													logLater['reminder'] = true; //set the reminder to log later because there will probably be a few in a row
 												}
 											}
-											if(addMess != "") {
-												addMess += "added to reminder."
-												msg.channel.send(addMess);
-												logLater['reminder'] = true; //set the reminder to log later because there will probably be a few in a row
-											}
 										}
+									}else{
+										msg.channel.send("Reminder not found. It has likely been deleted or already been sent.")
 									}
 								}else{
-									msg.channel.send("Reminder not found. It has likely been deleted or already been sent.")
+									cullReacts(msg, [Client.user.id]);
 								}
-							}else{
-								cullReacts(msg, [Client.user.id]);
 							}
-						}
-						if(embedData.footer.text.match(/Reminders/)) {		//reminderlist
+							else if(embedData.footer.text.match(/Reminders/)) {		//reminderlist
 							let numData = embedData.footer.text.match(/(\d+) - (\d+)\/(\d+) for (\d+)/);
 							if(numData) {
 								let oldStart = numData[1];
@@ -11699,7 +12303,19 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 								}
 							}
 						}
-						
+							else if(embedData.footer.text.match(/leaderboard/)) { //leaderboard
+								let pageCheck = embedData.footer.text.match(/^(\d+)\/(\d+) ([^\n]+) leaderboard/);
+								let breakers = false;
+								if(msg.content.match(/with tiebreakers/))
+									breakers = true;
+								if(emittedEmote == tieEmote) {
+									breakers = !breakers;
+									cullReacts(msg, [Client.user.id])
+								}
+								let embedBuild = function(thisPage) {return renderGPLeaderBoard(pageCheck[3], breakers, thisPage)};
+								turnEmbedPage(msg, pageCheck, embedBuild, update, true);
+							}
+						}
 					}else if(switcherooCache[msg.channel.id] && switcherooCache[msg.channel.id][msg.id]) { //switheroo "embed"
 						let searchString = switcherooCache[msg.channel.id][msg.id];
 						let grab = 'defaults';
@@ -11727,25 +12343,21 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 							let library, name, oldPre, newPre, emoteOrder = [], wraps = [];
 							library = arcana.libFromBig(currentLib, arcana);
 							for(let shape in arcanaSettings[grab]) {
-								if(arcanaSettings[grab][shape].data.name != "ps")
+								if(arcanaSettings[grab][shape].data && arcanaSettings[grab][shape].data.name != "ps")
 									emoteOrder.push(arcanaSettings[grab][shape].emote)
 								if(arcanaSettings[grab][shape].emote == emittedEmote || arcanaSettings[grab][shape].data == library) {
 									library = arcanaSettings[grab][shape].data;
 									name = shape;
 									newPre = arcanaSettings[grab][shape].prefix;
 								}
-								if(arcanaSettings[grab][shape].data.bigname == currentLib)
+								if(arcanaSettings[grab][shape].data && arcanaSettings[grab][shape].data.bigname == currentLib)
 									oldPre = arcanaSettings[grab][shape].prefix;
 							}
 							if(!name) //if its not saved, it's a swapped square
 								name = "square";
-							if(name == "square" && searchString.match(/\$(myriad|cajun|msem)/)) {
-								if(searchString.match(/\$myriad/))
-									library = arcana.myriad;
-								if(searchString.match(/\$cajun/))
-									library = arcana.cajun_standard;
-								if(searchString.match(/\$msem/))
-									library = arcana.msem;
+							let swapSquares = searchString.match(arcana.refSheet.anySwapRegex)
+							if(name == "square" && swapSquares) {
+								library = arcana[arcana.refSheet.swapCommands[swapSquares[1]]]
 								if(oldPre != "$")
 									newPre = "$";
 							}
@@ -11769,16 +12381,6 @@ Client.on("messageReactionAdd", async (message, user) => { //functions when post
 								cacheImages(msg.channel.id, extract[0], library.name)					//and save the names for card commands
 								switcherooCache[msg.channel.id][msg.id] = embedded[1]; 					//update the page number
 							}
-							cullReacts(msg, [Client.user.id])
-						}
-					}else if(emittedEmote == tieEmote){
-						let tourneyPull = msg.content.match(/([a-z0-9_]+) leaderboard with(out)? tiebreakers/);
-						if(tourneyPull) {
-							let tourney = tourneyPull[1];
-							let breakers = false;
-							if(tourneyPull[2])
-								breakers = true;
-							msg.edit(renderGPLeaderBoard(tourney, breakers));
 							cullReacts(msg, [Client.user.id])
 						}
 					}

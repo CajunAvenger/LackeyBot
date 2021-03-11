@@ -28,7 +28,7 @@ function unsymbolize(card) { //converts emotes and symbols to letters
 }
 function italPseudo(someText) { //italicizes pseudo abilities but not modals, anchors, Saga chapters, or harmony
 	return someText.replace(/^([^•\n—\*]+) —/gm, function(v) {
-		if(v.match(/(Choose|^Harmony|^Discovery|^Forecast|^Companion)/i) || v.match(/^[IV ,]+ —$/))
+		if(v.match(/(Choose|^Harmony|^First mate|^Discovery|^Forecast|^Companion|^Boast)/i) || v.match(/^[IV ,]+ —$/))
 			return v;
 		return "*" + v.replace(" —", "* —");
 	});
@@ -176,6 +176,11 @@ function findReprints(thisCard, database) { //finds other versions
 	let reprintString = "*(";
 	let count = 0;
 	for(let thisCode in thisCard.prints){
+		if(thisCard.prints[thisCode] == "LAIR") {
+			reprintString += "LAIR S, "
+			count++;
+			continue;
+		}
 		let tempName = thisCard.fullName + "_" + thisCard.prints[thisCode];
 		if(database.hasOwnProperty(tempName)) {
 			reprintString += database[tempName].rarityLine.replace(/\*/g, "") + ", ";

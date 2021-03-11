@@ -22,7 +22,7 @@ var skipThese = function(){
 };
 var statDex = {															//a baby statDex
 	cards:{},															//card data, holds historic W-L, decks that contain them, matches that contain them
-	players:{},															//player data, holds historid W-L, their decks, and their matches
+	players:{},															//player data, holds historic W-L, their decks, and their matches
 	decklists:{},														//decklist data, holds cards and their counts, their player, and their tournament
 	tournaments:{},														//tournament data, each holds array of decks submitted to it
 	global:{matches:0, decks:0, playedCards:0}							//some useful global counts
@@ -139,15 +139,62 @@ function findFirstPrint(card) {											//gets first print of a card
 	}
 	return fuzzy.searchCards(arcana.msem, card.fullName + "_" + hold[1]);
 }
+function printFixer(dex) {
+	for(let deck in dex.decklists) {
+		for(let cardName in dex.decklists[deck].cards) {
+			if(!dex.cards.hasOwnProperty(cardName)) { //card without a fp name
+				let fpName = findFirstPrint(cardBase[cardName]);
+				dex.decklists[deck].cards[fpName] = dex.decklists[deck].cards[cardName];
+				delete dex.decklists[deck].cards[cardName];
+			}
+		}
+	}
+}
+function fuseEntries(dex, card1, card2) {								//combines two entries, for fixing renames, printing errors
+	//raw numbers
+	console.log(card1 + " to " + card2)
+	if(dex.cards[card1] && !dex.cards[card2]) {
+		console.log("Can't fuse to nonexistent card " + card1);
+		return;
+	}	
+	dex.cards[card1].mainCount += dex.cards[card2].mainCount;
+	dex.cards[card1].sideCount += dex.cards[card2].sideCount;
+	dex.cards[card1].setCount += dex.cards[card2].setCount;
+	dex.cards[card1].matchWins += dex.cards[card2].matchWins;
+	dex.cards[card1].matchLoss += dex.cards[card2].matchLoss;
+	dex.cards[card1].matchDraw += dex.cards[card2].matchDraw;
+	//copy over decklists and edit existing lists
+	for(let d in dex.cards[card2].decks) {
+		if(!dex.cards[card1].decks.includes(dex.cards[card2].decks[d]))
+			dex.cards[card1].decks.push(dex.cards[card2].decks[d])
+		let decklist = dex.decklists[dex.cards[card2].decks[d]];
+		if(decklist.cards[card2]) {
+			decklist.cards[card1] = decklist.cards[card2];
+			delete decklist.cards[card2];
+		}
+	}
+	//copy over the match numbers
+	for(let t in dex.cards[card2].matches){
+		let list = dex.cards[card2].matches[t];
+		if(!dex.cards[card1].matches[t])
+			dex.cards[card1].matches[t] = [];
+		for(let m in list) {
+			if(!dex.cards[card1].matches[t].includes(list[m]))
+				dex.cards[card1].matches[t].push(list[m]);
+		}
+	}
+	delete dex.cards[card2];
+}
 function addMatchesToLists(dex) {										//adds matches to old decklists
 	for(let t in dex.tournaments){
-		if(!t.match(/20_10/))
+		if(!t.match(/21_01/)) //update here
 			continue;
 		let thisTourney = require(`./tourneyArchives/${t}_archive.json`);
 		for(let match in thisTourney.matches) {
 			for(let p in thisTourney.matches[match].players) {
 				let thisPlayer = thisTourney.matches[match].players[p];
 				if(thisPlayer.id != bye) {
+					console.log(thisPlayer.list.replace('.txt', '.json'));
 					let thatList = dex.decklists[thisPlayer.list.replace('.txt', '.json')];
 					toolbox.addIfNew(thatList, "matches", []);
 					thatList.matches.push(parseInt(match)+1);
@@ -159,6 +206,21 @@ function addMatchesToLists(dex) {										//adds matches to old decklists
 function givePlayersUsernames(){										//update player usernames
 	for(let player in statDexPreBuilt.players) {
 		statDexPreBuilt.players[player].username = discClient.pullUsername(player);
+	}
+	fs.writeFile('statDex.json', JSON.stringify(statDexPreBuilt), function(){
+		console.log('done');
+	})
+}
+function statPatcher() {												//update player usernames without discord 
+	for(let p in statDexPreBuilt.players) {
+		if(statDexPreBuilt.players[p].username == undefined) {
+			let listName = statDexPreBuilt.players[p].lists[0];
+			if(listName.match(/^\/gp/)) {
+				statDexPreBuilt.players[p].username = listName.replace(/\/[^\/]+\//, "")
+			}else{
+				statDexPreBuilt.players[p].username = listName.replace(/\/[^\/]+\//, "").replace(/\d$/, "")
+			}
+		}
 	}
 	fs.writeFile('statDex.json', JSON.stringify(statDexPreBuilt), function(){
 		console.log('done');
@@ -431,15 +493,17 @@ function compileLeagueData(dex, archive) {								//compiles a league into one d
 	}
 	return output;
 }
-
+function compileGPData(dex, archiveName) {								//compiles a GP into one doc
+	let archive = require(`./tourneyArchives/${archiveName}_archive.json`);
+	
+}
 //analyze the dex
 function filteredWinRate(dex, card, filters) { 							//returns general card win rate
 	let refCard = dex.cards[card];
 	let results = {matches:0, wins:0, losses:0};
 	if(!refCard) {
 		console.log(card);
-		return;
-		return;
+		return results;
 	}
 	for(let tourney in refCard.matches) {
 		if(tourneyFilter(tourney, filters)){
@@ -735,9 +799,11 @@ function statFromSet(dex, min, filters, lands, conditional) {			//finds winninge
 function defaultConditional(sets, exclusion){							//default set filter
 	return cond = function(cardName){
 		let card = cardBase[cardName];
+		if(!card)
+			return false;
 		let send = false;
 		for(let set in sets) {
-			if(card.prints.includes(sets[set]))
+			if(card.prints && card.prints.includes(sets[set]))
 				send = true;
 		}
 		if(send && exclusion) {
@@ -800,7 +866,7 @@ function playrateGenerator(dex, filters, skipThese, minMatches){		//generates pl
 							if(thisList.matches) {
 								miniDex[card].matches += thisList.matches.length;
 							}else{
-								console.log(listName)
+								//console.log(listName)
 							}
 						}
 					}
@@ -812,6 +878,7 @@ function playrateGenerator(dex, filters, skipThese, minMatches){		//generates pl
 		if(miniDex[card].matches < minMatches) {
 			delete miniDex[card]
 		}else{
+			//console.log(filteredWinRate(dex, card, filters));
 			miniDex[card].wr = winValToWR(filteredWinRate(dex, card, filters), 2);
 			miniDex[card].pwrm = parseFloat(miniDex[card].wr * miniDex[card].decks / deckCount).toFixed(2);
 		}
@@ -850,7 +917,8 @@ function getPlayerCount(dex, filters) {									//returns miniDex of matches a c
 			let thisList = dex.decklists[dex.cards[card].decks[list]];
 			if(tourneyFilter(thisList.tournament, filters)) {
 				toolbox.addIfNew(miniDex[card], thisList.player, 0)
-				miniDex[card][thisList.player] += thisList.matches.length;
+				if(thisList.matches)
+					miniDex[card][thisList.player] += thisList.matches.length;
 			}
 		}
 	}
@@ -981,7 +1049,7 @@ function buildUsernameData(dex) {										//returns an array of usernames in th
 	let array = [];
 	let array2 = [];
 	for(let player in dex.players) {
-		if(dex.players[player].username != "PlayerUnknown") {
+		if(dex.players[player].username && dex.players[player].username != "PlayerUnknown") {
 			array.push(dex.players[player].username)
 			array2.push(player)
 		}
@@ -990,6 +1058,9 @@ function buildUsernameData(dex) {										//returns an array of usernames in th
 }
 function isBoring(cardName) {											//removes boring lands from topWins
 	let thisCard = cardBase[cardName];
+	if(!thisCard) { //abort if there's an error
+		return true;
+	}
 	if(thisCard.typeLine.match("Basic"))
 		return true;
 	if(thisCard.prints.includes("SHRINE"))
@@ -1351,8 +1422,6 @@ function processFilters(dex, msg, bigData) {							//process filters into filter
 		message += " after " + datify(filters.after);
 	if(filters.hasOwnProperty('before'))
 		message += " before " + datify(filters.before);
-	if(filters.hasOwnProperty('type'))
-		message += " in " + filters.type + " tournaments";
 	if(filters.hasOwnProperty('type'))
 		message += " in " + filters.type + " tournaments";
 	if(filters.hasOwnProperty('set'))
@@ -2168,6 +2237,8 @@ function cardPricer(dex, name, playrates) {
 	let avgSetCards = avgPlay[1];//average playables a set has
 	let medCardPlay = calcMedCount(playrates);
 	let card = arcana.msem.cards[name];
+	if(!card)
+		return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	if(card.prints.length > 1) { //make sure we use the first print for pulling from statDex
 		name = findFirstPrint(card);
 	}
@@ -2228,24 +2299,30 @@ function determineAverageSetPlays(card, avgSetPR, avgCardPR) {	//calculate playa
 	return [avgCount, avgUnique];
 }
 function determineGPMulti(dex, name) {	//calculate multiplier of GP placements
-	let weights = { //weigh newer GPs higher, older GPs lower
-		"gp_20_09": 1.2,
-		"gp_20_08": 1.15,
-		"gp_20_07": 1.1,
-		"gp_20_06": 1.05,
-		"gp_20_05": 1.00,
-		"gp_20_04": 0.95,
-		"gp_20_03": 0.90,
-		"gp_20_02": 0.90,
-		"gp_20_01": 0.90,
-		"gp_19_12": 0.85,
-		"gp_19_11": 0.85,
-	};
+	let tourns = [ //weigh newer GPs higher, older GPs lower
+		"gp_21_01",
+		"gp_20_12",
+		"gp_20_11",
+		"gp_20_10",
+		"gp_20_09",
+		"gp_20_08",
+		"gp_20_07",
+		"gp_20_06",
+		"gp_20_05",
+		"gp_20_04",
+		"gp_20_03",
+		"gp_20_02",
+		"gp_20_01",
+		"gp_19_12",
+		"gp_19_11"
+	];
+	let weightArray = [1.2, 1.15, 1.1, 1,05, 1.00, .95, .90, .90, .90, .90, .90, 0.85, 0.85, 0.85, 0.85, 0.85];
 	let base = 0, add = 0;
 	function uptick(rank, tourney) {
-		let multi = 0.9;
-		if(weights[tourney])
-			multi = weights[tourney];
+		let multi = 0.8;
+		let newMultiIndex = tourns.indexOf(tourney);
+		if(newMultiIndex && weightArray[newMultiIndex])
+			multi = weightArray[newMultiIndex];
 		let testBase, testAdd;
 		switch(rank) { 
 			case 1: //2.5 + .3 for winning GPs
@@ -2392,7 +2469,7 @@ function calcAvgPlay() {			//avg plays and playables in a set
 function calcPlayCounts(dex) {		//add counts to each set
 	for(let card in dex.cards) {
 		let theCard = arcana.msem.cards[card];
-		if(theCard.typeLine.match(/Basic/))
+		if(!theCard || theCard.typeLine.match(/Basic/))
 			continue;
 		let allCount = dex.cards[card].mainCount + dex.cards[card].sideCount;
 		for(let set in theCard.prints) {
@@ -2404,16 +2481,15 @@ function calcPlayCounts(dex) {		//add counts to each set
 	}
 }
 //fixFiles()
-//console.log(processCommands({content:"cardPriceTop", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5]))
-//processCommands({content:"stapleMakerPrint rep:2 min:25 filter after:2004", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
+//console.log(processCommands({content:"reuben playercardcombo [Ever-Gnawing Rat]", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5]))
+//processCommands({content:"stapleMakerPrint rep:2 min:25 filter after:2007", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
 //console.log(leagueFourOhs('league_20_08'))
-
 //let testDeck = statDexPreBuilt.decklists["/gp_20_08/cajun.json"].cards
 //testDeck = require('./decks/bluestest.json')
 //console.log(countColors(testDeck));
 //colorRipper(statDexPreBuilt, {}, skipThese)
-/*updateStatDex(statDexPreBuilt, ["gp_20_10_archive.json", "league_20_10_archive.json", "tuc_20_10_archive.json"])
+/*updateStatDex(statDexPreBuilt, ["gp_21_02_archive.json", "league_21_02_archive.json"])
 addMatchesToLists(statDexPreBuilt);
-fs.writeFile('./statDexTest.json', JSON.stringify(statDexPreBuilt), function(){
-	console.log("done");
-})*/
+printFixer(statDexPreBuilt);
+fs.writeFile('./statDexTest.json', JSON.stringify(statDexPreBuilt), function(){console.log("done");})
+*/

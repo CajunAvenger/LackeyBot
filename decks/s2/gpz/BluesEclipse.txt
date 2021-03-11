@@ -1,0 +1,160 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 10px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+		document.getElementById('card24').addEventListener('mouseover', function() {
+			change('card24');
+		});
+		document.getElementById('card25').addEventListener('mouseover', function() {
+			change('card25');
+		});
+		document.getElementById('card26').addEventListener('mouseover', function() {
+			change('card26');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>BluesEclipse's Dark Inscriptions</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (14)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/HI12/201.jpg" id="card1">2x Qilan Wanderer</div>
+		<div url="http://mse-modern.com/msem2/images/IMP/72.jpg" id="card2">4x Asharo’s Handmaiden</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/31.jpg" id="card3">4x Autumn Fae</div>
+		<div url="http://mse-modern.com/msem2/images/SOR/111.jpg" id="card4">4x Tirenan Pyromancer</div>
+		<br/>
+		<div><b><i>Instant (8)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/IMP/74.jpg" id="card5">4x Dragon’s Ire</div>
+		<div url="http://mse-modern.com/msem2/images/IMP/85.jpg" id="card6">4x Searing Script</div>
+		<br/>
+		<div><b><i>Sorcery (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/PSA/73.jpg" id="card7">2x Forbidden Brew</div>
+		<div url="http://mse-modern.com/msem2/images/TWR/84.jpg" id="card8">4x Duress</div>
+		<div url="http://mse-modern.com/msem2/images/PSA/70.jpg" id="card9">3x Favor of the Emperor</div>
+		<div url="http://mse-modern.com/msem2/images/PSA/160.jpg" id="card10">3x Treacherous Ways</div>
+		<div url="http://mse-modern.com/msem2/images/PSA/117.jpg" id="card11">3x Way of the Dragon</div>
+		<br/>
+		<div><b><i>Enchantment (2)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/TOJ/64.jpg" id="card12">2x Chigau, the Red Market</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (21)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/L/17.jpg" id="card13">4x Shardstone Rift</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/195.jpg" id="card14">4x Crumbling Precipice</div>
+		<div url="http://mse-modern.com/msem2/images/IMP/137.jpg" id="card15">3x Wayfarer’s Shrine</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/88s.jpg" id="card16">2x Mountain</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/90s.jpg" id="card17">2x Swamp</div>
+		<div url="http://mse-modern.com/msem2/images/PSA/193.jpg" id="card18">2x Kurayami Shrine</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/205.jpg" id="card19">2x Nomad’s Township</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/207.jpg" id="card20">2x Rampant Summit</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/TWR/98.jpg" id="card21">2x Seal the Tomb</div>
+		<div url="http://mse-modern.com/msem2/images/TOW/158.jpg" id="card22">2x Shal’Draen’s Rage</div>
+		<div url="http://mse-modern.com/msem2/images/GHQ/196.jpg" id="card23">3x Nature’s Claim</div>
+		<div url="http://mse-modern.com/msem2/images/HI12/201.jpg" id="card24">2x Qilan Wanderer</div>
+		<div url="http://mse-modern.com/msem2/images/MAC/72.jpg" id="card25">3x Potion of Inhibition</div>
+		<div url="http://mse-modern.com/msem2/images/TWR/222.jpg" id="card26">3x Tenacious Guide</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

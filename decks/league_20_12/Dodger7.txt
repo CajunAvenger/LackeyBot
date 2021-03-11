@@ -1,0 +1,146 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>Dodger's Deathball</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (30)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/STN/43.jpg" id="card1">4x Banished Companion</div>
+		<div url="http://mse-modern.com/msem2/images/EAU/130.jpg" id="card2">4x Bogborn Charger</div>
+		<div url="http://mse-modern.com/msem2/images/GHQ/151.jpg" id="card3">4x Rakkiri Dissident</div>
+		<div url="http://mse-modern.com/msem2/images/XPM/87.jpg" id="card4">4x Peakpoint Presence</div>
+		<div url="http://mse-modern.com/msem2/images/PSA/107.jpg" id="card5">2x Masahita, Bloodtongue</div>
+		<div url="http://mse-modern.com/msem2/images/HVF/64.jpg" id="card6">4x Advocate of the Hunt</div>
+		<div url="http://mse-modern.com/msem2/images/STN/46.jpg" id="card7">4x Crimson Knight</div>
+		<div url="http://mse-modern.com/msem2/images/IMP/77.jpg" id="card8">4x Fireheart Channeler</div>
+		<br/>
+		<div><b><i>Enchantment (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/SOU/40.jpg" id="card9">4x Theocracy</div>
+		<br/>
+		<div><b><i>Artifact (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/GHQ/235.jpg" id="card10">4x Monument to the Fallen Man</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (22)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/NVA/256.jpg" id="card11">1x Bloodriver</div>
+		<div url="http://mse-modern.com/msem2/images/KOD/252.jpg" id="card12">4x Sunwashed Spires</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/5s.jpg" id="card13">1x Cloudsteel Summit</div>
+		<div url="http://mse-modern.com/msem2/images/L2/9.jpg" id="card14">4x Sunlit Highland</div>
+		<div url="http://mse-modern.com/msem2/images/L2/64.jpg" id="card15">1x Ralora, Unforgiving Depths</div>
+		<div url="http://mse-modern.com/msem2/images/TOW/251.jpg" id="card16">1x Spiraling Canyon</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/200.jpg" id="card17">1x Forgotten Steppe</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/253.jpg" id="card18">6x Mountain</div>
+		<div url="http://mse-modern.com/msem2/images/L2/3.jpg" id="card19">3x Shardstone Rift</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/KOD/220.jpg" id="card20">4x Rage of the Ravaged</div>
+		<div url="http://mse-modern.com/msem2/images/MPS_MSE/2.jpg" id="card21">4x Scorch</div>
+		<div url="http://mse-modern.com/msem2/images/ALR/15.jpg" id="card22">3x Etherium Abrogator</div>
+		<div url="http://mse-modern.com/msem2/images/TOJ/114.jpg" id="card23">4x Smoldering Pages</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

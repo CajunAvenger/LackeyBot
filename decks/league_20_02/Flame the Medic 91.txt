@@ -1,0 +1,138 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 10px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>Braving the Issabarrens</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/tokens/WAW3.jpg" id="card1">1x Human Pirate</div>
+		<div url="http://mse-modern.com/msem2/images/101/9.jpg" id="card2">4x Golden Company Valiant</div>
+		<div url="http://mse-modern.com/msem2/images/101/11.jpg" id="card3">4x Herald of Heroes</div>
+		<div url="http://mse-modern.com/msem2/images/101/13.jpg" id="card4">1x Magdel, Caller of Souls</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/20.jpg" id="card5">1x Majestic Garrison</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/25.jpg" id="card6">4x Prosanian Warden</div>
+		<br/>
+		<div><b><i>Sorcery (10)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/101/12.jpg" id="card7">1x Legends Never Die</div>
+		<div url="http://mse-modern.com/msem2/images/101/4.jpg" id="card8">1x Autumn's Farewell</div>
+		<div url="http://mse-modern.com/msem2/images/101/8.jpg" id="card9">3x Golden Company Tactics</div>
+		<div url="http://mse-modern.com/msem2/images/101/10.jpg" id="card10">2x Happily Every After</div>
+		<div url="http://mse-modern.com/msem2/images/101/7.jpg" id="card11">2x Final Reckoning</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/26.jpg" id="card12">1x Punishing Catastrophe</div>
+		<br/>
+		<div><b><i>Enchantment (17)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/101/15.jpg" id="card13">4x The Start of Something</div>
+		<div url="http://mse-modern.com/msem2/images/101/19.jpg" id="card14">2x Wandering Souls</div>
+		<div url="http://mse-modern.com/msem2/images/101/5.jpg" id="card15">4x Brave the Issbarrens</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/5.jpg" id="card16">1x Bolstered Stockpiles</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/6.jpg" id="card17">2x Builder’s Blessing</div>
+		<div url="http://mse-modern.com/msem2/images/101/17.jpg" id="card18">2x Titan's Will</div>
+		<div url="http://mse-modern.com/msem2/images/101/2.jpg" id="card19">2x Apotheosis</div>
+		<br/>
+		<div><b><i>Artifact (1)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/101/94.jpg" id="card20">1x The Aether Lens</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (20)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/AFM/250.jpg" id="card21">20x Plains</div>
+		<br/>
+	<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+		document.getElementById('card24').addEventListener('mouseover', function() {
+			change('card24');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>InfinityChef's Bad version of a good deck</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (13)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/RWR/41.jpg" id="card1">4x Union Rail Strikebreaker</div>
+		<div url="http://mse-modern.com/msem2/images/ALR/59.jpg" id="card2">4x Supreme Mechanothurge</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/157.jpg" id="card3">1x Gilded Gearhulk</div>
+		<div url="http://mse-modern.com/msem2/images/ALR/41.jpg" id="card4">1x Etherium Leviathan</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/155.jpg" id="card5">3x Facsimile of Divinity</div>
+		<br/>
+		<div><b><i>Sorcery (12)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/DOA/86.jpg" id="card6">4x Eleventh Hour Breakthrough</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/44.jpg" id="card7">4x Reinvent</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/78.jpg" id="card8">4x Relic Heist</div>
+		<br/>
+		<div><b><i>Artifact (18)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/ALR/60.jpg" id="card9">4x Terraformer's Globe</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/158.jpg" id="card10">4x Northern Express Line</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/151.jpg" id="card11">2x Galvan Coal Line</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/160.jpg" id="card12">4x Hub of Innovation</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/170.jpg" id="card13">4x Unity Spheres</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (17)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/AFM/253.jpg" id="card14">3x Mountain</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/179.jpg" id="card15">4x Brilliant Port</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/251.jpg" id="card16">6x Island</div>
+		<div url="http://mse-modern.com/msem2/images/XPM/187.jpg" id="card17">4x Cartography Spires</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/DOA/157.jpg" id="card18">1x Gilded Gearhulk</div>
+		<div url="http://mse-modern.com/msem2/images/GNJ/65.jpg" id="card19">4x Master of Tranquility</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/81.jpg" id="card20">2x Bottled Lightning</div>
+		<div url="http://mse-modern.com/msem2/images/GNJ/69.jpg" id="card21">3x Neutralize</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/51.jpg" id="card22">2x Volta, Construct Consultant</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/90.jpg" id="card23">2x Forgemaster's Charm</div>
+		<div url="http://mse-modern.com/msem2/images/GNJ/162.jpg" id="card24">1x Reverent Flame</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

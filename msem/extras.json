@@ -424,5 +424,6 @@
 	"L3": "The Mana Pool 2 has $SETCARDS cards ($SETRARITY).\nThe set's most common mana cost is nothing.\nIf the Mana Pool was a spell, Tabak would have my head.\nIf the Mana Pool 2 was animated, it would be a $SETPT $SETTYPE",
 	"BOT": "LackeyBot has fetched $COUNT cards, accepted $BRIBE bribes, started $DRAFT drafts, cracked $PACK packs, and only exploded $EXPLODE times. The other goblins are in awe of LackeyBot's mighty deeds.",
 	"MPS_MSE": "MSEM Champions is a set dedicated to the winners of our monthly GPs. It currently has $SETCARDS cards and $SETTOKENS tokens.\nThe set's most common mana cost is $SETCOMMON.\nMSEM Champions' converted mana cost is $SETMANA.\nIf MSEM Champions was animated, it would be a $SETPT $SETTYPE",
+	"CHAMPIONS": "MSEM Champions is a set dedicated to the winners of our monthly GPs. It currently has $SETCARDS cards and $SETTOKENS tokens.\nThe set's most common mana cost is $SETCOMMON.\nMSEM Champions' converted mana cost is $SETMANA.\nIf MSEM Champions was animated, it would be a $SETPT $SETTYPE",
 	"MSEM": "MSEM has $SETCARDS cards ($SETRARITY), $SETTOKENS tokens, $SETPROMOS, and $SETMASTER Masterpieces.\nThe format's most common mana cost is $SETCOMMON.\nMSEM's converted mana cost is $SETMANA.\nIf MSEM was animated, it would be a $SETPT $SETTYPE"
 }

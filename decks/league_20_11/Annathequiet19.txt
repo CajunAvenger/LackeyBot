@@ -1,0 +1,140 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>Annathequiet monogreen ramp</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (22)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/PSA/132.jpg" id="card1">4x Mana Ascetic</div>
+		<div url="http://mse-modern.com/msem2/images/WAW/91.jpg" id="card2">4x Kyne's Devoted</div>
+		<div url="http://mse-modern.com/msem2/images/ALR/139.jpg" id="card3">2x Hierarch Ranger</div>
+		<div url="http://mse-modern.com/msem2/images/GNJ/184.jpg" id="card4">2x Chiu of the Wild Realm</div>
+		<div url="http://mse-modern.com/msem2/images/MS2/121.jpg" id="card5">4x Seeker of New Horizons</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/50.jpg" id="card6">2x Scion of Torrents</div>
+		<div url="http://mse-modern.com/msem2/images/MS2/13s.jpg" id="card7">4x Leyran Alpha</div>
+		<br/>
+		<div><b><i>Planeswalker (6)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/WAY/159.jpg" id="card8">4x Mabil Fardancer</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/151.jpg" id="card9">2x Helene Trant</div>
+		<br/>
+		<div><b><i>Sorcery (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/RWR/127.jpg" id="card10">4x Recall Forgotten Eons</div>
+		<br/>
+		<div><b><i>Enchantment (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/ATB/175a.jpg" id="card11">4x Sabne's Autumn</div>
+		<div url="http://mse-modern.com/msem2/images/ATB/175b.jpg" id="card12">(Transformed)</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (24)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/L3/160.jpg" id="card13">4x Shifting Glade</div>
+		<div url="http://mse-modern.com/msem2/images/L3/30.jpg" id="card14">4x Lush Oasis</div>
+		<div url="http://mse-modern.com/msem2/images/UNR/236.jpg" id="card15">12x Forest</div>
+		<div url="http://mse-modern.com/msem2/images/L3/10.jpg" id="card16">4x Mysterious Cataract</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/TWR/222.jpg" id="card17">3x Tenacious Guide</div>
+		<div url="http://mse-modern.com/msem2/images/TOJ/124.jpg" id="card18">3x Jade Vault Reclaimer</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/192.jpg" id="card19">3x Sacrificial Bull</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/196.jpg" id="card20">2x Squid Pro Quo</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/95.jpg" id="card21">4x Stand Unassailable</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

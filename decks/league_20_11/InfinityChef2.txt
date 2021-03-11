@@ -1,0 +1,168 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+		document.getElementById('card24').addEventListener('mouseover', function() {
+			change('card24');
+		});
+		document.getElementById('card25').addEventListener('mouseover', function() {
+			change('card25');
+		});
+		document.getElementById('card26').addEventListener('mouseover', function() {
+			change('card26');
+		});
+		document.getElementById('card27').addEventListener('mouseover', function() {
+			change('card27');
+		});
+		document.getElementById('card28').addEventListener('mouseover', function() {
+			change('card28');
+		});
+		document.getElementById('card29').addEventListener('mouseover', function() {
+			change('card29');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>InfinityChef's Adjudant is actually good I swear</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (10)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/KOD/42.jpg" id="card1">2x Prodigious Panya</div>
+		<div url="http://mse-modern.com/msem2/images/GHQ/50.jpg" id="card2">4x Cane Dancer</div>
+		<div url="http://mse-modern.com/msem2/images/LVS/216.jpg" id="card3">3x TT-23 Aegis</div>
+		<div url="http://mse-modern.com/msem2/images/ALR/12.jpg" id="card4">1x Derevi's Adjutant</div>
+		<br/>
+		<div><b><i>Instant (27)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/WAY/112.jpg" id="card5">4x Voidflare</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/44.jpg" id="card6">4x Cursory Glance</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/147.jpg" id="card7">4x Roggar's Frenzy</div>
+		<div url="http://mse-modern.com/msem2/images/LVS/59.jpg" id="card8">4x A Planet Far, Far Away</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/10.jpg" id="card9">2x Journey's End</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/44.jpg" id="card10">4x Portal Fracture</div>
+		<div url="http://mse-modern.com/msem2/images/DYA/35.jpg" id="card11">2x Arcane Genesis</div>
+		<div url="http://mse-modern.com/msem2/images/MS1/7s.jpg" id="card12">3x Mariner's Skill</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (23)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/IMP/137.jpg" id="card13">4x Wayfarer's Shrine</div>
+		<div url="http://mse-modern.com/msem2/images/KZD/244.jpg" id="card14">3x Magmatic Torrent</div>
+		<div url="http://mse-modern.com/msem2/images/L/16.jpg" id="card15">2x Ocean Monastery</div>
+		<div url="http://mse-modern.com/msem2/images/K15/227.jpg" id="card16">2x Pool of Light</div>
+		<div url="http://mse-modern.com/msem2/images/NVA/263.jpg" id="card17">1x Sea Of Skies Beyond</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/253.jpg" id="card18">1x Mountain</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/250.jpg" id="card19">1x Plains</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/251.jpg" id="card20">2x Island</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/200.jpg" id="card21">1x Forgotten Steppe</div>
+		<div url="http://mse-modern.com/msem2/images/TOW/245.jpg" id="card22">3x Frostfire Geysers</div>
+		<div url="http://mse-modern.com/msem2/images/DYA/220.jpg" id="card23">2x Snow-Covered Island</div>
+		<div url="http://mse-modern.com/msem2/images/KZD/248.jpg" id="card24">1x Sunlit Highland</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/VTM/220.jpg" id="card25">3x Soul Gate</div>
+		<div url="http://mse-modern.com/msem2/images/TOW/70.jpg" id="card26">3x Replicator Mage</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/209.jpg" id="card27">2x Dehmi, Origin Seeker</div>
+		<div url="http://mse-modern.com/msem2/images/TOW/158.jpg" id="card28">3x Shal'Draen's Rage</div>
+		<div url="http://mse-modern.com/msem2/images/KLC/31.jpg" id="card29">4x Still the Pandemonium</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

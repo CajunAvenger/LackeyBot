@@ -1,0 +1,146 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>Anna's stolen EsperTheo from dodger</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (26)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/SOU/74.jpg" id="card1">4x Rhudai Overseer</div>
+		<div url="http://mse-modern.com/msem2/images/ATB/32.jpg" id="card2">4x Shawlbinder</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/243.jpg" id="card3">4x Tempered Ankulim</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/104.jpg" id="card4">3x Imperial Confidant</div>
+		<div url="http://mse-modern.com/msem2/images/TOJ/166.jpg" id="card5">4x Suzume Oshiruko</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/31.jpg" id="card6">3x Aethermancer's Familiar</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/160.jpg" id="card7">4x Mausoleum Suffragan</div>
+		<br/>
+		<div><b><i>Enchantment (8)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/ATB/71.jpg" id="card8">4x Sights Beyond</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/40.jpg" id="card9">4x Theocracy</div>
+		<br/>
+		<div><b><i>Artifact (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/GHQ/235.jpg" id="card10">4x Monument to the Fallen Man</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (22)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/LNG/117.jpg" id="card11">4x Unending Sands</div>
+		<div url="http://mse-modern.com/msem2/images/LNG/111.jpg" id="card12">4x Lonely Dunes</div>
+		<div url="http://mse-modern.com/msem2/images/LNG/105.jpg" id="card13">4x Canyon Falls</div>
+		<div url="http://mse-modern.com/msem2/images/LNG/104.jpg" id="card14">4x Arid Ruins</div>
+		<div url="http://mse-modern.com/msem2/images/ATB/248.jpg" id="card15">1x Sunrazed Ruins</div>
+		<div url="http://mse-modern.com/msem2/images/IMP/137.jpg" id="card16">2x Wayfarer's Shrine</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/251.jpg" id="card17">1x Island</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/252.jpg" id="card18">1x Swamp</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/250.jpg" id="card19">1x Plains</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/WAY/66.jpg" id="card20">4x Gyreon Pickpocket</div>
+		<div url="http://mse-modern.com/msem2/images/TWR/36.jpg" id="card21">4x Whiterun Ordainer</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/10.jpg" id="card22">3x Journey's End</div>
+		<div url="http://mse-modern.com/msem2/images/TWR/98.jpg" id="card23">4x Seal the Tomb</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

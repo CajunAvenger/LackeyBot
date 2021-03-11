@@ -1,0 +1,112 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Palatino Linotype";
+	padding: 12px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>Matt's RW Blade Dance</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (16)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/IMP/80.jpg" id="card1">4x Masterwork Artisan</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/1.jpg" id="card2">4x Almgrove Champion</div>
+		<div url="http://mse-modern.com/msem2/images/POA/85.jpg" id="card3">4x Avatar of Basat</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/4.jpg" id="card4">4x Cadre Hawk</div>
+		<br/>
+		<div><b><i>Instant (8)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/K15/1.jpg" id="card5">4x Armament Upgrade</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/147.jpg" id="card6">4x Roggar’s Frenzy</div>
+		<br/>
+		<div><b><i>Artifact (16)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/GHQ/240.jpg" id="card7">4x Staff of Equilibrium</div>
+		<div url="http://mse-modern.com/msem2/images/PSA/166.jpg" id="card8">4x Bladed Warfan</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/69.jpg" id="card9">4x Giltwork Legacy</div>
+		<div url="http://mse-modern.com/msem2/images/101/93.jpg" id="card10">4x Academic's Claymore</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (20)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/PFP/200.jpg" id="card11">4x Forgotten Steppe</div>
+		<div url="http://mse-modern.com/msem2/images/KZD/248.jpg" id="card12">4x Sunlit Highland</div>
+		<div url="http://mse-modern.com/msem2/images/IMP/137.jpg" id="card13">4x Wayfarer’s Shrine</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/253.jpg" id="card14">5x Mountain</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/89s.jpg" id="card15">3x Plains</div>
+		<br/>
+	<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>EarthKwake's CragPact</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (12)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/KZD/87.jpg" id="card1">4x Herald of Oblivion</div>
+		<div url="http://mse-modern.com/msem2/images/ATB/103.jpg" id="card2">4x Sultan of Avarice</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/75.jpg" id="card3">4x Ruin Delver</div>
+		<br/>
+		<div><b><i>Sorcery (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/DOA/100.jpg" id="card4">4x Scorch</div>
+		<div url="http://mse-modern.com/msem2/images/EAU/148.jpg" id="card5">4x Gift of the Phoenix</div>
+		<div url="http://mse-modern.com/msem2/images/POA/80.jpg" id="card6">4x Sinister Pact</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/52.jpg" id="card7">3x Ignition Ritual</div>
+		<br/>
+		<div><b><i>Enchantment (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/MS2/57.jpg" id="card8">4x Dark Bargain</div>
+		<br/>
+		<div><b><i>Artifact (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/MAC/70.jpg" id="card9">4x Paradox Rings</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (21)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/STN/88.jpg" id="card10">4x Spires of Caulte</div>
+		<div url="http://mse-modern.com/msem2/images/LNG/108.jpg" id="card11">4x Hostile Dunes</div>
+		<div url="http://mse-modern.com/msem2/images/LNG/117.jpg" id="card12">4x Unending Sands</div>
+		<div url="http://mse-modern.com/msem2/images/L/17.jpg" id="card13">4x Shardstone Rift</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/22s.jpg" id="card14">1x Molten Falls</div>
+		<div url="http://mse-modern.com/msem2/images/L3/153.jpg" id="card15">2x Crumbling Precipice</div>
+		<div url="http://mse-modern.com/msem2/images/ATB/240.jpg" id="card16">1x Highland Dunes</div>
+		<div url="http://mse-modern.com/msem2/images/ATB/247.jpg" id="card17">1x Stygian Dunes</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/LVS/199.jpg" id="card18">3x Enter Mephisto's Gate</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/184.jpg" id="card19">3x Lucien, the Grifter</div>
+		<div url="http://mse-modern.com/msem2/images/ALR/177.jpg" id="card20">3x Edarna the Everforge</div>
+		<div url="http://mse-modern.com/msem2/images/UNR/90.jpg" id="card21">2x Prying Inquiry</div>
+		<div url="http://mse-modern.com/msem2/images/TOJ/86.jpg" id="card22">4x Stolen Secrets</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

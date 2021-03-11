@@ -1,0 +1,158 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Palatino Linotype";
+	padding: 12px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+		document.getElementById('card24').addEventListener('mouseover', function() {
+			change('card24');
+		});
+		document.getElementById('card25').addEventListener('mouseover', function() {
+			change('card25');
+		});
+		document.getElementById('card26').addEventListener('mouseover', function() {
+			change('card26');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>cftsoc's Fair Eggrange</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (26)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/PSA/5.jpg" id="card1">4x Silent Wanderer</div>
+		<div url="http://mse-modern.com/msem2/images/HVF/68.jpg" id="card2">4x Autumnal Watch</div>
+		<div url="http://mse-modern.com/msem2/images/DYA/126.jpg" id="card3">4x Province Guardian</div>
+		<div url="http://mse-modern.com/msem2/images/NVA/208.jpg" id="card4">4x Pond Tenders</div>
+		<div url="http://mse-modern.com/msem2/images/UNR/173.jpg" id="card5">4x Zadyk Ritualist</div>
+		<div url="http://mse-modern.com/msem2/images/UNR/86.jpg" id="card6">2x Merchant of False Lives</div>
+		<div url="http://mse-modern.com/msem2/images/TOJ/141.jpg" id="card7">4x Sevenfold Summoner</div>
+		<br/>
+		<div><b><i>Enchantment (12)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/HI12/226.jpg" id="card8">4x Miner’s Barracks</div>
+		<div url="http://mse-modern.com/msem2/images/SOR/75.jpg" id="card9">4x Revert to Moonlight</div>
+		<div url="http://mse-modern.com/msem2/images/MPS_MSE/1p.jpg" id="card10">4x Ardy’s Study</div>
+		<br/>
+		<div><b><i>Artifact (2)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/VTM/81.jpg" id="card11">2x Eldritch Egg</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (20)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/IMP/137.jpg" id="card12">4x Wayfarer’s Shrine</div>
+		<div url="http://mse-modern.com/msem2/images/KZD/242.jpg" id="card13">4x Grim Bastion</div>
+		<div url="http://mse-modern.com/msem2/images/L/17.jpg" id="card14">2x Shardstone Rift</div>
+		<div url="http://mse-modern.com/msem2/images/L/18.jpg" id="card15">3x Timber Range</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/254.jpg" id="card16">1x Forest</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/252.jpg" id="card17">1x Swamp</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/253.jpg" id="card18">1x Mountain</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/205.jpg" id="card19">2x Nomad’s Township</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/207.jpg" id="card20">1x Rampant Summit</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/195.jpg" id="card21">1x Crumbling Precipice</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/TOJ/124.jpg" id="card22">2x Jade Vault Reclaimer</div>
+		<div url="http://mse-modern.com/msem2/images/TOJ/62.jpg" id="card23">3x Aguri, Shadow of Doubt</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/72.jpg" id="card24">3x Iron Warden</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/63.jpg" id="card25">3x Archive Guardian</div>
+		<div url="http://mse-modern.com/msem2/images/UNR/100.jpg" id="card26">4x Unmasker of Fate’s Design</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

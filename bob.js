@@ -12,8 +12,9 @@ var updateMessage = "";
 var cards = require('./msem/cards.json');
 var legal = require('./msem/legal.json');
 var setsArray = require("./msem/setData.json");
-var uninstallArray = require('./uninstall.json');
+var uninstallArray = require('./msem/uninstall.json');
 var usedNames = [];
+var format = "msem";
 if(process.argv[2] != undefined) {
 	for(let i=2; i<process.argv.length; i++)
 		updateMessage += process.argv[i] + " ";
@@ -32,8 +33,11 @@ exports.pullTokenSet = pullTokenSet;
 exports.convertNumbers = convertNumbers;
 exports.lackeyScript = setupScripts;
 exports.lackeyColorCondenser = lackeyColorCondenser;
+exports.formatSetter = formatSetter;
 
-
+function formatSetter(name){
+	format = name;
+}
 function allcardsBuilder () { //builds the Lackey allcards file
 	let allcards = "Name	Set	ImageFile	Color	Cost	ConvertedCost	Type	Power	Toughness	Rarity	Note	Script	Text	PackStuff\r\n";
 	for(let card in cards) {
@@ -145,6 +149,8 @@ function tokenName(card) { //generates a token's name
 		tokenName = "1/1 Scout WAY";
 	if(tokenName == "1/1 colorless Scout MS2")
 		tokenName = "1/1 Scout MS2";
+	if(tokenName == "1/1 colorless Scout MS3")
+		tokenName = "1/1 Scout MS3";
 	if(tokenName == "1/1 colorless Scout MPS_MSE")
 		tokenName = "1/1 Scout MPS_MSE";
 	if(tokenName == "8/8 colorless Elemental ALR")
@@ -331,7 +337,7 @@ function setupScripts (card){ //handles the script building
 		}
 	}else{
 		initScript += automagicalScripts(card,card.rulesText);
-		if(card.shape == "doubleface" || card.shape == "adventure") {
+		if(card.shape == "doubleface" || card.shape == "adventure" || card.shape == "split") {
 			if(card.typeLine2.match("Planeswalker")) {
 				initScript += "<s><l>Ascend</l><f>/cf;/ccgreen=" + card.loyalty2 + "</f></s>";
 				var breakMatch2 = card.rulesText2.match(/[^\n]*\n/g);
@@ -368,6 +374,13 @@ function setupScripts (card){ //handles the script building
 	}
 	initScript = initScript.replace("<s><l>Spawn Masterpiece</l><f>/spawn Masterpiece DOA</f></s>","");
 	return initScript;
+}
+function tokenID(token, card) {
+	if(token == "Journey") {
+		if(format == "msem")
+			return ""
+		return " " + card.setID;
+	}
 }
 function automagicalScripts (card, textBox) { //generates scripts from card text
 	var scripts = "";
@@ -465,8 +478,8 @@ function automagicalScripts (card, textBox) { //generates scripts from card text
 			//Adjudicate
 			scripts = scripts.replace("<s><l>Spawn Aura</l><f>/spawn white Aura MIS</f></s>","<s><l>Adjudicate</l><f>/spawn white Aura MIS</f></s>");
 			//Land Bundle fixes
-			scripts = scripts.replace(/Clue L[23]?/,"Clue VTM");
-			scripts = scripts.replace(/Treasure L[23]?/,"Treasure TOJ");
+			//scripts = scripts.replace(/Clue L[23]?/,"Clue VTM");
+			scripts = scripts.replace(/Treasure (L|L2|L3)$/,"Treasure TOJ");
 			scripts = scripts.replace(/Gold L[23]?/,"Gold HI12");
 			//Entirely necessary
 			scripts = scripts.replace(">Spawn Kraken<",">Release the Kraken<");
@@ -510,6 +523,13 @@ function automagicalScripts (card, textBox) { //generates scripts from card text
 			cardStack = showbotMatch[2];
 		scripts += "<s><l>Reveal bottom " + cardStack + "</l><f>/vp1ab" + convertNumbers(cardStack) + "</f></s>";
 	}
+	//Journey
+	var journMatch = textBox.match(/Journey(\.| two| three| four| five)/i);
+	if(journMatch)
+		scripts += "<s><l>Journey tracker</l><f>/spawn Journey" + tokenID("Journey", card) + "</f></s>";
+	var underMatch = textBox.match(/Undercover/i);
+	if(underMatch)
+		scripts += "<s><l>Undercover reminder</l><f>/spawn Undercover " + card.setID + "</f></s>";
 	//Revive
 	var reviveMatch = textBox.match(/(\n|^)Revive/);
 	if(reviveMatch)
@@ -531,8 +551,8 @@ function automagicalScripts (card, textBox) { //generates scripts from card text
 	if(archMatch)
 		scripts += "<s><l>Additional library reminder</l><f>/spawn Additional Library</f></s>";
 	//MSEMAR Research
-	var archMatch = textBox.match(/Eureka \d/);
-	if(archMatch)
+	var eurMatch = textBox.match(/Eureka!/);
+	if(eurMatch)
 		scripts += "<s><l>Research counter</l><f>/spawn Research Counter</f></s>";
 	//Glory
 	var gloryMatch = textBox.match(/glory counter/);
@@ -556,6 +576,8 @@ function automagicalScripts (card, textBox) { //generates scripts from card text
 		scripts += "<s><l>Emblem Get</l><f>/spawn ";
 		if(card.typeLine.match("Planeswalker")) {
 			scripts += card.typeLine.replace(/(Legendary )?Planeswalker — /,"");
+		}else if(card.typeLine2 && card.typeLine2.match("Planeswalker")) {
+			scripts += card.typeLine2.replace(/(Legendary )?Planeswalker — /,"");
 		}else{
 			scripts += card.cardName;
 		}

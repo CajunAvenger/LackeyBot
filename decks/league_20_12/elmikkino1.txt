@@ -1,0 +1,158 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+		document.getElementById('card24').addEventListener('mouseover', function() {
+			change('card24');
+		});
+		document.getElementById('card25').addEventListener('mouseover', function() {
+			change('card25');
+		});
+		document.getElementById('card26').addEventListener('mouseover', function() {
+			change('card26');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>elmikkino's Gasket Casket</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (20)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/VTM/33s.jpg" id="card1">4x Shining Crusader</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/23s.jpg" id="card2">4x Lodestone Golem</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/162.jpg" id="card3">4x Junktrawler</div>
+		<div url="http://mse-modern.com/msem2/images/UNR/207.jpg" id="card4">4x Demanding Idol</div>
+		<div url="http://mse-modern.com/msem2/images/LVS/228.jpg" id="card5">2x Inquirer, Roaming Rover</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/155.jpg" id="card6">1x Facsimile of Divinity</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/36s.jpg" id="card7">1x Spectral Skycruiser</div>
+		<br/>
+		<div><b><i>Sorcery (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/CAC/33.jpg" id="card8">4x Crystal Conjuration</div>
+		<br/>
+		<div><b><i>Artifact (13)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/AFM/242.jpg" id="card9">4x Tinkerer's Tools</div>
+		<div url="http://mse-modern.com/msem2/images/CAC/74.jpg" id="card10">4x Warded Tome</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/19s.jpg" id="card11">4x Glistening Chalice</div>
+		<div url="http://mse-modern.com/msem2/images/GHQ/239.jpg" id="card12">1x Skeigr, Skhorvall Flagship</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (23)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/WAY/19s.jpg" id="card13">4x Idravir, the Last City</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/20s.jpg" id="card14">4x Krismite Vault</div>
+		<div url="http://mse-modern.com/msem2/images/L3/119.jpg" id="card15">4x Palace of Reflections</div>
+		<div url="http://mse-modern.com/msem2/images/WAW/184.jpg" id="card16">2x The Imperial City</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/4s.jpg" id="card17">2x Brine Fleet Bay</div>
+		<div url="http://mse-modern.com/msem2/images/TOW/248.jpg" id="card18">4x Kellythross' Workshop</div>
+		<div url="http://mse-modern.com/msem2/images/L3/107.jpg" id="card19">3x Midnight Keep</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/VTM/44s.jpg" id="card20">2x Titan Snare</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/220.jpg" id="card21">2x Soul Gate</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/35s.jpg" id="card22">2x Sorcerous Spyglass</div>
+		<div url="http://mse-modern.com/msem2/images/MIS/226.jpg" id="card23">1x Chemical Grenade</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/30s.jpg" id="card24">3x Servant of Armageddon</div>
+		<div url="http://mse-modern.com/msem2/images/WAW/171.jpg" id="card25">4x Dwemer-Made Dovah</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/157.jpg" id="card26">1x Gilded Gearhulk</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

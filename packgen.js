@@ -100,8 +100,8 @@ function builtInSlots (slot) { //codes for built in slots
 	slotMachine["land replace"] = [["r=l"], [1], "else", 0, 1.00, false];
 	slotMachine["bonus"] = [["r=b"], [1]];
 	slotMachine["special"] = [["r=s"], [1]];
-	slotMachine["old rare/mythic"] = [["r=r", "r=m"], [0.875, 0.125]];
-	slotMachine["rare/mythic"] = [["r=r", "r=m"], [0.865, 0.135]];
+	slotMachine["old rare/mythic"] = [["r=m","r=r"], [0.125,0.875]];
+	slotMachine["rare/mythic"] = [["r=m","r=r"], [0.135,0.865]];
 	//dfc slots
 	slotMachine["dfc"] = [["is:transform"], [1]];
 	slotMachine["cudfc"] = [["(r=c or r=u) is:transform"], [1]]
@@ -116,7 +116,7 @@ function builtInSlots (slot) { //codes for built in slots
 	slotMachine["draft"] = [["(t:Conspiracy or o:draft)"], [1]];
 	slotMachine["conspiracy"] = [["t:Conspiracy"], [1]];
 	//foil slot
-	slotMachine["foil"] = [["r=c","r=u","r=r","r=m","r=l"], [0.6875,0.1875,0.0547,0.0078,0.0625], "else", 0, 0.3334, true];
+	slotMachine["foil"] = [["r=c","r=u","r=r","r=m","r=c"], [0.6875,0.1875,0.0547,0.0078,0.0625], "else", 0, 0.3334, true];
 	slotMachine["old foil"] = [["r=c","r=u","r=r"], [0.6875,0.25,0.0625], "else", 0, 0.3334, true];
 	slotMachine["master foil"] = [["r=c","r=u","r=r","r=m"], [0.6875,0.25,0.0547,0.0078,0.0625], "else", 0, 1, true];
 	slotMachine["bonus foil"] = [["r=c","r=u","r=r","r=m","(r=b or r=l)"], [0.6875,0.1875,0.0547,0.0078,0.0625], "else", 0, 0.3334, true];
@@ -126,11 +126,11 @@ function builtInSlots (slot) { //codes for built in slots
 	return [];
 }
 function builtInPacks(pack) { //codes for built in packs
-	if(pack == "standard")
+	if(pack == "oldmythicratio")
 		return genEighthMythicPack();
 	if(pack == "old")
 		return genOldPack();
-	if(pack == "new")
+	if(pack == "standard" || pack == "new")
 		return genRegularPack();
 	if(pack == "bonus")
 		return genBonusPack();

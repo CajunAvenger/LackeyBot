@@ -8,67 +8,67 @@
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=r","r=m","r=l"],"chances":[0.875,0.0625,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=r","r=m","r=l"],"chances":[0.875,0.0625,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "AFM":{
 	"longname":"Aftermath",
 	"Design":"Korakhos",
-	"Link":"https://drive.google.com/uc?export=download&id=0BxX3AYek7eBzXzJlTGxGTnY5UEE",
+	"Link":"https://drive.google.com/file/d/0BxX3AYek7eBzXzJlTGxGTnY5UEE/view?usp=sharing",
 	"releaseNo":"1",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "ALR":{
 	"longname":"Alara",
 	"Design":"Mako",
-	"Link":"https://drive.google.com/file/d/1fdJw5ct_T3XHocWT0Ozi5NnawBpozQjf/view?usp=sharing",
+	"Link":"https://drive.google.com/file/d/1JVH6M19vxleYbo7LbZs8BKQPQUJHI81X/view?usp=sharing",
 	"releaseNo":"55",
 	"releaseDate":"2020-11-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "ATB":{
 	"longname":"Al Tabaq",
 	"Design":"CanterburyEgg",
-	"Link":"https://drive.google.com/open?id=1nX9oAxVl_KCCCl0QdS5nuJ2RuoVrdLhP",
+	"Link":"https://drive.google.com/file/d/1nX9oAxVl_KCCCl0QdS5nuJ2RuoVrdLhP/view?usp=sharing",
 	"releaseNo":"40",
 	"releaseDate":"2019-05-01",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "CAC":{
 	"longname":"Carpe Arcanum",
 	"Design":"HerziQuerzi",
-	"Link":"https://drive.google.com/open?id=14xZ3_3qGC3M0VEIUVkEuejjtL54Qb5dX",
+	"Link":"https://drive.google.com/file/d/14xZ3_3qGC3M0VEIUVkEuejjtL54Qb5dX/view?usp=sharing",
 	"releaseNo":"29",
 	"releaseDate":"2018-08-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=r","r=m","r=l"],"chances":[0.875,0.0625,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=r","r=m","r=l"],"chances":[0.875,0.0625,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "DHL":{
 	"longname":"Descent from the Highlands",
 	"Design":"FifthDragon",
-	"Link":"https://drive.google.com/open?id=1XRXNnyPd1p1J5AcXn6-ahiqZy4Vwm1Wn",
+	"Link":"https://drive.google.com/file/d/1XRXNnyPd1p1J5AcXn6-ahiqZy4Vwm1Wn/view?usp=sharing",
 	"releaseNo":"41",
 	"releaseDate":"2019-07-01",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "DOA":{
 	"longname":"Discoveries of Akieva",
 	"Design":"Pipsqueak",
-	"Link":"https://drive.google.com/open?id=1QIIT6dbSZtJusRj10m7sh-waR8zW3z-_",
+	"Link":"https://drive.google.com/file/d/1QIIT6dbSZtJusRj10m7sh-waR8zW3z-_/view?usp=sharing",
 	"releaseNo":"44",
 	"releaseDate":"2019-11-01",
 	"Draft":1,
@@ -76,16 +76,27 @@
 	"masterpiece":false,
 	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
+"DSS":{
+	"longname":"Dark Seas of Shiryen",
+	"Design":"CanterburyEgg",
+	"Link":"https://drive.google.com/file/d/1DwN8-ZrFFz1AfvKtDT9QdELYANGX_nfE/view?usp=sharing",
+	"releaseNo":"60",
+	"releaseDate":"2021-03-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+},
 "DYA":{
 	"longname":"Death of Yakizma",
 	"Design":"HonchkrowDavid",
-	"Link":"https://drive.google.com/uc?export=download&id=15q0gjQTEChsO_uA84l1PmvPykf_jY9Jh",
+	"Link":"https://drive.google.com/file/d/15q0gjQTEChsO_uA84l1PmvPykf_jY9Jh/view?usp=sharing",
 	"releaseNo":"23",
 	"releaseDate":"2018-02-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "EAU":{
 	"longname":"Eralou",
@@ -96,390 +107,412 @@
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+},
+"EIA":{
+	"longname":"Elmare: Into the Abyss",
+	"Design":"Dodger",
+	"Link":"https://drive.google.com/file/d/1W6esK6AnjZJLiK3iRmN_MeNiGWwRmOue/view?usp=sharing",
+	"releaseNo":"59",
+	"releaseDate":"2021-03-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "GHQ":{
 	"longname":"Glacia: Hail to the Queen",
 	"Design":"CanterburyEgg",
-	"Link":"https://drive.google.com/open?id=1xDUns81NWVYtOOm-3kFQG6_43GO54lDG",
+	"Link":"https://drive.google.com/file/d/1xDUns81NWVYtOOm-3kFQG6_43GO54lDG/view?usp=sharing",
 	"releaseNo":"32",
 	"releaseDate":"2018-11-01",
 	"Draft":1,
 	"basics":2,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "GNJ":{
 	"longname":"Goliaths of Nangjiao",
 	"Design":"CanterburyEgg",
-	"Link":"https://drive.google.com/uc?export=download&id=0B5M9g9RcNVojTUpLX1BYWkxYaGM",
+	"Link":"https://drive.google.com/file/d/0B5M9g9RcNVojTUpLX1BYWkxYaGM/view?usp=sharing",
 	"releaseNo":"2",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "HI12":{
 	"longname":"High Noon",
 	"Design":"Cajun",
-	"Link":"https://drive.google.com/uc?export=download&id=112LZAC1--fFoW8lsZdS2PdZs8w64_IAb",
+	"Link":"https://drive.google.com/file/d/112LZAC1--fFoW8lsZdS2PdZs8w64_IAb/view?usp=sharing",
 	"releaseNo":"26",
 	"releaseDate":"2018-05-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":"MPS_HI12",
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true},{"filters":["r=c","e:MPS_HI12"],"chances":[0.99306,0.00694]}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true},{"filters":["r=c","e:MPS_HI12"],"chances":[0.99306,0.00694]}]
 },
 "HVF":{
 	"longname":"Harvest Festival",
 	"Design":"HerziQuerzi",
-	"Link":"https://drive.google.com/open?id=1wW6Sso-SDDuTSl46NQ0LBECrIsY1grQJ",
+	"Link":"https://drive.google.com/file/d/1wW6Sso-SDDuTSl46NQ0LBECrIsY1grQJ/view?usp=sharing",
 	"releaseNo":"33",
 	"releaseDate":"2018-11-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "IMP":{
 	"longname":"Imperial Legacies",
 	"Design":"Timespiraled",
-	"Link":"https://drive.google.com/uc?export=download&id=0B9CYqUUGOcEaRWs4M2h2R1RGNVE",
+	"Link":"https://drive.google.com/file/d/0B9CYqUUGOcEaRWs4M2h2R1RGNVE/view?usp=sharing",
 	"releaseNo":"3",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "K15":{
 	"longname":"K15 Core Set",
 	"Design":"Korakhos",
-	"Link":"https://drive.google.com/uc?export=download&id=0B9CYqUUGOcEaanR3bnFHQWNURms",
+	"Link":"https://drive.google.com/file/d/0B9CYqUUGOcEaanR3bnFHQWNURms/view?usp=sharing",
 	"releaseNo":"4",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "KLC":{
 	"longname":"Kaleidoscope",
 	"Design":"fluffyDeathbringer",
-	"Link":"https://drive.google.com/uc?export=download&id=0B9aVhi1KwykvaXQySnNPRTVlQ3M",
+	"Link":"https://drive.google.com/file/d/0B9aVhi1KwykvaXQySnNPRTVlQ3M/view?usp=sharing",
 	"releaseNo":"15",
 	"releaseDate":"2017-10-01",
 	"Draft":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "KOD":{
 	"longname":"Kahembo: Olde Dawn",
 	"Design":"CanterburyEgg",
-	"Link":"https://drive.google.com/file/d/1xAEhGIa4RvJNzZ3nQnumJLM-5FMAeMlf/view?usp=sharing",
+	"Link":"https://drive.google.com/file/d/1CIs9iqWiCTWNb0x4O9vOtGY2PPdsC7H_/view?usp=sharing",
 	"releaseNo":"51",
 	"releaseDate":"2020-07-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "KZD":{
 	"longname":"Khaliz-Dorahn",
 	"Design":"Korakhos",
-	"Link":"https://drive.google.com/uc?export=download&id=0B2Logurua5lRcGliRnVtUVVEYVE",
+	"Link":"https://drive.google.com/file/d/0B2Logurua5lRcGliRnVtUVVEYVE/view?usp=sharing",
 	"releaseNo":"5",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "LAW":{
 	"longname":"Lovi Awoken",
 	"Design":"fluffyDeathbringer",
-	"Link":"https://drive.google.com/open?id=1xFkuROnVXF0-5M7bP8qI0LAe2s5vBYON",
+	"Link":"https://drive.google.com/file/d/1Zgminw3h_noX2S3YLYozAG9MtScQEgOK/view?usp=sharing",
 	"releaseNo":"46",
 	"releaseDate":"2020-03-01",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "LNG":{
 	"longname":"Langor: Scorched Sands",
 	"Design":"HonchkrowDavid",
-	"Link":"https://drive.google.com/uc?export=download&id=12IfKmRq_V0mCBlesR9_jDDSu-5l78gWX",
+	"Link":"https://drive.google.com/file/d/12IfKmRq_V0mCBlesR9_jDDSu-5l78gWX/view?usp=sharing",
 	"releaseNo":"27",
 	"releaseDate":"2018-05-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "LVS":{
 	"longname":"Love Song",
 	"Design":"Pipsqueak",
-	"Link":"https://drive.google.com/file/d/1Htry4s-SL8kW0HLJPl1HuuZhmwdvwmga/view?usp=sharing",
+	"Link":"https://drive.google.com/file/d/11Fifkirn2SB0K6Wk9pMt0yRiXYBtRsoN/view?usp=sharing",
 	"releaseNo":"52",
 	"releaseDate":"2020-07-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "MAC":{
 	"longname":"Memorium Arcanum",
 	"Design":"HerziQuerzi",
-	"Link":"https://drive.google.com/file/d/1GGPQk9ULX2BTKHphKKgs4WYmcgZ9DPVr/view",
+	"Link":"https://drive.google.com/file/d/1qhmkpXMfVNEbbGwX7MKimS2lGO6KWPxR/view?usp=sharing",
 	"releaseNo":"42",
 	"releaseDate":"2019-08-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=r","r=m","r=l"],"chances":[0.875,0.0625,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=r","r=m","r=l"],"chances":[0.875,0.0625,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "MIS":{
 	"longname":"Mious",
 	"Design":"fluffyDeathbringer, HerziQuerzi, and the community",
-	"Link":"https://drive.google.com/uc?export=download&id=0B9CYqUUGOcEacFJ6cnVkbXJ3TEU",
+	"Link":"https://drive.google.com/file/d/0B9CYqUUGOcEacFJ6cnVkbXJ3TEU/view?usp=sharing",
 	"releaseNo":"6",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":"MPS_MIS",
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true},{"filters":["r=c","e:MPS_MIS"],"chances":[0.99306,0.00694]}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true},{"filters":["r=c","e:MPS_MIS"],"chances":[0.99306,0.00694]}]
+},
+"MON":{
+	"longname":"Monsters of Chikyu",
+	"Design":"Cajun",
+	"Link":"https://drive.google.com/file/d/1VAqH-dBLsbejCVwTE0IFUUrDUzp_1yir/view?usp=sharing",
+	"releaseNo":"58",
+	"releaseDate":"2021-01-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=r","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "NVA":{
 	"longname":"Novea",
 	"Design":"Cajun",
-	"Link":"https://drive.google.com/uc?export=download&id=0B9aVhi1KwykvVDZJSzRWQXljWnc",
+	"Link":"https://drive.google.com/file/d/0B9aVhi1KwykvVDZJSzRWQXljWnc/view?usp=sharing",
 	"releaseNo":"24",
 	"releaseDate":"2018-02-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "OPH":{
 	"longname":"Ophorio",
 	"Design":"Cajun",
-	"Link":"https://drive.google.com/uc?export=download&id=0BxX3AYek7eBzcTlUMnFRbUxVNGM",
+	"Link":"https://drive.google.com/file/d/1mpwX9vYA_ZHaUqik9T5_F-pd-YT4w9zh/view?usp=sharing",
 	"releaseNo":"7",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":"MPS_OPO",
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true},{"filters":["r=c","e:MPS_OPO"],"chances":[0.99306,0.00694]}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true},{"filters":["r=c","e:MPS_OPO"],"chances":[0.99306,0.00694]}]
 },
 "ORP":{
 	"longname":"Oirohpo",
 	"Design":"Cajun",
-	"Link":"https://drive.google.com/uc?export=download&id=0BxX3AYek7eBzcTlUMnFRbUxVNGM",
+	"Link":"https://drive.google.com/file/d/1s8Si5_074UEy10S2VDdiQ4BTHoE6MfaB/view?usp=sharing",
 	"releaseNo":"8",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":"MPS_OPO",
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true},{"filters":["r=c","e:MPS_OPO"],"chances":[0.99306,0.00694]}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true},{"filters":["r=c","e:MPS_OPO"],"chances":[0.99306,0.00694]}]
 },
 "PFP":{
 	"longname":"Plagues of Fretport",
 	"Design":"HerziQuerzi",
-	"Link":"https://drive.google.com/uc?export=download&id=0B5M9g9RcNVojM3ZENUk5cWZfaVk",
+	"Link":"https://drive.google.com/file/d/0B5M9g9RcNVojM3ZENUk5cWZfaVk/view?usp=sharing",
 	"releaseNo":"25",
 	"releaseDate":"2018-02-01",
 	"Draft":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "POA":{
 	"longname":"Pyramids of Atuum",
 	"Design":"Daij_Djan",
-	"Link":"https://drive.google.com/uc?export=download&id=0B2Logurua5lRdVp3RzA0MVh3R0E",
+	"Link":"https://drive.google.com/file/d/1i6-4YLTDlzr_hnomwmnS51KghVURkDAR/view?usp=sharing",
 	"releaseNo":"9",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "PSA":{
 	"longname":"Path of Shadows",
 	"Design":"Timespiraled",
-	"Link":"https://drive.google.com/uc?export=download&id=0B9CYqUUGOcEaa3VBckhHXzg3Qzg",
+	"Link":"https://drive.google.com/file/d/0B9CYqUUGOcEaa3VBckhHXzg3Qzg/view?usp=sharing",
 	"releaseNo":"16",
 	"releaseDate":"2017-10-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "RWR":{
 	"longname":"Rail War",
 	"Design":"CyberChronometer",
-	"Link":"https://drive.google.com/open?id=18cxiPjY9YGn0TELjyeOM3bPt2LrVJ6vb",
+	"Link":"https://drive.google.com/file/d/18cxiPjY9YGn0TELjyeOM3bPt2LrVJ6vb/view?usp=sharing",
 	"releaseNo":"39",
 	"releaseDate":"2019-05-01",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
-},
-"SOU":{
-	"longname":"Scriptures of Urshad",
-	"Design":"Matt",
-	"Link":"https://drive.google.com/file/d/1VzN2U5MjKBKRHnj9_Kkl8MRWAgPn23Xl/view?usp=sharing",
-	"releaseNo":"56",
-	"releaseDate":"2020-11-01",
-	"Draft":1,
-	"basics":1,
-	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "SOR":{
 	"longname":"Spark of Revolution",
 	"Design":"WindyDelcarlo",
-	"Link":"https://drive.google.com/uc?export=download&id=0BxX3AYek7eBzTHBJSktvWE16dlE",
+	"Link":"https://drive.google.com/file/d/0BxX3AYek7eBzTHBJSktvWE16dlE/view?usp=sharing",
 	"releaseNo":"10",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+},
+"SOU":{
+	"longname":"Scriptures of Urshad",
+	"Design":"Matt",
+	"Link":"https://drive.google.com/file/d/0BxX3AYek7eBzTHBJSktvWE16dlE/view?usp=sharing",
+	"releaseNo":"56",
+	"releaseDate":"2020-11-01",
+	"Draft":1,
+	"basics":1,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "STN":{
 	"longname":"Survive the Night",
 	"Design":"Gateways7",
-	"Link":"https://drive.google.com/file/d/1QvgLKYk28lPHThwTf4-JAlQoonIrBZcT/view?usp=sharing",
+	"Link":"https://drive.google.com/file/d/1DveoCTHFiGUS9Ia-w7BqgUskjkFstsWt/view?usp=sharing",
 	"releaseNo":"50",
 	"releaseDate":"2020-07-01",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=r","r=m","r=l"],"chances":[0.875,0.0625,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=r","r=m","r=l"],"chances":[0.875,0.0625,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "SUR":{
 	"longname":"Surging Tide",
 	"Design":"CanterburyEgg",
-	"Link":"https://drive.google.com/uc?export=download&id=0B5M9g9RcNVojU0lhbkZjT1pqcXM",
+	"Link":"https://drive.google.com/file/d/0B5M9g9RcNVojU0lhbkZjT1pqcXM/view?usp=sharing",
 	"releaseNo":"11",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "TGE":{
 	"longname":"Festenya: The Golden Era",
 	"Design":"HonchkrowDavid",
-	"Link":"https://drive.google.com/uc?export=download&id=0BwMOi4HLi5N8dUNCVzl4dWYtT1U",
+	"Link":"https://drive.google.com/file/d/0BwMOi4HLi5N8dUNCVzl4dWYtT1U/view?usp=sharing",
 	"releaseNo":"17",
 	"releaseDate":"2017-10-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "TOJ":{
-	"longname":"Tales of Old Jiangshi",
+	"longname":"Tales of Old Jidai",
 	"Design":"Timespiraled",
-	"Link":"https://drive.google.com/open?id=1i84bWT4ChxNvqstAzuLlM63tEmp7552D",
+	"Link":"https://drive.google.com/file/d/1i84bWT4ChxNvqstAzuLlM63tEmp7552D/view?usp=sharing",
 	"releaseNo":"30",
 	"releaseDate":"2018-08-01",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "TOW":{
 	"longname":"Tides of War",
 	"Design":"Korakhos",
-	"Link":"https://drive.google.com/uc?export=download&id=0B9CYqUUGOcEaNDg5aUQ2QmJPdUE",
+	"Link":"https://drive.google.com/file/d/0B9CYqUUGOcEaNDg5aUQ2QmJPdUE/view?usp=sharing",
 	"releaseNo":"12",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "TWR":{
 	"longname":"A Tourney at Whiterun",
 	"Design":"HerziQuerzi",
-	"Link":"https://drive.google.com/uc?export=download&id=0B5M9g9RcNVojaUVoOG13azd0a0k",
+	"Link":"https://drive.google.com/file/d/0B5M9g9RcNVojaUVoOG13azd0a0k/view?usp=sharing",
 	"releaseNo":"13",
 	"releaseDate":"2017-06-08",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "UNR":{
 	"longname":"The Unraveling",
 	"Design":"justnobody",
-	"Link":"https://drive.google.com/open?id=1jLL_8kayYX1KI4jDMxtBY0nedmPgp6uK",
+	"Link":"https://drive.google.com/file/d/1jLL_8kayYX1KI4jDMxtBY0nedmPgp6uK/view?usp=sharing",
 	"releaseNo":"34",
 	"releaseDate":"2019-01-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "VTM":{
 	"longname":"Villains: The Musical",
 	"Design":"Cajun",
-	"Link":"https://drive.google.com/open?id=1hLslyvpfRIXRu4i1rE9U38oIJ6M3Fwkm",
+	"Link":"https://drive.google.com/file/d/1hLslyvpfRIXRu4i1rE9U38oIJ6M3Fwkm/view?usp=sharing",
 	"releaseNo":"36",
 	"releaseDate":"2019-02-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=b"],"chances":[1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=b"],"chances":[1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "WAW":{
 	"longname":"Skyrim: World at War",
 	"Design":"HonchkrowDavid",
-	"Link":"https://drive.google.com/open?id=1zYnvlEkakMJ-L6H8pei_LgQ3OiF441rn",
+	"Link":"https://drive.google.com/file/d/1l2MQwif03Rx5eiyEYKum7huwTvSmPj6t/view?usp=sharing",
 	"releaseNo":"47",
 	"releaseDate":"2020-03-01",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=c","r=u"],"chances":[0.875,0.125]},{"filters":["r=c","r=u"],"chances":[0.875,0.125]},{"filters":["r=c","r=u"],"chances":[0.875,0.125]},{"filters":["r=c","r=u"],"chances":[0.875,0.125]},{"filters":["r=c","r=u"],"chances":[0.875,0.125]},{"filters":["r=r","r=r","r=c","r=u","r=l"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=c","r=u"],"chances":[0.865,0.135]},{"filters":["r=c","r=u"],"chances":[0.865,0.135]},{"filters":["r=c","r=u"],"chances":[0.865,0.135]},{"filters":["r=c","r=u"],"chances":[0.865,0.135]},{"filters":["r=c","r=u"],"chances":[0.865,0.135]},{"filters":["r=r","r=r","r=c","r=u","r=l"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "WAY":{
 	"longname":"Worlds Away",
 	"Design":"Timespiraled",
-	"Link":"https://drive.google.com/open?id=1YIkMwdxC4luiOAqW0rgLh14-7Sbjwlyk",
+	"Link":"https://drive.google.com/file/d/1l2MQwif03Rx5eiyEYKum7huwTvSmPj6t/view?usp=sharing",
 	"releaseNo":"43",
 	"releaseDate":"2019-11-01",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=b"],"chances":[1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=b"],"chances":[1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "XPM":{
 	"longname":"Xoltan PreModern",
 	"Design":"HonchkrowDavid",
-	"Link":"https://drive.google.com/uc?export=download&id=0BwMOi4HLi5N8S214WDloa1dQM2c",
+	"Link":"https://drive.google.com/file/d/10EpH5Q7g6vcRU57ja84oBNecQ_G0vPOo/view?usp=sharing",
 	"releaseNo":"18",
 	"releaseDate":"2017-10-01",
 	"Draft":2,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "ZER":{
 	"longname":"Zero",
 	"Design":"aquaumisa",
-	"Link":"https://drive.google.com/uc?export=download&id=0B9CYqUUGOcEaMzJxcVR5QVdta1U",
+	"Link":"https://drive.google.com/file/d/0B9CYqUUGOcEaMzJxcVR5QVdta1U/view?usp=sharing",
 	"releaseNo":"19",
 	"releaseDate":"2017-10-01",
 	"Draft":1,
 	"basics":1,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.875,0.125]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "FLP":{
 	"longname":"Foreign Language Promos",
@@ -496,6 +529,7 @@
 "L":{
 	"longname":"The Land Bundle",
 	"Design":"MSEM",
+	"Link": "https://drive.google.com/file/d/0B9CYqUUGOcEaTUxsTWJWejBDWGc/view?usp=sharing",
 	"releaseNo":"14",
 	"releaseDate":"2017-06-08",
 	"Draft":0,
@@ -505,6 +539,7 @@
 "L2":{
 	"longname":"The Mana Pool",
 	"Design":"Timespiraled",
+	"Link": "https://drive.google.com/file/d/14pSDb9I6ibciTBh28bn0F2ulDFX_LAfU/view?usp=sharing",
 	"releaseNo":"31",
 	"releaseDate":"2018-08-08",
 	"Draft":0,
@@ -516,6 +551,7 @@
 "L3":{
 	"longname":"The Mana Pool 2",
 	"Design":"Timespiraled",
+	"Link": "https://drive.google.com/file/d/1s3Gr3K4XVR5Eaztt7KamZpMKJxmwDaVE/view?usp=sharing",
 	"releaseNo":"38",
 	"releaseDate":"2019-02-01",
 	"Draft":0,
@@ -527,7 +563,7 @@
 "MS1":{
 	"longname":"MSEM Masters 2019",
 	"Design":"Timespiraled",
-	"Link":"https://drive.google.com/open?id=1rsjqvQeuay-4DLUiQjJ_0zBDtCUTrMzj",
+	"Link":"https://drive.google.com/file/d/1rsjqvQeuay-4DLUiQjJ_0zBDtCUTrMzj/view?usp=sharing",
 	"releaseNo":"35",
 	"releaseDate":"2019-01-01",
 	"Draft":1,
@@ -538,19 +574,55 @@
 "MS2":{
 	"longname":"MSEM Masters 2020",
 	"Design":"Timespiraled and CyberChronometer",
-	"Link":"https://drive.google.com/open?id=1u5jVBk5yI8egQhazR7BVzXeLzT3QS_LL",
+	"Link":"https://drive.google.com/file/d/1u5jVBk5yI8egQhazR7BVzXeLzT3QS_LL/view?usp=sharing",
 	"releaseNo":"45",
 	"releaseDate":"2020-01-01",
 	"Draft":1,
 	"basics":0,
 	"masterpiece":false,
-	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=b"],"chances":[1]},{"filters":["r=c","r=u","r=r","r=b","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=b"],"chances":[1]},{"filters":["r=c","r=u","(r=r or r=m)","r=b","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+},
+"MS3":{
+	"longname":"MSEM Masters 2021",
+	"Design":"Timespiraled",
+	"Link":"https://drive.google.com/file/d/1BxfqbzKlY8DBmn1PP8qQe-Dcb1-AX7ct/view?usp=sharing",
+	"releaseNo":"59",
+	"releaseDate":"2021-01-01",
+	"Draft":1,
+	"basics":0,
+	"masterpiece":false,
+	"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=b"],"chances":[1]},{"filters":["r=c","r=u","(r=r or r=m)","r=b","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
 },
 "MPS_MSE":{
 	"longname":"MSEM Champions",
 	"Design":"Cajun",
+	"Link": "https://drive.google.com/file/d/1_QKuNhWlcLSx7pXrV5sEbKgHTo3Mot5q/view?usp=sharing",
 	"releaseNo":"20",
 	"releaseDate":"2017-10-01",
+	"Draft":0,
+	"basics":0,
+	"masterpiece":false,
+	"reprint":true,
+	"priceSkip": true,
+	"packSlots":[]},
+"CHAMPIONS":{
+	"longname":"MSEM Champions",
+	"Design":"Cajun",
+	"Link": "https://drive.google.com/file/d/1vvCTBOBPWoosLV8k3_TYAEPYtXwbjIEK/view?usp=sharing",
+	"releaseNo":"57",
+	"releaseDate":"2017-10-01",
+	"Draft":0,
+	"basics":0,
+	"masterpiece":false,
+	"reprint":true,
+	"priceSkip": true,
+	"packSlots":[]},
+"LAIR":{
+	"longname":"MSEM Secret Lair Drops",
+	"Design":"MSEM Community",
+	"Link": "https://drive.google.com/file/d/1vvCTBOBPWoosLV8k3_TYAEPYtXwbjIEK/view?usp=sharing",
+	"releaseNo":"61",
+	"releaseDate":"2021-03-01",
 	"Draft":0,
 	"basics":0,
 	"masterpiece":false,
@@ -560,7 +632,7 @@
 "MPS_HI12":{
 	"longname":"Daisite Outlaws",
 	"Design":"Cajun",
-	"Link":"https://drive.google.com/open?id=1w0noCrwZwPhBacSu-K9JcdvllKj0AL5b",
+	"Link":"https://drive.google.com/file/d/1lby38wr8vUXLa09XUEAiY3xNZMf-705M/view?usp=sharing",
 	"releaseNo":"28",
 	"releaseDate":"2018-05-01",
 	"Draft":0,
@@ -572,7 +644,7 @@
 "MPS_MIS":{
 	"longname":"Mious Divinities",
 	"Design":"fluffyDeathbringer",
-	"Link":"https://drive.google.com/open?id=0B9aVhi1KwykvbnNkcW0tMUxVbms",
+	"Link":"https://drive.google.com/file/d/1lD07HG3MUbyIfGpKGc85Gf73e7Sbujoy/view?usp=sharing",
 	"releaseNo":"21",
 	"releaseDate":"2017-10-01",
 	"Draft":0,
@@ -584,7 +656,7 @@
 "MPS_OPO":{
 	"longname":"Ophorio Sagas",
 	"Design":"Cajun",
-	"Link":"https://drive.google.com/open?id=0B9aVhi1KwykvbmU2cmJDR0l0VU0",
+	"Link":"https://drive.google.com/file/d/1JJh11vwI6Jh8Eh-NtN1zNhEDv0gTBgzE/view?usp=sharing",
 	"releaseNo":"22",
 	"releaseDate":"2017-10-01",
 	"Draft":0,
@@ -596,6 +668,7 @@
 "PLAY":{
 	"longname":"Playtest Cards",
 	"Design":"MSEM",
+	"Link": "https://drive.google.com/file/d/124iQC5Suee9BR8KIQKCJnvsm_axUwWi9/view?usp=sharing",
 	"Link":"",
 	"releaseNo":"49",
 	"releaseDate":"2020-06-01",
@@ -607,7 +680,7 @@
 "SHRINE":{
 	"longname":"From the Vault: Wayfarer's Shrine",
 	"Design":"HonchkrowDavid",
-	"Link":"",
+	"Link":"https://drive.google.com/file/d/1V5KNUmsXMnhez854IJf_etbwjbf7lXxY/view?usp=sharing",
 	"releaseNo":"53",
 	"releaseDate":"2020-07-01",
 	"Draft":0,

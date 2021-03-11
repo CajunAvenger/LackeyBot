@@ -33,6 +33,7 @@ let magicCards = require('./canon/cards.json');
 let magicSets = require('./canon/setData.json');
 let magicBanned = require('./canon/legal.json');
 let magicRules = require('./canon/oracle.json');
+
 magicBanned.primordial = [
 	"Ancient Den",
 	"Great Furnace",
@@ -64,13 +65,51 @@ let myriadSets = require('./myriad/setData.json');
 let myriadPointed = require('./myriad/legal.json');
 let myriadRules = {};//require('./myriad/oracle.json');
 
+let refSheet = {
+	encodedColors: {},
+	searchTitles:{},
+	swapCommands: {},
+	searchRegex: null,
+	anySwapRegex: null
+}
+
 function writeCard (thisCard, shortFlag){ //writes a card from this library with a name
 	return mod_magic.writeCard(thisCard, this.cards, this.setData, shortFlag, "");
 }
 function writeDevCard (thisCard, shortFlag){
 	return mod_magic.writeCard(thisCard, this.cards, this.setData, shortFlag, "   ***[Custom]***");
 }
-
+function buildReference(arcana){
+	let titleString = "", anySwapString = "";
+	for(let l in libs) {
+		let thisLib = arcana[libs[l]];
+		refSheet.encodedColors[thisLib.encodeColor] = thisLib.name;
+		refSheet.searchTitles[thisLib.searchData.title] = thisLib.name;
+		titleString += thisLib.searchData.title + "|"
+		anySwapString += thisLib.swaps[0] + "|"
+		let i = 0;
+		if(thisLib.swaps.length > 1)
+			i = 1;
+		for(i; i<thisLib.swaps.length; i++)
+			refSheet.swapCommands[thisLib.swaps[i]] = thisLib.name
+	}
+	titleString = "\\[(" + titleString.replace(/\|$/, "") + ") search\\]\\([^\n]+ '([^\n]+)'\\)";
+	anySwapString = "(?:\\$|\\?|!)(" + anySwapString.replace(/\|$/, "") + ")";
+	refSheet.searchRegex = new RegExp(titleString, 'i');
+	refSheet.anySwapRegex = new RegExp(anySwapString, 'i');
+}
+function decodeColor (decimal) {		//converts decimal color value to database name
+	let hex = toolbox.convertBases(decimal, 10, 16);
+	hex = toolbox.fillLength(hex, 6, "0", "")
+	if(refSheet.encodedColors[hex])
+		return refSheet.encodedColors[hex];
+	return null;
+}
+function decodeTitle (title) {		//converts title to database name
+	if(refSheet.searchTitles[title])
+		return refSheet.searchTitles[title];
+	return null;
+}
 function msemLinker (thisCard) { //links from msem site
 	thisCard = this.cards[thisCard];
 	return "http://mse-modern.com/msem2/images/" + thisCard.setID + "/" + thisCard.cardID + ".jpg";
@@ -132,20 +171,19 @@ function myriadLinker(cardName) { //links for myriad
 	let thisCard = this.cards[cardName];
 	return `https://myriadmtg.000webhostapp.com/images/${thisCard.setID}/${toolbox.fillLength(thisCard.cardID, 3, "0", "")}.png`;
 }
+function revolutionLinker(cardName) { //links for myriad
+	let thisCard = this.cards[cardName];
+	return `https://liminalobserver.herokuapp.com/cards/${thisCard.setID}/${thisCard.cardID}.jpg`;
+}
 
+let libs = ["magic", "msem", "devDex", "myriad", "cajun_standard", "revolution"];
+
+exports.libraries = libs;
 exports.generatePrints = generatePrints;
-exports.msem = {
-	cards:msemCards,
-	setData:msemSets,
-	legal:msemBanned,
-	name:"msem",
-	bigname:"MSEM",
-	nicks:nicks.msem,
-	oracle:msemRules,
-	writeCard:writeCard,
-	printImage:msemLinker,
-	formatBribes:null //setup in lackeybot.js
-};
+exports.buildReference = buildReference;
+exports.decodeColor = decodeColor;
+exports.decodeTitle = decodeTitle;
+exports.refSheet = refSheet;
 exports.magic = {
 	cards:magicCards,
 	setData:magicSets,
@@ -156,18 +194,26 @@ exports.magic = {
 	oracle:magicRules,
 	writeCard:writeCard,
 	printImage:scryfallLinker,
+	encodeColor: "00aaaa",
+	functions: ['img', 'rul', 'legal'],
+	swaps: ["(magic|canon)","magic","canon"],
+	searchData: {title: "Scryfall", site:"https://scryfall.com/search?q=", end:""},
 	formatBribes:null //setup in lackeybot.js
 };
-exports.myriad = {
-	cards:myriadCards,
-	setData:myriadSets,
-	legal:myriadPointed,
-	name:"myriad",
-	bigname:"Myriad",
-	nicks:{},
-	oracle:myriadRules,
+exports.msem = {
+	cards:msemCards,
+	setData:msemSets,
+	legal:msemBanned,
+	name:"msem",
+	bigname:"MSEM",
+	nicks:nicks.msem,
+	oracle:msemRules,
 	writeCard:writeCard,
-	printImage:myriadLinker,
+	printImage:msemLinker,
+	encodeColor: "01aaaa",
+	functions: ['img', 'rul', 'legal'],
+	swaps: ["msem"],
+	searchData: {title: "Instigator", site:"http://msem-instigator.herokuapp.com/card?q=", end:""},
 	formatBribes:null //setup in lackeybot.js
 };
 exports.devDex = {
@@ -181,6 +227,26 @@ exports.devDex = {
 	oracle:{},
 	writeCard:writeDevCard,
 	printImage:null,
+	encodeColor: "02aaaa",
+	functions: ['img'],
+	swaps: ["(dev|custom|project)","dev","custom","project"],
+	searchData: {title: "Custom Projects", site:"http://www.planesculptors.net/explore?query=", end:"#cards"},
+	formatBribes:null //setup in lackeybot.js
+};
+exports.myriad = {
+	cards:myriadCards,
+	setData:myriadSets,
+	legal:myriadPointed,
+	name:"myriad",
+	bigname:"Myriad",
+	nicks:{},
+	oracle:myriadRules,
+	writeCard:writeCard,
+	printImage:myriadLinker,
+	encodeColor: "03aaaa",
+	functions: ['img'],
+	swaps: ["myriad"],
+	searchData: {title: "Hub of Innovation", site:"http://msem-instigator.herokuapp.com/card?q=", end:""},
 	formatBribes:null //setup in lackeybot.js
 };
 exports.cajun_standard = {
@@ -193,6 +259,10 @@ exports.cajun_standard = {
 	oracle:csRules,
 	writeCard:writeCard,
 	printImage:scryfallLinker,
+	encodeColor: "04aaaa",
+	functions: ['img', 'rul', 'legal'],
+	swaps: ["cajun"],
+	searchData: {title: "Cajun Standard", site:"", end:""},
 	formatBribes:null //setup in lackeybot.js
 }
 exports.libFromBig = function(bigName) {
