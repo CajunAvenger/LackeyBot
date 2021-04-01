@@ -374,7 +374,7 @@
 "SOU":{
 	"longname":"Scriptures of Urshad",
 	"Design":"Matt",
-	"Link":"https://drive.google.com/file/d/0BxX3AYek7eBzTHBJSktvWE16dlE/view?usp=sharing",
+	"Link":"https://drive.google.com/file/d/1OWi0zY_LFodULpEKpd0aSnL9gj-wp7oV/view?usp=sharing",
 	"releaseNo":"56",
 	"releaseDate":"2020-11-01",
 	"Draft":1,
@@ -384,7 +384,7 @@
 },
 "STN":{
 	"longname":"Survive the Night",
-	"Design":"Gateways7",
+	"Design":"Wrenn",
 	"Link":"https://drive.google.com/file/d/1DveoCTHFiGUS9Ia-w7BqgUskjkFstsWt/view?usp=sharing",
 	"releaseNo":"50",
 	"releaseDate":"2020-07-01",
@@ -484,7 +484,7 @@
 "WAY":{
 	"longname":"Worlds Away",
 	"Design":"Timespiraled",
-	"Link":"https://drive.google.com/file/d/1l2MQwif03Rx5eiyEYKum7huwTvSmPj6t/view?usp=sharing",
+	"Link":"https://drive.google.com/file/d/1YIkMwdxC4luiOAqW0rgLh14-7Sbjwlyk/view?usp=sharing",
 	"releaseNo":"43",
 	"releaseDate":"2019-11-01",
 	"Draft":1,
@@ -679,7 +679,7 @@
 	"packSlots":[]},
 "SHRINE":{
 	"longname":"From the Vault: Wayfarer's Shrine",
-	"Design":"HonchkrowDavid",
+	"Design":"",
 	"Link":"https://drive.google.com/file/d/1V5KNUmsXMnhez854IJf_etbwjbf7lXxY/view?usp=sharing",
 	"releaseNo":"53",
 	"releaseDate":"2020-07-01",

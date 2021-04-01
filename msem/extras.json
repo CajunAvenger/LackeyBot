@@ -419,6 +419,16 @@
 		"Grand Prix ~~.:|:;~~, coming soon.",
 		"LackeyBot still can't believe you've done this."
 	],
+	"bots": {
+		"AI0": "LackeyBot",
+		"AI1": "LowkeyBot",
+		"AI2": "LarryBot",
+		"AI3": "Clyde",
+		"AI4": "LoyalBot",
+		"AI5": "LargeBot",
+		"AI6": "l33t_draft_haxxor",
+		"AI7": "SusBot"
+	},
 	"L": "The Land Bundle has $SETCARDS cards ($SETRARITY).\nThe set's most common mana cost is nothing.\nIf the Land Bundle was a spell, Tabak would have my head.\nIf the Land Bundle was animated, it would have summoning sickness.",
 	"L2": "The Mana Pool has $SETCARDS cards ($SETRARITY).\nThe set's most common mana cost is nothing.\nIf the Mana Pool was a spell, Tabak would have my head.\nIf the Mana Pool was animated, it would be a $SETPT $SETTYPE",
 	"L3": "The Mana Pool 2 has $SETCARDS cards ($SETRARITY).\nThe set's most common mana cost is nothing.\nIf the Mana Pool was a spell, Tabak would have my head.\nIf the Mana Pool 2 was animated, it would be a $SETPT $SETTYPE",

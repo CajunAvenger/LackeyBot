@@ -3,9 +3,8 @@
  Already incorporated into Cannon
  Could be incorporated into Stitch
 */
-var canon = require('./canon/cards.json')
 var toolbox = require('./toolbox.js');
-let hasValue = toolbox.hasValue
+var fuzzy = require('./fuzzy.js');
 let docs = writeDocs();
 
 /*
@@ -251,6 +250,33 @@ function buildPackSlotsFrom(string){ //encodes packSlots code
 		}
 	}
 	return customizedPack;
+}
+function testPackFilters(packSlots, library, setID) {										//tests pack filters are valid for devDex
+	if(setID == "")
+		return "packSlots have still been saved, but LackeyBot doesn't have set data, so can't test pack filters.";
+	let filterArrays = {};
+	let borkLine = "";
+	let timeLine = "";
+	for(let slot in packSlots) {
+		for(let filter in packSlots[slot].filters) {
+			let thisFilter = packSlots[slot].filters[filter];
+			if(!thisFilter.match(/e:/))
+				thisFilter += " e:" + setID //add set filter if it doesn't have a filter
+			if(!filterArrays.hasOwnProperty(thisFilter)) {//add new filters to the object
+				let scryResults = fuzzy.scryDatabase(library, thisFilter);
+				filterArrays[thisFilter] = toolbox.shuffleArray(scryResults[0]);
+				if(scryResults[2]) //lackeybot timed out
+					timeLine += thisFilter + '\n';
+				if(filterArrays[thisFilter].length == 0)
+					borkLine += thisFilter + "\n";
+			}
+		}
+	}
+	if(borkLine != "")
+		borkLine = "packSlots have still been saved, but the following filters match no cards. This may result in packs missing cards:\n" + borkLine;
+	if(timeLine != "")
+		borkLine += 'The following filters timed out. For best results, use a simpler filter:\n' + timeLine;
+	return borkLine;
 }
 
 function genOldPack() { //Alpha thru Eventide
@@ -581,6 +607,8 @@ function writeDocs() { //writes packSlots documentation
 	pages.push({header:"chanceFunction Details", page:line, header2:"Independent", page2:line2, header3:"And", page3:line3});
 	return [pages, ptPages];
 }
+
+exports.testPackFilters = testPackFilters;
 exports.assignCanonPack = assignCanonPack;
 exports.buildPackSlotsFrom = buildPackSlotsFrom;
 exports.docs = docs;

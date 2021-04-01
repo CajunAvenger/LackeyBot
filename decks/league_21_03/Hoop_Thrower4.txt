@@ -1,0 +1,174 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+		document.getElementById('card24').addEventListener('mouseover', function() {
+			change('card24');
+		});
+		document.getElementById('card25').addEventListener('mouseover', function() {
+			change('card25');
+		});
+		document.getElementById('card26').addEventListener('mouseover', function() {
+			change('card26');
+		});
+		document.getElementById('card27').addEventListener('mouseover', function() {
+			change('card27');
+		});
+		document.getElementById('card28').addEventListener('mouseover', function() {
+			change('card28');
+		});
+		document.getElementById('card29').addEventListener('mouseover', function() {
+			change('card29');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>chumbeque's Civilized Concordiat</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (23)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/EIA/194.jpg" id="card1">4x Seadrake Rider</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/9.jpg" id="card2">4x Founding Hero</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/104.jpg" id="card3">4x Imperial Confidant</div>
+		<div url="http://mse-modern.com/msem2/images/ATB/24.jpg" id="card4">4x Pristine Duelist</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/206.jpg" id="card5">3x Bordermakers</div>
+		<div url="http://mse-modern.com/msem2/images/ATB/227.jpg" id="card6">4x Seismic Colossus</div>
+		<br/>
+		<div><b><i>Planeswalker (3)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/SOU/95.jpg" id="card7">3x Eli Windsors, Lone Gun</div>
+		<br/>
+		<div><b><i>Instant (7)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/KOD/217.jpg" id="card8">4x Pith Wilt</div>
+		<div url="http://mse-modern.com/msem2/images/WAW/135.jpg" id="card9">3x Deem Unworthy</div>
+		<br/>
+		<div><b><i>Enchantment (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/EIA/19.jpg" id="card10">4x Idyllic Odyssey</div>
+		<br/>
+		<div><b><i>Artifact (3)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/RWR/154.jpg" id="card11">1x Lumenbay Flyer Line</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/156.jpg" id="card12">1x Marinton-Ravengulch Line</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/159.jpg" id="card13">1x Rawthlin Market Line</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (20)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/WAY/4s.jpg" id="card14">2x Brine Fleet Bay</div>
+		<div url="http://mse-modern.com/msem2/images/SOU/254.jpg" id="card15">2x Mana Confluence</div>
+		<div url="http://mse-modern.com/msem2/images/LVS/245.jpg" id="card16">2x Nebula of Empty Gold</div>
+		<div url="http://mse-modern.com/msem2/images/HI12/271.jpg" id="card17">2x Plains</div>
+		<div url="http://mse-modern.com/msem2/images/HI12/273.jpg" id="card18">2x Swamp</div>
+		<div url="http://mse-modern.com/msem2/images/HI12/275.jpg" id="card19">1x Forest</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/205.jpg" id="card20">1x Nomad's Township</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/208.jpg" id="card21">2x Resplendent Substratum</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/194.jpg" id="card22">2x Arctic Mine</div>
+		<div url="http://mse-modern.com/msem2/images/L/19.jpg" id="card23">2x Barren Desolation</div>
+		<div url="http://mse-modern.com/msem2/images/KZD/238.jpg" id="card24">2x Amber Hills</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/SOU/20.jpg" id="card25">3x Imperial Defenses</div>
+		<div url="http://mse-modern.com/msem2/images/DHL/119.jpg" id="card26">3x Rain Zai, Spiritscale</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/171.jpg" id="card27">3x Bahum, the Warden</div>
+		<div url="http://mse-modern.com/msem2/images/UNR/90.jpg" id="card28">3x Prying Inquiry</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/95.jpg" id="card29">3x Stand Unassailable</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

@@ -15,9 +15,14 @@
  writeCard is defined in mod_magic, can be overwritten here or in lackeybot.js
  formatBribes are defined in lackeybot.js because of the stats counters
 */
+let stats = require('./stats.js');
 let mod_magic = require('./magic.js');
 let nicks = require('./nicks.json')
 let toolbox = require('./toolbox.js');
+var settings = require('./serverConfig.json');
+var psScrape = require('./psScrape.js');
+var rp = require('request-promise-native');
+var {excEmote, quesEmote, dollarEmote} = require('./emoteBuffet.js');
 
 let msemCards = require('./msem/cards.json');
 let msemSets = require('./msem/setData.json');
@@ -72,12 +77,73 @@ let refSheet = {
 	searchRegex: null,
 	anySwapRegex: null
 }
-
+function helpMessage() {
+	let helpout = "**LackeyBot Configuration Help**\n";
+	return helpout;
+}
+function configureArcana(msg) {
+	//defaults for unconfigured servers
+	let configured = {
+		angle: {
+			data: this.magic,
+			prefix: "!",
+			emote: excEmote,
+		},
+		square: {
+			data: this.msem,
+			prefix: "\\$",
+			emote: dollarEmote,
+		},
+		curly: {
+			data: this.devDex,
+			prefix: "\\?",
+			emote: quesEmote,
+		}
+	}
+	let order = [configured.angle, configured.square, configured.curly];
+	//swap out databases for configured servers
+	let guildID = 0;
+	if(msg.guild)
+		guildID = msg.guild.id;
+	if(settings.hasOwnProperty(guildID)) {
+		for(let b in settings[guildID].a) {
+			if(settings[guildID].a[b] == "ps") {
+				order[b].data = {cards:psScrape.psCache, name:"ps", bigname:"Planesculptors"};
+			}else if(settings[guildID].a[b] == ""){
+				order[b].data = null;
+			}else{
+				order[b].data = this[settings[guildID].a[b]];
+			}
+		}
+	}
+	//and apply swapSquares
+	var psActive = msg.content.match(/\$pl?a?n?e?sc?u?l?p?t?o?r?/i);
+	var swapSquares = msg.content.match(refSheet.anySwapRegex);
+	if(swapSquares || psActive) {
+		if(psActive) {
+			configured.square.data = {cards:psScrape.psCache, name:"ps", bigname:"Planesculptors"}
+		}else{
+			let dataName = this.refSheet.swapCommands[swapSquares[1]];
+			configured.square.data = this[dataName];
+		}
+	}
+	return configured;
+}
+function convertCardTo(library, searchString, msg) { 		//convert databases, TODO using last string in channel
+	let card_name = searchCards(library, searchString, msg)
+	msg.edit(showCard);
+}
 function writeCard (thisCard, shortFlag){ //writes a card from this library with a name
 	return mod_magic.writeCard(thisCard, this.cards, this.setData, shortFlag, "");
 }
 function writeDevCard (thisCard, shortFlag){
 	return mod_magic.writeCard(thisCard, this.cards, this.setData, shortFlag, "   ***[Custom]***");
+}
+function anyRandom(randBase) {								//gets a random card from the given database
+	let cardnames =  Object.keys(randBase.cards)
+	let num = Math.floor(Math.random()*cardnames.length);
+	let rando = cardnames[num];
+	return rando;
 }
 function buildReference(arcana){
 	let titleString = "", anySwapString = "";
@@ -171,12 +237,164 @@ function myriadLinker(cardName) { //links for myriad
 	let thisCard = this.cards[cardName];
 	return `https://myriadmtg.000webhostapp.com/images/${thisCard.setID}/${toolbox.fillLength(thisCard.cardID, 3, "0", "")}.png`;
 }
-function revolutionLinker(cardName) { //links for myriad
+
+function bribeLackeyBot(cardName,msg){ 						//card-specific bribes for the custom database
+	stats.upCards(1);
 	let thisCard = this.cards[cardName];
-	return `https://liminalobserver.herokuapp.com/cards/${thisCard.setID}/${thisCard.cardID}.jpg`;
+	let fullCard = this.writeCard(cardName);
+	if(fullCard == mod_magic.writeCardError)
+		return fullCard;
+	let cardLink = this.printImage(cardName);
+	if(msg.content.match(/(\$|ϕ)ima?ge?/i) && thisCard.setID != "BOT") {
+		fullCard = cardLink; //replaces the text with a link
+		stats.upBribes(1);
+	}
+	//append ban notices when applicable
+	if(this.legal.preview.includes(thisCard.setID))
+		fullCard += "\n*(" + thisCard.fullName + " is not yet in MSEModern and may change before release.)*\n";
+	let bans = [{list:this.legal.modernBan, name:"MSEM"}, {list:this.legal.edhBan, name:"MSEDH"}];
+	let banMessage = "";
+	for(let list in bans) {
+		if(bans[list].list.includes(thisCard.fullName) || thisCard.typeLine.match(/Conspiracy/))
+			banMessage += bans[list].name + ", ";
+	}
+	if(banMessage != "") {
+		banMessage = banMessage.replace(/, $/, ")__");
+		banMessage = "__Banned (" + banMessage;
+		if(!fullCard.match(/\n$/))
+			fullCard += "\n";
+		fullCard += banMessage;
+	}
+	if(this.legal.masterpiece.includes(thisCard.fullName))
+		fullCard += "\n*" + thisCard.fullName + " is Masterpiece only and not legal in MSEModern.*\n";
+	if(this.legal.cuts.live) { //cards being removed from msem
+		let cutCard = false;
+		if(this.legal.cuts.sets.includes(thisCard.setID) && !this.legal.cuts.exempts.includes(thisCard.cardName)) {
+			cutCard = true;	//from a cut set and not reprinted elsewhere
+		}else if(thisCard.setID.match(/MS\d|LAIR|MPS_MSE|CHAMPIONS/) && this.legal.cuts.designer.includes(thisCard.designer)) {
+			cutCard = true;	//reprints/bonus cards from cut designer
+		}
+		if(cutCard)
+			fullCard = fullCard.replace(/\n$/, "") + "\n*" + thisCard.fullName + " will be removed from MSEM in " + this.legal.cuts.out + " by designer request.*\n";
+	}
+	//append rulings when applicable
+	if(msg.content.match(/(\$|ϕ)rul/i) && thisCard.setID != "BOT"){
+		let ruling = "Can't find anything on that one, boss.\n";
+		if(this.oracle.hasOwnProperty(thisCard.fullName)){
+			ruling = this.oracle[thisCard.fullName];
+		}
+		stats.upBribes(1);
+		fullCard += "\n• ";
+		fullCard += ruling.replace(/_/g, "•");
+	}
+	return fullCard;
+};
+function bribeLackeyCanon(cardName,msg){ 					//card-specific bribes for the canon database
+	stats.upCards(1);
+	let thisCard = this.cards[cardName];
+	let fullCard = this.writeCard(cardName);
+	if(fullCard == mod_magic.writeCardError)
+		return fullCard;
+	let cardLink = this.printImage(cardName);
+	if(msg.content.match(/(!|ϕ)ima?ge?/i) || (msg.content.match(/\$canon/i) && msg.content.match(/\$ima?ge?/i))) {
+		fullCard = cardLink; //replaces the text with a link
+		stats.upBribes(1);
+	}
+	let banArray = [];
+	let banMessage = "";
+	for(let format in this.legal) {
+		if(this.legal[format].includes(thisCard.fullName)) {
+			if(format == "conspiracy") {
+				banArray.push("commander")
+				banArray.push("legacy")
+				banArray.push("vintage")
+			}else if(format != "vintageRest") {
+				banArray.push(format);
+			}else{
+				banMessage += "Restricted (Vintage)";
+				if(banArray != "")
+					banMessage += ", ";
+			}
+		}
+	}
+	if(banArray.length > 0)
+		banMessage += "Banned (";
+	for(var i = 0; i<banArray.length; i++) {
+		banMessage += toolbox.toTitleCase(banArray[i]);
+		if(i != banArray.length-1)
+			banMessage += ", ";
+		if(i == banArray.length-1)
+			banMessage += ")";
+	}
+	if(banMessage != "") {
+		if(fullCard == cardLink)
+			fullCard += "\n"
+		fullCard += "__" + banMessage + "__";
+	}
+	if(msg.content.match(/(!|ϕ)rul/i)){
+		let ruling = "Can't find anything on that one, boss.\n";
+		if(this.oracle.hasOwnProperty(thisCard.fullName)){
+			ruling = this.oracle[thisCard.fullName];
+		}
+		stats.upBribes(1);
+		fullCard += "\n• ";
+		fullCard += ruling.replace(/_/g, "•");
+	}
+	return fullCard;
+};
+function bribeLackeyDev(cardName, msg) { 					//card-specific bribes for the project database
+	let thisCard = this.cards[cardName];
+	let fullCard = this.writeCard(cardName);
+	if(fullCard == mod_magic.writeCardError)
+		return fullCard;
+	let cardLink = this.printImage(cardName);
+	if(msg.content.match(/(\?|ϕ)ima?ge?/i)) {
+		fullCard = cardLink; //replaces the text with a link
+		stats.upBribes(1);
+	}
+	return fullCard;
+}
+function psLinker(cardName) { 								//links from planesculptors
+	let thisCard = this.cards[cardName];
+	return "http://www.planesculptors.net/upload/" + this.setData[thisCard.setID].psLink + "/" + encodeURIComponent(thisCard.cardName.replace(/[',!\?’“”]/g,"")) + this.setData[thisCard.setID].psSuffix;
+}
+function bribeLackeyMyriad(cardName, msg) { 				//card-specific bribes for the project database
+	let thisCard = this.cards[cardName];
+	let fullCard = this.writeCard(cardName);
+	if(fullCard == mod_magic.writeCardError)
+		return fullCard;
+	let cardLink = this.printImage(cardName);
+	if(msg.content.match(/(\$|ϕ)ima?ge?/i)) {
+		fullCard = cardLink; //replaces the text with a link
+		stats.upBribes(1);
+	}
+	for(let points in this.legal) {
+		if(this.legal[points].includes(thisCard.fullName))
+			fullCard += "\n__" + thisCard.fullName + " is **" + points + "**.__";
+	}
+	fullCard = fullCard.replace("\n\n__", "\n__");
+	return fullCard;
+}
+function bribeLackeyCS(cardName, msg) { 					//card-specific bribes for the cajun-standard database
+	let thisCard = this.cards[cardName];
+	let fullCard = this.writeCard(cardName);
+	if(fullCard == mod_magic.writeCardError)
+		return fullCard;
+	let cardLink = this.printImage(cardName);
+	if(msg.content.match(/(\$|ϕ)ima?ge?/i)) {
+		fullCard = cardLink; //replaces the text with a link
+		stats.upBribes(1);
+	}
+	return fullCard;
+}
+function csLinker(cardName) { 								//links from planesculptors/msem
+	let thisCard = this.cards[cardName];
+	if(thisCard.hasOwnProperty('prints') && thisCard.prints.includes("L"))
+		return `http://mse-modern.com/msem2/images/L/${thisCard.cardID}.jpg`;
+	return "http://www.planesculptors.net/upload/" + this.setData[thisCard.setID].psLink + "/" + encodeURIComponent(thisCard.cardName.replace(/[',!\?’“”]/g,"")) + this.setData[thisCard.setID].psSuffix;
 }
 
-let libs = ["magic", "msem", "devDex", "myriad", "cajun_standard", "revolution"];
+let libs = ["magic", "msem", "devDex", "myriad", "cajun_standard"];
 
 exports.libraries = libs;
 exports.generatePrints = generatePrints;
@@ -184,6 +402,10 @@ exports.buildReference = buildReference;
 exports.decodeColor = decodeColor;
 exports.decodeTitle = decodeTitle;
 exports.refSheet = refSheet;
+exports.helpMessage = helpMessage;
+exports.configureArcana = configureArcana;
+exports.anyRandom = anyRandom;
+
 exports.magic = {
 	cards:magicCards,
 	setData:magicSets,
@@ -198,7 +420,7 @@ exports.magic = {
 	functions: ['img', 'rul', 'legal'],
 	swaps: ["(magic|canon)","magic","canon"],
 	searchData: {title: "Scryfall", site:"https://scryfall.com/search?q=", end:""},
-	formatBribes:null //setup in lackeybot.js
+	formatBribes: bribeLackeyCanon
 };
 exports.msem = {
 	cards:msemCards,
@@ -214,7 +436,7 @@ exports.msem = {
 	functions: ['img', 'rul', 'legal'],
 	swaps: ["msem"],
 	searchData: {title: "Instigator", site:"http://msem-instigator.herokuapp.com/card?q=", end:""},
-	formatBribes:null //setup in lackeybot.js
+	formatBribes: bribeLackeyBot
 };
 exports.devDex = {
 	cards:{},
@@ -226,12 +448,12 @@ exports.devDex = {
 	nicks:{},
 	oracle:{},
 	writeCard:writeDevCard,
-	printImage:null,
+	printImage:psLinker,
 	encodeColor: "02aaaa",
 	functions: ['img'],
 	swaps: ["(dev|custom|project)","dev","custom","project"],
 	searchData: {title: "Custom Projects", site:"http://www.planesculptors.net/explore?query=", end:"#cards"},
-	formatBribes:null //setup in lackeybot.js
+	formatBribes: bribeLackeyDev
 };
 exports.myriad = {
 	cards:myriadCards,
@@ -247,7 +469,7 @@ exports.myriad = {
 	functions: ['img'],
 	swaps: ["myriad"],
 	searchData: {title: "Hub of Innovation", site:"http://msem-instigator.herokuapp.com/card?q=", end:""},
-	formatBribes:null //setup in lackeybot.js
+	formatBribes: bribeLackeyMyriad
 };
 exports.cajun_standard = {
 	cards:csCards,
@@ -258,12 +480,12 @@ exports.cajun_standard = {
 	nicks:nicks.cajun,
 	oracle:csRules,
 	writeCard:writeCard,
-	printImage:scryfallLinker,
+	printImage:csLinker,
 	encodeColor: "04aaaa",
 	functions: ['img', 'rul', 'legal'],
 	swaps: ["cajun"],
 	searchData: {title: "Cajun Standard", site:"", end:""},
-	formatBribes:null //setup in lackeybot.js
+	formatBribes: bribeLackeyCS
 }
 exports.libFromBig = function(bigName) {
 	for(let library in this){

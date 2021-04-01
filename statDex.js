@@ -6,14 +6,20 @@
  Or pinpoint times to watch how win and play rates change after a card change
 */
 
+const statDexEnabled = [												//channels with statDex enabled
+	"765687542036561930",
+	"755707492947722301",
+	"765707235434823730"
+]
 var arcana = require('./arcana.js');									//can work with card fields
 var archiveArray = [];													//holds array of tourneyArchive files
 var baseFilters = {after:2004};											//default to after May Madness update
 var blankDex = {cards:{}, players:{}, tournaments:{}, decklists:{}, global:{matches:0, decks:0, playedCards:0}};
 const bye = "343475440083664896"; 										//bye player id
 var cardBase = arcana.msem.cards;
-const config = require("./config/lackeyconfig.json");					//for logging into Discord
-var discClient = require('./discClient.js');							//other Discord stuff
+var cardBanned = arcana.msem.legal.modernBan;
+const config = require("./config/lackeyconfig.js");					//for logging into Discord
+var eris = require('./eris.js');							//other Discord stuff
 var fs = require('fs');
 var fuzzy = require('./fuzzy.js');										//fuzzy searching for fun and profit
 var globalPlayrates = null;
@@ -35,10 +41,6 @@ try{																	//load saved statDex if we have it
 	console.log('No prebuild statDex available.')
 }
 //setup
-function initialize(data){												//copy LackeyBot's edits when on live
-	arcana = data.arcana;
-	loadArchives();
-}
 function loadArchives(cb) { 											//reads the archived tournament files
 	fs.readdir("tourneyArchives",function(err, array) {
 		archiveArray = array;
@@ -205,7 +207,7 @@ function addMatchesToLists(dex) {										//adds matches to old decklists
 }
 function givePlayersUsernames(){										//update player usernames
 	for(let player in statDexPreBuilt.players) {
-		statDexPreBuilt.players[player].username = discClient.pullUsername(player);
+		statDexPreBuilt.players[player].username = eris.pullUsername(player);
 	}
 	fs.writeFile('statDex.json', JSON.stringify(statDexPreBuilt), function(){
 		console.log('done');
@@ -225,15 +227,6 @@ function statPatcher() {												//update player usernames without discord
 	fs.writeFile('statDex.json', JSON.stringify(statDexPreBuilt), function(){
 		console.log('done');
 	})
-}
-function discordAccess(cb) {											//login to Discord to access player names/pings
-	discClient.initialize();
-	var Client = discClient.sendClient();
-	Client.login(config.live.token)
-	Client.on("ready", () => { //performed when the bot logs in
-		console.log("Ready as "+Client.user.username);
-		cb();
-	});
 }
 
 //build dexes
@@ -425,7 +418,7 @@ function statDexStats(dex) { 											//writes card spreadsheet of statDex
 	}
 	return output;
 }
-function playerWinRate(dex) { 											//writes player spreadsheet of statDex
+function playersWinRate(dex) { 											//writes player spreadsheet of statDex
 	let output = "Player	Wins	Losses	Matches	WinRate\r\n";
 	for(let player in dex.players) {
 		output += dex.players[player].username + "	";
@@ -940,7 +933,8 @@ function stapleMaker(dex, filters, wr, skipThese, minMatch) {			//builds the sta
 	let playrates = playrateGenerator(dex, filters, skipThese, minMatch);
 	let stapleArray = [];
 	for(let card in playrates[0]) {
-		if(playrates[0][card].wr >= wr)
+		let thisCard = cardBase[card];
+		if(playrates[0][card].wr >= wr && !thisCard.typeLine.match(/Basic/i) && !cardBanned.includes(thisCard.fullName))
 			stapleArray.push(card);
 	}
 	stapleArray.sort(function(a,b){
@@ -1438,6 +1432,13 @@ function processFilters(dex, msg, bigData) {							//process filters into filter
 		}
 	}
 	return [filters, message];
+}
+function messageHandler(msg, offline, admincheck) {
+	if(msg.channel && statDexEnabled.includes(msg.channel.id)) { //statDex handler
+		let out = processCommands(msg, offline, admincheck)
+		if(out)
+			msg.channel.send(out)
+	}
 }
 function processCommands(msg, offline, admincheck) {					//processes commands from Discord posts
 	let input = msg.content;
@@ -2170,9 +2171,6 @@ function biggun() {
 		console.log(`${i}: ${pullSet(megaDex[array[i]].cards[0])} + ${pullSet(megaDex[array[i]].cards[1])}, ${wrData[1][array[i]].wr}% in ${wrData[1][array[i]].matches} matches`)
 }
 
-//exports for live
-exports.initialize = initialize
-exports.processCommands = processCommands
 function findDupes(archives) {
 	for(let a in archives) {
 		let thisTourney = require('./tourneyArchives/'+archives[a]);
@@ -2316,7 +2314,7 @@ function determineGPMulti(dex, name) {	//calculate multiplier of GP placements
 		"gp_19_12",
 		"gp_19_11"
 	];
-	let weightArray = [1.2, 1.15, 1.1, 1,05, 1.00, .95, .90, .90, .90, .90, .90, 0.85, 0.85, 0.85, 0.85, 0.85];
+	let weightArray = [1.2, 1.15, 1.1, 1.05, 1.00, .95, .90, .90, .90, .90, .90, 0.85, 0.85, 0.85, 0.85, 0.85];
 	let base = 0, add = 0;
 	function uptick(rank, tourney) {
 		let multi = 0.8;
@@ -2481,6 +2479,146 @@ function calcPlayCounts(dex) {		//add counts to each set
 	}
 }
 //fixFiles()
+function checkCouncilWRs() {
+	let coun = {wins:0, losses:0, matches:0, wr:0, players:0};
+	let pop = {wins:0, losses:0, matches:0, wr:0, players:0};
+	let curvebreakers = {wins:0, losses:0, matches:0, wr:0, players:0};
+	for(let player in statDexPreBuilt.players) {
+		let score = playerWinRate(statDexPreBuilt, player, {});
+		let input = pop;
+		if(config.admin[player] && config.admin[player].includes(5)) //council
+			input = coun;
+		if(player == "107957368997834752" || player == "152881531356971008")
+			input = curvebreakers
+		input.wins += score.wins;
+		input.losses += score.losses;
+		input.matches += score.matches;
+		input.draws += score.draws;
+		input.wr += (score.wins/score.matches);
+		input.players++;
+	}
+	console.log(coun);
+	console.log(pop);
+	console.log(curvebreakers);
+}
+//exports for live
+exports.messageHandler = messageHandler
+var baseline = {
+	"Kyne's Devoted": 18,
+	'Spell Stutter': 28,
+	'Snow-Covered Forest': 12,
+	'Brimstone Volley': 1,
+	'Hostile Dunes': 8,
+	Disseminate: 14,
+	'Lonely Dunes': 3,
+	'Cold Grave': 17,
+	'Elvish Opportunist': 26,
+	'Waterway Dam': 4,
+	'Snowfield Mother': 6,
+	'Volta Hearth': 7,
+	Remorse: 5,
+	'Canyon Falls': 3,
+	'Lakeside Market': 2,
+	'Unbreachable Walls': 6,
+	"Jarl's Brutalizer": 1,
+	'Saigura Tam': 1,
+	'Nighthallow Ritual': 1,
+	'Saigura Mao, Wanderer': 1,
+	"Gyalla's Clutch": 1,
+	'Nest Watchers': 1,
+	'Arid Ruins': 3,
+	'Tezmodo, the Golden City': 1,
+	'Weathered Oasis': 6,
+	'Sunset Sands': 3,
+	'Unravel Mind': 1,
+	'Sink Under': 1,
+	'Unending Sands': 6,
+	'Honorless Offering': 1,
+	'Deem Unworthy': 4,
+	'Snow-Covered Plains': 6,
+	'Snow-Covered Swamp': 3,
+	'Tomb of Shifting Sands': 1,
+	'Snow-Covered Island': 14,
+	'Knight of Order': 1,
+	'Investment Returns': 2,
+	'Snow-Covered Mountain': 5,
+	Smelt: 2,
+	Fateshaper: 2,
+	'Chaos in Bloom': 2,
+	'Arcane Genesis': 2,
+	'Back Alley': 3,
+	'Torchlit Shipyard': 2,
+	'Armored Flunkie': 5,
+	'Blessings of Armor': 5,
+	'Splitting Bloom': 1,
+	'Province Messenger': 1,
+	'Peakpoint Presence': 1,
+	'Punishing Heat': 1,
+	'Impulsive Plan': 4,
+	"Nocturnal's Informant": 1,
+	'Mountain Spring': 6,
+	'Markarth Assailant': 3,
+	'Sunlit Cactus': 2,
+	'Scorched Canyon': 3,
+	'Clay Mesa': 4,
+	'Solar Flare': 7,
+	'Greedy Hands': 2,
+	'Living Gallery': 1,
+	'Helvalla, God of Glory': 1,
+	'Judicial Verdict': 1,
+	'Wicked Weaving': 2,
+	'Howling Alpha': 1,
+	'Dwemer-Made Dovah': 2,
+	'Stormwing Dovah': 2,
+	'Diving Dovah': 2,
+	"Dovah's Ire": 2,
+	'Winged Descent': 2,
+	'Forgotten Knowledge': 2,
+	'Draconic Divulging': 2,
+	"Governess's Might": 1
+  }
+function krowFinder() {
+	let filters = {after:2009};
+	let playrates = playrateGenerator(statDexPreBuilt, filters, skipThese);
+	for(let card in playrates[0]) {
+		let thisCard = cardBase[card];
+		if(thisCard && baseline.hasOwnProperty(thisCard.cardName))
+			playrates[0][card].decks += baseline[thisCard.cardName]; //add in march data
+	}
+	playrates[2] = playrateReporter(playrates, 1);					//sort by decks then card counts
+	let playercounts = getPlayerCount(statDexPreBuilt, filters);	//get list of player data
+	/*
+		{ playrates[1]
+			card: {
+				decks: 5,
+				mainCount:, sideCount:, allCount:, setCount:,
+				wr: 50
+			}
+		}
+		{ playercounts
+			card: {
+				player: 5 //matches with that card
+			}//# keys in card = rep
+		}
+	*/
+	//grab each krow card played in the last six months
+	let output = "Card Name~Decks~Players~WinRate~Other Prints\n";
+	for(let card in playrates[0]) {
+		let thisCard = cardBase[card];
+		if(thisCard && (thisCard.designer.match(/Honch?krow ?David|(Thisis)?Sakon/i) || thisCard.setID.match(/TGE|XPM|DYA|LNG|WAW/)) && !thisCard.cardName.match(/^(Plains|Island|Swamp|Mountain|Forest)$/)) { //likely krow card
+			output += thisCard.fullName + "~";
+			output += playrates[0][card].decks + "~";
+			output += Object.keys(playercounts[card]).length + "~";
+			output += playrates[0][card].wr + "~";
+			for(let p in thisCard.prints) {
+				if(!thisCard.prints[p].match(/TGE|XPM|DYA|LNG|WAW/)) //if not one of the five
+					output += thisCard.prints[p] + ",";
+			}
+			output += "\n";
+		}
+	}
+	console.log(output);
+}
 //console.log(processCommands({content:"reuben playercardcombo [Ever-Gnawing Rat]", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5]))
 //processCommands({content:"stapleMakerPrint rep:2 min:25 filter after:2007", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
 //console.log(leagueFourOhs('league_20_08'))
@@ -2488,7 +2626,7 @@ function calcPlayCounts(dex) {		//add counts to each set
 //testDeck = require('./decks/bluestest.json')
 //console.log(countColors(testDeck));
 //colorRipper(statDexPreBuilt, {}, skipThese)
-/*updateStatDex(statDexPreBuilt, ["gp_21_02_archive.json", "league_21_02_archive.json"])
+/*updateStatDex(statDexPreBuilt, ["gp_21_03_archive.json", "league_21_03_archive.json"])
 addMatchesToLists(statDexPreBuilt);
 printFixer(statDexPreBuilt);
 fs.writeFile('./statDexTest.json', JSON.stringify(statDexPreBuilt), function(){console.log("done");})

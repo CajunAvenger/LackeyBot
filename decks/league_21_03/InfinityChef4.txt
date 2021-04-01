@@ -1,0 +1,136 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>InfinityChef's Copy a list and trim 4 lands, what could go wrong?</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Instant (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/RWR/32.jpg" id="card1">4x Ride the Storm</div>
+		<br/>
+		<div><b><i>Sorcery (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/DSS/59.jpg" id="card2">4x Last Passage</div>
+		<br/>
+		<div><b><i>Enchantment (4)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/WAW/31.jpg" id="card3">4x Greedy Hands</div>
+		<br/>
+		<div><b><i>Artifact (32)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/IMP/129.jpg" id="card4">4x Sage's Ashes</div>
+		<div url="http://mse-modern.com/msem2/images/MPS_MSE/56.jpg" id="card5">4x Tinkerer's Tools</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/19s.jpg" id="card6">4x Glistening Chalice</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/152.jpg" id="card7">4x Hellbent Speed</div>
+		<div url="http://mse-modern.com/msem2/images/MS1/37s.jpg" id="card8">4x Flawless Counterfeit</div>
+		<div url="http://mse-modern.com/msem2/images/RWR/158.jpg" id="card9">4x Northern Express Line</div>
+		<div url="http://mse-modern.com/msem2/images/VTM/16s.jpg" id="card10">4x Enlightened Sigil</div>
+		<div url="http://mse-modern.com/msem2/images/ALR/46.jpg" id="card11">4x Filigree Lotus</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (16)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/AFM/251.jpg" id="card12">11x Island</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/10s.jpg" id="card13">4x Eternal Reactor</div>
+		<div url="http://mse-modern.com/msem2/images/PSA/188.jpg" id="card14">1x Anzen, Beyond the Sea</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/VTM/220.jpg" id="card15">2x Soul Gate</div>
+		<div url="http://mse-modern.com/msem2/images/SOR/158.jpg" id="card16">2x Forgemaster's Altar</div>
+		<div url="http://mse-modern.com/msem2/images/TOW/70.jpg" id="card17">3x Replicator Mage</div>
+		<div url="http://mse-modern.com/msem2/images/ZER/71.jpg" id="card18">2x Seabreen Nullmage</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/75.jpg" id="card19">2x Temporary Treason</div>
+		<div url="http://mse-modern.com/msem2/images/TOW/44.jpg" id="card20">4x Artificer's Persuasion</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>

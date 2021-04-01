@@ -1,6 +1,7 @@
 /* Magic Module (aka mod_magic)
  Contains global Magic scripts
 */
+var fs = require ('fs');
 var writeCardError = "LackeyBot couldn't find anything! Either your filters are too strict or you've found a rare ordering of letters that don't appear in a card name yet.\n";
 function symbolize(card) { //converts symbols to emotes
 	var symArray = ["W","U","B","R","G","0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","20","X","T","Q","S","E","C","2/W","2/U","2/B","2/R","2/G","W/U","U/B","B/R","R/G","G/W","W/B","U/R","B/G","R/W","G/U","W/P","U/P","B/P","R/P","G/P","A","2W","2U","2B","2R","2G","WU","UB","BR","RG","GW","WB","UR","BG","RW","GU","HW","HU","HB","HR","HG","UT"];
@@ -86,7 +87,7 @@ function writeCard(cardName,database,setDatabase,shortFlag, extra, version) { //
 			showCard += findReprints(thisCard, database)
 		return showCard;
 	}
-	showCard += "**" + thisCard.cardName + "**    " + thisCard.manaCost + "\n";
+	showCard += "**" + thisCard.cardName.replace(/'/g, "’") + "**    " + thisCard.manaCost + "\n";
 	if(thisCard.hasOwnProperty('notes') && thisCard.notes.includes("italic"))
 		showCard = showCard.replace(/\*\*/g,"***")
 	let identMatch = thisCard.manaCost.match(/(W|U|B|R|G)/);
@@ -110,7 +111,7 @@ function writeCard(cardName,database,setDatabase,shortFlag, extra, version) { //
 		showCard = symbolize(showCard);
 		return showCard;
 	}
-	if(thisCard.shape == "split" || thisCard.shape == "adventure" || thisCard.shape == "aftermath" || thisCard.shape == "doubleface") {
+	if(!thisCard.notes.includes("secretface") && (thisCard.shape == "split" || thisCard.shape == "adventure" || thisCard.shape == "aftermath" || thisCard.shape == "doubleface")) {
 		showCard += "---\n";
 		showCard += "**" + thisCard.cardName2 + "**    " + thisCard.manaCost2 + "\n";
 	identMatch = null;
@@ -235,7 +236,7 @@ function writeManaCost (symArray) {		//turns array into ordered array in mana sy
 	});
 	return symArray;
 }
-function arrangeColors (colorArray) {		//converts array of colors to array in mana order
+function arrangeColors (colorArray) {	//converts array of colors to array in mana order
 	let testArray= [];
 	let refArray = ["W", "U", "B", "R", "G"];
 	let assembly = "";
@@ -258,6 +259,697 @@ function arrangeColors (colorArray) {		//converts array of colors to array in ma
 	}
 	return testArray;
 }
+
+//mtgjson/instigator
+function mtgjsonSetsBuilder(user, library) {				//build jsons for instigator or trice
+	let ASA = {};//require('./triceFiles/AllCanonSets.json');
+	for(let set in library.setData) {
+		ASA[set] = mtgjsonBuilder(set,user,library)
+	}
+	let v5ASA = {meta:{}, data:ASA};
+	let words = JSON.stringify(v5ASA).replace(/’/g, "'");
+	fs.writeFile('triceFiles/AllSets.json', words, (err) => {
+		if (err) throw err;
+		console.log('AllSets.json written');
+	});
+}
+function mtgjsonBuilder (thisSet, user, library) {			//builds an mtgjson file for the given set
+	let cardsArray = [];
+	let leng = 0;
+	//create an array of sets and an object of sets with name arrays
+	//goal is object of unkeyed objects, ie {{stuff},{stuff},{stuff}}
+	let database = library.cards
+	for(let thisCard in database) {
+		if(database[thisCard].setID != "BOT") {
+			if(library.name == "msem" && library.legal.masterpiece.includes(database[thisCard].fullName)) {
+				//skip illegal masterpieces
+			}else if(database[thisCard].setID == thisSet && checkPromo(thisCard, database[thisCard])){ //if its trice, skip promos
+				cardsArray.push(thisCard);
+				leng++;
+			}
+		}
+	}
+	//create the set object for each set
+	//pass along the array of names to create the cards array
+	let thisEntry = {};
+	thisEntry.name = library.setData[thisSet].longname;
+	thisEntry.code = thisSet;
+	thisEntry.gathererCode = thisSet;
+	thisEntry.magicCardsInfoCode = thisSet;
+	thisEntry.releaseDate = library.setData[thisSet].releaseDate;
+	thisEntry.border = "black";
+	thisEntry.type = "expert";
+	thisEntry.booster = [];
+	thisEntry.mkm_name = library.setData[thisSet].longname;
+	thisEntry.mkm_id = library.setData[thisSet].releaseNo;
+	thisEntry.cards = mtgjsonCardsBuilder(cardsArray, library);
+	return thisEntry;
+}
+function mtgjsonCardsBuilder(nameArray, library) {			//creates the cards array for a set's mtgjson file
+	let leng = nameArray.length;
+	let thisCardArray = [];
+	nameArray.sort();
+	for(let thisName in nameArray){
+		let thisCard = library.cards[nameArray[thisName]];
+		let thisEntry = {};
+		let reprint = library.name == "msem" && thisCard.notes.includes("reprint") && thisCard.setID != "SHRINE" && thisCard.setID != "LAIR";
+		let cardNames = [thisCard.cardName, ""];
+		if(thisCard.hasOwnProperty("cardName2"))
+			cardNames[1] = thisCard.cardName2;
+		if(thisCard.hasOwnProperty("hidden")) {
+			cardNames = thisCard.hidden.split("//")
+			cardNames.push("");
+		}
+
+		//TODO redo this
+		thisEntry.artist = thisCard.artist.replace(/ ?(on |—|-|[(]) ?(DeviantArt|DA|ArtStation|pixiv|pivix)[)]?/i, "");
+		thisEntry.convertedManaCost = thisCard.cmc;
+		thisEntry.cmc = thisCard.cmc;
+		thisEntry.colors = arrayifyColors(thisCard.color);
+		for(let color in thisEntry.colors)
+			thisEntry.colors[color] = flipColors(thisEntry.colors[color]);
+		thisEntry.color_identity = thisEntry.colors;
+		thisEntry.colorIdentity = thisEntry.colors;
+		thisEntry.designer = "";
+		if(thisCard.designer != "") {
+			thisEntry.designer = thisCard.designer;
+		}else{
+			//console.log(thisCard);
+		}
+		if(thisCard.flavorText != "")
+			thisEntry.flavor = thisCard.flavorText.replace(/[*]/g, "");
+		thisEntry.id = nameArray[thisName];
+		thisEntry.imageName = cardNames[0].toLowerCase().replace(/’/g,"'");
+		thisEntry.layout = thisCard.shape.replace("doubleface", "double-faced").replace("adventure", "normal");
+		if(thisCard.shape == "doubleface")
+			thisEntry.layout = "transform";
+		thisEntry.legalities = arrayifyLegal(cardNames[0].replace(/’/g,"'"), library);
+		if(thisCard.loyalty !== "")
+			thisEntry.loyalty = thisCard.loyalty;
+		thisEntry.manaCost = thisCard.manaCost;
+		if(thisCard.shape == "doubleface") {
+			thisEntry.mciNumber = thisCard.cardID + "a";
+		}else{
+			thisEntry.mciNumber = thisCard.cardID;
+		}
+		if(thisCard.hasOwnProperty('instigatorID')){
+			thisEntry.multiverseid = thisCard.instigatorID;
+		}else if(thisCard.hasOwnProperty('multiverseid')){
+			thisEntry.multiverseid = thisCard.multiverseid;
+		}
+		thisEntry.name = cardNames[0].replace(/’/g,"'");
+		if(thisCard.shape == "split")
+			thisEntry.name = thisCard.fullName.replace(/’/g,"'").replace("//", " // ");
+		(thisCard.shape == "doubleface")
+			thisEntry.name = cardNames[0].replace(/’/g,"'")
+		if(reprint) {
+			thisEntry.name += "_" + thisCard.setID;
+		}
+		let two_names = [];
+		two_names.push(thisEntry.name)
+		if(thisCard.shape == "doubleface" || thisCard.shape == "split") {
+			thisEntry.names = [thisEntry.name, thisEntry.name.replace(cardNames[0].replace("’","'"), cardNames[1].replace("’","'"))];
+			if(thisCard.shape == "doubleface")
+				thisEntry.name = cardNames[0] + (reprint ? "_" + thisCard.setID:"") + " // " + cardNames[1] + (reprint ? "_" + thisCard.setID:"")
+			thisEntry.id = cardNames[0] + "_" + thisCard.setID;
+			thisEntry.uuid = cardNames[0] + "_" + thisCard.setID;
+			thisEntry.otherFaceIds = [cardNames[1] + "_" + thisCard.setID];
+			thisEntry.side = "a";
+			thisEntry.faceName = cardNames[0] + (reprint ? "_" + thisCard.setID:"");
+		}
+		if(thisCard.shape == "doubleface") { //|| thisCard.shape == "split") { //instigatorchange
+			thisEntry.number = thisCard.cardID + "a";
+			if(library.name == "msem" && thisCard.setID == "FLP")
+				thisEntry.number = thisCard.cardID + "sa";
+		}else{
+			thisEntry.number = thisCard.cardID;
+		}
+		thisEntry.number = thisEntry.number.replace(/s/g, "");
+		if(thisCard.power !== "")
+			thisEntry.power = thisCard.power.toString();
+		thisEntry.rarity = thisCard.rarity.replace(/(masterpiece|bonus)/, "special");
+		if(thisEntry.rarity == "special")
+			thisEntry.rarity = "s";
+		if(thisCard.setID == "MPS_MSE")
+			thisEntry.rarity = "special";
+		if(thisCard.typeLine.match("—"))
+			thisEntry.subtypes = arrayifyTypes(thisCard.typeLine.replace(/[A-Z ]+—/i, ""));
+		let supertypes = thisCard.typeLine.split(" — ")[0];
+		supertypes = supertypes.replace(thisCard.cardType, "");
+		if(supertypes != "")
+			thisEntry.supertypes = arrayifyTypes(supertypes);
+		if(thisCard.rulesText != "\n")
+			thisEntry.text = thisCard.rulesText.replace(/[*]/g, "");
+		if(thisCard.toughness !== "")
+			thisEntry.toughness = thisCard.toughness.toString();
+		thisEntry.type = thisCard.typeLine.replace(/ $/, "");
+		thisEntry.types = arrayifyTypes(thisCard.cardType);
+		thisCardArray.push(thisEntry);
+		
+		if(thisCard.shape == "doubleface" || thisCard.shape == "split") {
+			let thisEntry = {};
+			if(thisCard.artist2 != undefined) {
+				thisEntry.artist = thisCard.artist2.replace(/ ?(on |—|-|[(]) ?(DeviantArt|DA|ArtStation|pixiv|pivix)[)]?/i, "");
+			}else{
+				thisEntry.artist = thisCard.artist.replace(/ ?(on |—|-|[(]) ?(DeviantArt|DA|ArtStation|pixiv|pivix)[)]?/i, "");
+			}
+			if(thisCard.shape == "doubleface") {
+				thisEntry.convertedManaCost = thisCard.cmc;
+			}else{
+				thisEntry.convertedManaCost = thisCard.cmc2;
+			}
+			thisEntry.colors = arrayifyColors(thisCard.color2);
+			for(let color in thisEntry.colors)
+				thisEntry.colors[color] = flipColors(thisEntry.colors[color]);
+			thisEntry.color_identity = thisEntry.colors;
+			thisEntry.colorIdentity = thisEntry.colors;
+			thisEntry.designer = "";
+			if(thisCard.designer != undefined)
+				thisEntry.designer = thisCard.designer;
+			if(thisCard.flavorText2 != "")
+				thisEntry.flavor = thisCard.flavorText2.replace(/[*]/g, "");
+			thisEntry.id = cardNames[0] + "_" + thisCard.setID + "b";
+			thisEntry.imageName = cardNames[1].toLowerCase().replace(/’/g,"'");
+			thisEntry.layout = thisCard.shape.replace("doubleface", "double-faced");
+			thisEntry.legalities = arrayifyLegal(thisCard.cardName.replace(/’/g,"'"), library);
+			if(thisCard.loyalty !== "")
+				thisEntry.loyalty = thisCard.loyalty2;
+			thisEntry.manaCost = thisCard.manaCost2;
+			thisEntry.mciNumber = thisCard.cardID + "b";
+			if(thisCard.shape == "split") //instigatorchange
+				thisEntry.mciNumber = thisCard.cardID;
+			if(thisCard.hasOwnProperty('instigatorID')){
+				thisEntry.multiverseid = thisCard.instigatorID;
+			}else if(thisCard.hasOwnProperty('multiverseid')){
+				thisEntry.multiverseid = thisCard.multiverseid;
+			}
+			
+			thisEntry.name = cardNames[1].replace(/’/g,"'");
+			if(thisCard.shape == "split")
+				thisEntry.name = thisCard.fullName.replace(/’/g,"'").replace("//", " // ");
+			if(thisCard.shape == "doubleface") {
+				thisEntry.name = cardNames[1].replace(/’/g,"'");
+				thisEntry.layout = "transform";
+			}
+			if(reprint) {
+				thisEntry.name += "_" + thisCard.setID;
+			}
+			thisEntry.side = "b";
+			if(thisCard.shape == "doubleface") {//cockatrice
+				if(thisCard.shape == "doubleface")
+					thisEntry.name = cardNames[0] + (reprint ? "_" + thisCard.setID:"") + " // " + cardNames[0] + (reprint ? "_" + thisCard.setID:"")
+			}
+			two_names.push(thisEntry.name)
+			thisEntry.names = two_names;
+			thisEntry.number = thisCard.cardID + "b";
+			if(library.name == "msem" && thisCard.setID == "FLP")
+				thisEntry.number = thisCard.cardID + "sb";
+			if(thisCard.shape == "split") //instigatorchange
+				thisEntry.number = thisCard.cardID;
+			thisEntry.number = thisEntry.number.replace(/s/g, "");
+			thisEntry.id = cardNames[1] + "_" + thisCard.setID;
+			thisEntry.uuid = cardNames[1] + "_" + thisCard.setID;
+			thisEntry.otherFaceIds = [cardNames[0] + "_" + thisCard.setID];
+			thisEntry.faceName = cardNames[1] + (reprint ? "_" + thisCard.setID : "");
+			if(thisCard.power2 !== "")
+				thisEntry.power = thisCard.power2.toString();
+			
+			thisEntry.rarity = thisCard.rarity.replace(/(masterpiece|bonus)/, "special");
+			if(thisEntry.rarity == "special")
+				thisEntry.rarity = "s"
+			if(thisCard.setID == "MPS_MSE")
+				thisEntry.rarity = "special";
+			if(thisCard.typeLine2.match("—"))
+				thisEntry.subtypes = arrayifyTypes(thisCard.typeLine2.replace(/[A-Z ]+—/i, ""));
+			supertypes = thisCard.typeLine2.split(" — ")[0];
+			supertypes = supertypes.replace(thisCard.cardType2, "");
+			if(supertypes != "")
+				thisEntry.supertypes = arrayifyTypes(supertypes);
+			if(thisCard.rulesText2 != "\n")
+				thisEntry.text = thisCard.rulesText2.replace(/[*]/g, "");;
+			if(thisCard.toughness2 !== "")
+				thisEntry.toughness = thisCard.toughness2.toString();
+			thisEntry.type = thisCard.typeLine2.replace(/ $/, "");
+			thisEntry.types = arrayifyTypes(thisCard.cardType2);
+
+			thisCardArray.push(thisEntry);
+		}
+	}
+	return thisCardArray;
+}
+function wtfjsonBuilder (thisSet, user, library) {			//builds an mtg.wtf file for the given set
+	let cardsArray = [];
+	let leng = 0;
+	//create an array of sets and an object of sets with name arrays
+	//goal is object of unkeyed objects, ie {{stuff},{stuff},{stuff}}
+	let database = library.cards
+	for(let thisCard in database) {
+		if(library.name == "msem" && library.legal.masterpiece.includes(database[thisCard].fullName)) {
+			//skip illegal masterpieces
+		}else if(database[thisCard].setID == thisSet) {
+			cardsArray.push(thisCard);
+			leng++;
+		}
+	}
+	//create the set object for each set
+	//pass along the array of names to create the cards array
+	let thisEntry = {};
+	thisEntry.name = library.setData[thisSet].longname;
+	thisEntry.code = thisSet;
+	thisEntry.gathererCode = thisSet;
+	thisEntry.magicCardsInfoCode = thisSet;
+	thisEntry.releaseDate = library.setData[thisSet].releaseDate;
+	thisEntry.border = "black";
+	thisEntry.type = "expert";
+	thisEntry.booster = [];
+	thisEntry.mkm_name = library.setData[thisSet].longname;
+	thisEntry.mkm_id = library.setData[thisSet].releaseNo;
+	thisEntry.cards = wtfjsonCardsBuilder(cardsArray, library);
+
+	let words = JSON.stringify(thisEntry).replace(/’/g, "'");
+	fs.writeFile('jsons/'+thisSet + '.json', words, (err) => {
+		if (err) throw err;
+		console.log(thisSet + '.json written');
+		});
+	user.send(thisSet + " jsonified:", {
+		files: [{attachment:'jsons/' + thisSet + '.json'}]
+	});
+
+}
+function wtfjsonCardsBuilder(nameArray, library) {			//creates the cards array for a set's mtg.wtf json file
+	let leng = nameArray.length;
+	let thisCardArray = [];
+	nameArray.sort();
+	for(let thisName in nameArray){
+		let thisCard = library.cards[nameArray[thisName]];
+		let thisEntry = {};
+		let reprint = library.name == "msem" && thisCard.notes.includes("reprint") && thisCard.setID != "SHRINE" && thisCard.setID != "LAIR";
+		let cardNames = [thisCard.cardName, ""];
+		if(thisCard.notes.includes("secretface"))
+			thisCard.shape = "normal"
+		if(thisCard.hasOwnProperty("cardName2"))
+			cardNames[1] = thisCard.cardName2;
+		/*if(thisCard.hasOwnProperty("hidden")) {
+			cardNames = thisCard.hidden.split("//")
+			cardNames.push("");
+		}*/
+
+		//TODO redo this
+		thisEntry.artist = thisCard.artist.replace(/ ?(on |—|-|[(]) ?(DeviantArt|DA|ArtStation|pixiv|pivix)[)]?/i, "");
+		thisEntry.convertedManaCost = thisCard.cmc;
+		thisEntry.cmc = thisCard.cmc;
+		thisEntry.colors = arrayifyColors(thisCard.color);
+		thisEntry.color_identity = thisEntry.colors;
+		thisEntry.colorIdentity = thisEntry.colors;
+		thisEntry.designer = "";
+		if(thisCard.designer != "") {
+			thisEntry.designer = thisCard.designer;
+		}else{
+			//console.log(thisCard);
+		}
+		if(thisCard.flavorText != "")
+			thisEntry.flavor = thisCard.flavorText.replace(/[*]/g, "");
+		thisEntry.id = nameArray[thisName];
+		thisEntry.imageName = cardNames[0].toLowerCase().replace(/’/g,"'");
+		thisEntry.layout = thisCard.shape.replace("doubleface", "double-faced").replace("adventure", "normal");
+		thisEntry.legalities = arrayifyLegal(cardNames[0].replace(/’/g,"'"), library);
+		if(thisCard.loyalty !== "")
+			thisEntry.loyalty = thisCard.loyalty;
+		thisEntry.manaCost = thisCard.manaCost;
+		if(thisCard.shape == "doubleface") {
+			thisEntry.mciNumber = thisCard.cardID + "a";
+		}else{
+			thisEntry.mciNumber = thisCard.cardID;
+		}
+		if(thisCard.hasOwnProperty('instigatorID')){
+			thisEntry.multiverseid = thisCard.instigatorID;
+		}else if(thisCard.hasOwnProperty('multiverseid')){
+			thisEntry.multiverseid = thisCard.multiverseid;
+		}
+		thisEntry.name = cardNames[0].replace(/’/g,"'");
+		let two_names = [];
+		two_names.push(thisEntry.name)
+		if(thisCard.shape == "doubleface" || thisCard.shape == "split") {
+			thisEntry.names = [thisEntry.name, thisEntry.name.replace(cardNames[0].replace("’","'"), cardNames[1].replace("’","'"))];
+			thisEntry.id = cardNames[0] + "_" + thisCard.setID;
+			thisEntry.uuid = cardNames[0] + "_" + thisCard.setID;
+			thisEntry.otherFaceIds = [cardNames[1] + "_" + thisCard.setID];
+			thisEntry.side = "a";
+			thisEntry.faceName = cardNames[0] + (reprint ? "_" + thisCard.setID:"");
+		}
+		if(thisCard.shape == "doubleface") { //|| thisCard.shape == "split") { //instigatorchange
+			thisEntry.number = thisCard.cardID + "a";
+		}else{
+			thisEntry.number = thisCard.cardID;
+		}
+		if(thisCard.rulesText != "\n")
+			thisEntry.originalText = thisCard.rulesText.replace(/[*]/g, "");
+		thisEntry.originalType = thisCard.typeLine.replace(/ $/, "");
+		if(thisCard.power !== "")
+			thisEntry.power = thisCard.power.toString();
+		thisEntry.rarity = thisCard.rarity.replace(/(masterpiece|bonus)/, "special");
+		if(thisCard.setID == "MPS_MSE")
+			thisEntry.rarity = "special";
+		if(library.oracle.hasOwnProperty(cardNames[0].replace(/’/g,"'")))
+			thisEntry.rulings = arrayifyRulings(library, cardNames[0].replace(/’/g,"'"));
+		if(thisCard.typeLine.match("—"))
+			thisEntry.subtypes = arrayifyTypes(thisCard.typeLine.replace(/[A-Z ]+—/i, ""));
+		let supertypes = thisCard.typeLine.split(" — ")[0];
+		supertypes = supertypes.replace(thisCard.cardType, "");
+		if(supertypes != "")
+			thisEntry.supertypes = arrayifyTypes(supertypes);
+		if(thisCard.rulesText != "\n")
+			thisEntry.text = thisCard.rulesText.replace(/[*]/g, "");
+		if(thisCard.toughness !== "")
+			thisEntry.toughness = thisCard.toughness.toString();
+		thisEntry.type = thisCard.typeLine.replace(/ $/, "");
+		thisEntry.types = arrayifyTypes(thisCard.cardType);
+		thisCardArray.push(thisEntry);
+		
+		if(thisCard.shape == "doubleface" || thisCard.shape == "split") {
+			let thisEntry = {};
+			if(thisCard.artist2 != undefined) {
+				thisEntry.artist = thisCard.artist2.replace(/ ?(on |—|-|[(]) ?(DeviantArt|DA|ArtStation|pixiv|pivix)[)]?/i, "");
+			}else{
+				thisEntry.artist = thisCard.artist.replace(/ ?(on |—|-|[(]) ?(DeviantArt|DA|ArtStation|pixiv|pivix)[)]?/i, "");
+			}
+			if(thisCard.shape == "doubleface") {
+				thisEntry.convertedManaCost = thisCard.cmc;
+			}else{
+				thisEntry.convertedManaCost = thisCard.cmc2;
+			}
+			thisEntry.colors = arrayifyColors(thisCard.color2);
+			thisEntry.color_identity = thisEntry.colors;
+			thisEntry.colorIdentity = thisEntry.colors;
+			thisEntry.designer = "";
+			if(thisCard.designer != undefined)
+				thisEntry.designer = thisCard.designer;
+			if(thisCard.flavorText2 != "")
+				thisEntry.flavor = thisCard.flavorText2.replace(/[*]/g, "");
+			thisEntry.id = cardNames[0] + "_" + thisCard.setID + "b";
+			thisEntry.imageName = cardNames[1].toLowerCase().replace(/’/g,"'");
+			thisEntry.layout = thisCard.shape.replace("doubleface", "double-faced");
+			thisEntry.legalities = arrayifyLegal(thisCard.cardName.replace(/’/g,"'"), library);
+			if(thisCard.loyalty !== "")
+				thisEntry.loyalty = thisCard.loyalty2;
+			thisEntry.manaCost = thisCard.manaCost2;
+			thisEntry.mciNumber = thisCard.cardID + "b";
+			if(thisCard.shape == "split") //instigatorchange
+				thisEntry.mciNumber = thisCard.cardID;
+			if(thisCard.hasOwnProperty('instigatorID')){
+				thisEntry.multiverseid = thisCard.instigatorID;
+			}else if(thisCard.hasOwnProperty('multiverseid')){
+				thisEntry.multiverseid = thisCard.multiverseid;
+			}
+			
+			thisEntry.name = cardNames[1].replace(/’/g,"'");
+			two_names.push(thisEntry.name)
+			thisEntry.names = two_names;
+			thisEntry.number = thisCard.cardID + "b";
+			if(thisCard.shape == "split") //instigatorchange
+				thisEntry.number = thisCard.cardID;
+			if(thisCard.rulesText2 != "\n")
+				thisEntry.originalText = thisCard.rulesText2.replace(/[*]/g, "");
+			thisEntry.originalType = thisCard.typeLine2.replace(/ $/, "");
+			if(thisCard.power2 !== "")
+				thisEntry.power = thisCard.power2.toString();
+			
+			thisEntry.rarity = thisCard.rarity.replace(/(masterpiece|bonus)/, "special");
+			if(thisCard.setID == "MPS_MSE")
+				thisEntry.rarity = "special";
+			if(library.oracle.hasOwnProperty(thisCard.cardName.replace(/’/g,"'")))
+				thisEntry.rulings = arrayifyRulings(library, thisCard.cardName.replace(/’/g,"'"));
+			if(thisCard.typeLine2.match("—"))
+				thisEntry.subtypes = arrayifyTypes(thisCard.typeLine2.replace(/[A-Z ]+—/i, ""));
+			supertypes = thisCard.typeLine2.split(" — ")[0];
+			supertypes = supertypes.replace(thisCard.cardType2, "");
+			if(supertypes != "")
+				thisEntry.supertypes = arrayifyTypes(supertypes);
+			if(thisCard.rulesText2 != "\n")
+				thisEntry.text = thisCard.rulesText2.replace(/[*]/g, "");;
+			if(thisCard.toughness2 !== "")
+				thisEntry.toughness = thisCard.toughness2.toString();
+			thisEntry.type = thisCard.typeLine2.replace(/ $/, "");
+			thisEntry.types = arrayifyTypes(thisCard.cardType2);
+
+			thisCardArray.push(thisEntry);
+		}
+		if(thisCard.notes.includes("secretface"))
+			thisCard.shape = "doubleface"
+	}
+	return thisCardArray;
+}
+function arrayifyColors(theseColors) {						//creates the color array for mtgjson
+	if(!theseColors)
+		return [];
+	let colormatch = theseColors.match(/[{]([A-Z]+)\/?([A-Z]+)?\/?([A-Z]+)?\/?([A-Z]+)?\/?([A-Z]+)?\/?[}]/i);
+	let colorArray = [];
+	for(var c = 1; c < 6; c++) {
+		if(colormatch !== null && colormatch[c] !== undefined)
+			colorArray.push(colormatch[c]);
+	}
+	return colorArray;
+}
+function flipColors(theseColors) {							//converts Blue <-> U etc
+	let refArray = ["W", "U", "B", "R", "G"];
+	let nameArray = ["White", "Blue", "Black", "Red", "Green"];
+	let newArray = [], stringFlag = false;
+	if(typeof theseColors == "string") {
+		theseColors = [theseColors];
+		stringFlag = true;
+	}
+	for(let e in theseColors) {
+		let thisColor = theseColors[e]
+		let index = refArray.indexOf(thisColor); //check if WUBRG
+		if(index != -1) { 						 //if it is
+			newArray.push(nameArray[index]);	 //use its name
+		}else{
+			index = nameArray.indexOf(thisColor); //check if name
+			if(index == -1) {					  //if it's not
+				newArray.push("");				  //use ""
+			}else{
+				newArray.push(refArray[index]);	  //otherwise use its letter
+			}
+		}
+	}
+	if(stringFlag)
+		return newArray[0];
+	return newArray;
+}
+function calculateColorIdentity(card) {						//creates the color identity array from card data
+	let refArray = ["W", "U", "B", "R", "G"];
+	let nameArray = ["White", "Blue", "Black", "Red", "Green"];
+	let baseColors = arrayifyColors(card.color);
+	let backColors = []
+	if(card.hasOwnProperty('color2'))
+		backColors = arrayifyColors(card.color2)
+	for(let color in backColors) {
+		if(!baseColors.includes(backColors[color]))
+			baseColors.push(backColors[color])
+	}
+	let textLine = card.rulesText;
+	if(card.hasOwnProperty('rulesText2'))
+		textLine += card.rulesText2;
+	let colorTest = textLine.match(/\{[WUBRG]\}/g);
+	if(colorTest) {
+		for(let color in colorTest) {
+			let colorLetter = colorTest[color].match(/[WUBRG]/);
+			let colorName = nameArray[refArray.indexOf(colorLetter[0])]
+			if(!baseColors.includes(colorName))
+				baseColors.push(colorName);
+		}
+	}
+	return baseColors;
+}
+function arrayifyLegal (thisName, library) {				//creates the legality array for mtgjson
+	let legalArray = [];
+	let legalEntry = {};
+	if(library.name == "myriad"){
+		return [{format: "Myriad", legality: "Legal"}];
+	}
+	if(library.name == "revolution") {
+		if(library.legal.banned.includes(thisName))
+			return [{format: "Revolution", legality:"Banned"}];
+		return [{format: "Revolution", legality:"Legal"}];
+	}
+	if(library.name == "msem" && library.legal.masterpiece.includes(thisName)) {
+		legalEntry.format = "MSEDH";
+		if(library.legal.edhBan.includes(thisName)){
+			legalEntry.legality = "Banned";
+		}else{
+			legalEntry.legality = "Legal";
+		}
+		legalArray.push(legalEntry);
+	}else{
+		legalEntry.format = "MSEM2";
+		if(library.legal.modernBan.includes(thisName)) {
+			legalEntry.legality = "Banned";
+		}else{
+			legalEntry.legality = "Legal";
+		}
+		legalArray.push(legalEntry);
+		legalEntry = {};
+		legalEntry.format = "MSEDH";
+		if(library.legal.edhBan.includes(thisName)){
+			legalEntry.legality = "Banned";
+		}else{
+			legalEntry.legality = "Legal";
+		}
+		legalArray.push(legalEntry);
+	}
+	return legalArray;
+}
+function arrayifyRulings (library, thisName) { 						//creates the legality array for mtgjson
+	let theseRules = library.oracle[thisName];
+	let rulMatch = theseRules.match(/([^_]+)(_ |$)/ig);
+	let leng = rulMatch.length;
+	let ruleArray = [];
+	for(var i = 0; i < leng; i++) {
+		let thisRule = {};
+		thisRule.date = "2018-09-03";
+		let thisRulMatch = rulMatch[i].match(/([^_]+)(_ |$)/i);
+		thisRule.text = thisRulMatch[1].replace("\n", "");
+		ruleArray.push(thisRule);
+	}
+	return ruleArray;
+}
+function arrayifyTypes (theseTypes) {						//creates type arrays for mtgjson
+	let subtypeMatch = theseTypes.match(/([A-Z][a-z]+)( |$)/g)
+	let subtypeArray = [];
+	if(subtypeMatch !== null) {
+		let leng = subtypeMatch.length;
+		for(let type in subtypeMatch) {
+			subtypeMatch[type] = subtypeMatch[type].replace(/ $/, "");
+			subtypeArray.push(subtypeMatch[type]);
+		}
+	}
+	return subtypeArray;
+}
+function checkPromo(dataName, cardData) {					//checks if a card is a skipped promo
+	if(dataName.match(/_PRO/) && !cardData.typeLine.match(/Basic/))
+		return false;
+	return true;
+}
+
+//v3 database stuff if i ever get around to finishing it
+/*
+function lackeyv3ifier (cardName, library) {	//converts lackeybot v2 database entry to v3 database (for devDex)
+	let oldCard = library.cards[cardName];
+	let thisName = oldCard.fullName;
+	if(oldCard.setID == "tokens") { //tokens need to keep set codes
+		thisName = cardName;
+	}else if (oldCard.typeLine.match(/Basic/)) { //fix for Mountain a b c, etc
+		thisName = oldCard.cardName;
+	}
+	thisName = thisName.replace(/ ?\/\/ ?/, " // "); //standardize multipart cards
+	//add the baseline details
+	let newCard = {
+		fullName: thisName,
+		notes: oldCard.notes,
+		shape: oldCard.shape,
+		formats: oldCard.formats,
+		prints: [],
+		rarities: [],
+		faces: [],
+		versions: {}
+	}
+	if(oldCard.hasOwnProperty('faces')) { //if it already has faces for some reason keep that
+		newCard.faces = oldCard.faces;
+	}else{ //otherwise build it
+		let face = {
+			cardName: oldCard.cardName,
+			manaCost: oldCard.manaCost,
+			typeLine: oldCard.typeLine,
+			rulesText: oldCard.rulesText,
+			flavorText: oldCard.flavorText,
+			power: oldCard.power,
+			toughness: oldCard.toughness,
+			loyalty: oldCard.loyalty,
+			color: oldCard.color,
+			cmc: oldCard.cmc,
+			cardType: oldCard.cardType
+		}
+		newCard.faces.push(face);
+		if(oldCard.hasOwnProperty('cardName2')) {
+			face = {
+				cardName: oldCard.cardName2,
+				manaCost: oldCard.manaCost2,
+				typeLine: oldCard.typeLine2,
+				rulesText: oldCard.rulesText2,
+				flavorText: oldCard.flavorText2,
+				power: oldCard.power2,
+				toughness: oldCard.toughness2,
+				loyalty: oldCard.loyalty2,
+				color: oldCard.color2,
+				cmc: oldCard.cmc2,
+				cardType: oldCard.cardType2
+			}
+			newCard.faces.push(face);
+		}
+	}
+	//then add the version specifics
+	let thisSet = oldCard.setID;
+	if(newCard.versions.hasOwnProperty(thisSet)) { //cards with variations
+		let thisV = newCard.versions[thisSet];
+		if(!thisV.hasOwnProperty('variations')) //variants and promos
+			thisV.variations = true;
+		thisV.rarity.push(oldCard.rarity);
+		thisV.cardID.push(oldCard.cardID);
+		thisV.artists.push(oldCard.artist);
+		if(oldCard.hasOwnProperty('artist2')) {
+			thisV.artists.push(oldCard.artist2);
+		}else if(oldCard.shape != "adventure" && oldCard.hasOwnProperty('cardName2')) {
+			thisV.artists.push(oldCard.artist);
+		}
+		if(oldCard.hasOwnProperty('scryID'))
+			thisV.scryID.push(oldCard.scryID);
+		if(oldCard.hasOwnProperty('scryID2'))
+			thisV.scryID.push(oldCard.scryID2);
+	}else{ //first card of this set
+		newCard.versions[thisSet] = {
+			rarity: [oldCard.rarity],
+			setID: thisSet,
+			cardID: [oldCard.cardID],
+			artists: [oldCard.artist],
+			notes: []
+		}
+		if(oldCard.hasOwnProperty("scryID"))
+			newCard.versions[thisSet].scryID = [oldCard.scryID]
+		if(oldCard.hasOwnProperty('scrydID2'))
+			newCard.versions[thisSet].scryID.push(oldCard.scryID2);
+		if(oldCard.hasOwnProperty('artist2')) {
+			newCard.versions[thisSet].artists.push(oldCard.artist2);
+		}else if(oldCard.shape != "adventure" && oldCard.hasOwnProperty('cardName2')) {
+			newCard.versions[thisSet].artists.push(oldCard.artist);
+		}
+	}
+	return newCard;
+}
+function coordinateCard(cardCoords, libName) {	//standardizes cardCoords
+	if(typeof cardCoords == "string")
+		cardCoords = [cardCoords];
+	if(!cardCoords[1])
+		cardCoords[1] = libName;
+	if(!cardCoords[2])
+		cardCoords[2] = arcana[libName].cards[cardCoords[0]].prints[0]; //if none specified, use first
+	if(!cardCoords[3])
+		cardCoords = 0; //if none specified, use first
+	return cardCoords;
+}
+function allNotes (cardCoords) {				//returns array of global and local notes
+	let thisCard = arcana[cardCoords[1]].cards[cardCoords[0]];
+	let notes = card.notes;
+	let thisPrint = thisCard.versions[cardCoords[2]][cardCoords[3]];
+	for(let n in thisPrint.notes) {
+		notes.push(thisPrint.notes[n])
+	}
+	return notes;
+}
+function upDex(cardName) {						//quick update devDex -> v3
+	return mod_magic.lackeyv3ifier(cardName, arcana.devDex);
+}
+*/
+
 exports.symbolize = symbolize;
 exports.unsymbolize = unsymbolize;
 exports.italPseudo = italPseudo;
@@ -267,3 +959,10 @@ exports.findReprints = findReprints;
 
 exports.writeManaCost = writeManaCost;
 exports.arrangeColors = arrangeColors;
+
+exports.mtgjsonSetsBuilder = mtgjsonSetsBuilder
+exports.mtgjsonBuilder = mtgjsonBuilder
+exports.wtfjsonBuilder = wtfjsonBuilder
+exports.arrayifyColors = arrayifyColors
+exports.calculateColorIdentity = calculateColorIdentity
+exports.flipColors = flipColors

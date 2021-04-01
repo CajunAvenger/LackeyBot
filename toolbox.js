@@ -44,6 +44,9 @@ function reassignIndex(array, oldIndex, newIndex) { 			//moves element of array
 function escapify(string) { 									//escapes strings for RegExp
 	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+function windex(string) {										//remove illegal characters for windows files
+	return string.replace(/[\\\/|*<>?":]/g, "")
+}
 function globalCapture(regString, matchString, caseSense) { 	//returns array of capture group regexes of a global regex check, functionally allowing capture groups on a global regex
 	let flags = "";
 	if(!caseSense)
@@ -126,7 +129,6 @@ function medianArray(array) {									//returns the median value of an array of 
 	if(array.length%2) { //odd
 		return array[(array.length-1)/2];
 	}else{
-		0123
 		let high = array[array.length/2];
 		let low = array[(array.length/2)-1];
 		return ((high+low)/2);
@@ -187,6 +189,20 @@ function xor(a, b) { 											//exclusive or, returns true or false
 		return false;
 	return true;
 }
+function findExclusive(boolArray) {								//checks array for exclusive boolean true, returns [boolean, [indexes of trues]]
+	let index1 = boolArray.indexOf(true);
+	let index2 = boolArray.lastIndexOf(true);
+	if(index1 == -1)
+		return [false, [null]];
+	if(index1 == index2)
+		return [true, [index1]];
+	let boolOutput = [];
+	for(let bool in boolArray) {
+		if(boolArray[bool])
+			boolOutput.push(bool);
+	}
+	return [false, boolOutput];
+}
 function rand(low, high) { 										//rand(x) or rand(x,y) gets a random number from 0-x or random number from x-y
 	if(high == undefined)
 		high = 0;
@@ -209,6 +225,101 @@ function shuffleArray(array) { 									//shuffles arrays
 function timeSince(startTime) { 								//get milliseconds from now to given time, negative values are future
 	let checkTime = new Date().getTime();
 	return checkTime - startTime;
+}
+function timeConversion(milliseconds,precision,units) {			//converts milliseconds to X years, X days, etc.
+	if(!units)
+		units = ["year","day","hour","minute","second","millisecond"];
+	let timeArray = [];
+	let timeNameArray = [];
+	times = {
+		year: 31556952000,
+		day: 86400000,
+		hour: 3600000,
+		minute: 60000,
+		second: 1000,
+		millisecond: 1
+	}
+	for(let t in times) {
+		if(units.includes(t)) {
+			let spent = Math.trunc(milliseconds / times[t]);
+			milliseconds -= times[t] * spent;
+			timeArray.push(spent);
+			timeNameArray.push(t)
+		}
+	}
+	let wordTime = "";
+	for(let i=0;i<timeArray.length;i++) {
+		if(timeArray[i] != 0) {
+			wordTime += timeArray[i] + " " + timeNameArray[i];
+			if(timeArray[i] != 1)
+				wordTime += "s";
+			wordTime += ", "
+		}
+	}
+	wordTime = wordTime.replace(/, $/,"");
+	if(!precision)
+		return wordTime;
+	let wordSplit = wordTime.split(",");
+	wordTime = "";
+	for(let i=0; i<precision; i++) {
+		wordTime += wordSplit[i];
+		if(i != precision-1)
+			wordTime += ", ";
+	}
+	return wordTime;
+}
+function setTimeDistance(number, distance, direction) {		//creates a date object for (number) (distance) from now
+	let wholeNumber = Math.trunc(number);
+	let currenttime = new Date();
+	let pingYear = 0;
+	let pingMonth = 0;
+	let pingDay = 0;
+	let pingHour = 0;
+	let pingMinute = 0;
+
+	if(distance.match(/^(second|s)s?$/i))
+		pingMinute += Math.trunc(wholeNumber/60);
+	if(distance.match(/^(minute|min|m)s?/i))
+		pingMinute += wholeNumber;
+	
+	if(distance.match(/^(hour|hr|h)s?$/i)) {
+		pingHour += wholeNumber;
+		pingMinute += Math.trunc((number - wholeNumber) * 60);
+	}
+	if(distance.match(/^(day|dy|d)s?$/i)) {
+		pingDay += wholeNumber;
+		pingHour += Math.trunc((number - wholeNumber) * 24);
+	}
+	if(distance.match(/^(week|wk|w)s?/i)) {
+		pingDay += 7*wholeNumber;
+		pingHour += Math.trunc((number - wholeNumber) * 7);
+	}
+	if(distance.match(/^(month)s?$/i)) {
+		pingMonth += wholeNumber;
+		pingDay += Math.trunc((number - wholeNumber) * 30);
+	}
+	if(distance.match(/^(year|yr|y)s?$/i)) {
+		pingYear += wholeNumber;
+		pingDay += Math.trunc((number - wholeNumber) * 365);
+	}
+	if(distance.match(/^(decade|d)s?$/i)) {
+		pingYear += 10*wholeNumber;
+		pingYear += Math.trunc((number - wholeNumber) * 10);
+	}
+	if(direction == "past") {
+		pingYear *= -1;
+		pingMonth *= -1;
+		pingDay *= -1;
+		pingHour *= -1;
+		pingMinute *= -1;
+	}
+	pingYear += currenttime.getFullYear();
+	pingMonth += currenttime.getMonth();
+	pingDay += currenttime.getDate();
+	pingHour += currenttime.getHours();
+	pingMinute += currenttime.getMinutes();
+
+	return new Date(pingYear, pingMonth, pingDay, pingHour, pingMinute, 0, 0);
 }
 function setTheDate (splitter) {								//creates a YY.MM.DD format with a given divider
 	let the_time = new Date();
@@ -442,7 +553,10 @@ function convertBases(digit, currentBase, newBase){ 			//converts from any base 
 		negFlag = true;
 	}
 	let equiv = convertDecimal(digit, currentBase);
-	if(newBase != 10) {
+	if(newBase == 1) {
+		equiv = parseInt(Array(equiv).fill(1).join(""));
+	}
+	else if(newBase != 10) {
 		let digitString = String(digit);
 		let equivString = "";
 		while(equiv > 0) {
@@ -470,6 +584,7 @@ exports.globalCapture = globalCapture;
 exports.cloneObj = cloneObj;
 exports.objSort = objSort;
 exports.spliceArray = spliceArray;
+exports.clearElements = clearElements;
 exports.addIfNew = addIfNew;
 exports.avgArray = avgArray;
 exports.medianArray = medianArray;
@@ -480,9 +595,13 @@ exports.lastIndex = lastIndex;
 exports.lastElement = lastElement;
 
 exports.xor = xor;
+exports.findExclusive = findExclusive;
 exports.rand = rand;
 exports.shuffle = shuffleArray;
+exports.shuffleArray = shuffleArray;
 exports.timeSince = timeSince;
+exports.timeConversion = timeConversion;
+exports.setTimeDistance = setTimeDistance;
 exports.setTheDate = setTheDate;
 exports.nextSquare = nextSquare;
 

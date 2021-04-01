@@ -342,7 +342,6 @@ function newSearchCards(library,searchstring,needleWeight) {  //main search func
 	return bestMatch[0];
 }
 function searchPack(pack,searchstring) { //pack search function
-	pack = draft.packs[pack].cards
 	if(pack.hasOwnProperty(searchstring))
 		return searchstring; //if there is an exact match, it sends that
 	let bestMatch = ["no",2];
@@ -609,7 +608,7 @@ function generateScryCode (thisCheck, library, flags) { //makes the function for
 			};
 		}
 	}
-	if(thisCheck.match(/c(i|olor)?(:| ?[<>=]{1,2})/i)) { //colors
+	else if(thisCheck.match(/c(i|olor)?(:| ?[<>=]{1,2})/i)) { //colors
 		thisCheck = thisCheck.replace(":", ">=");
 		if(operMatch.match(":"))
 			operMatch = ">="
@@ -678,7 +677,7 @@ function generateScryCode (thisCheck, library, flags) { //makes the function for
 			return true;*/
 		};
 	}
-	if(thisCheck.match("in:")) {//in
+	else if(thisCheck.match("in:")) {//in
 		
 		let formatMatch = matchCheck.match(/(vintage|legacy|commander|pauper|modern|pioneer|standard|brawl|historic|h|v|type1.5|type1|type2|edh|pi|p|1.5|1|2)$/);
 		if(library.name == "magic" && formatMatch) {
@@ -729,7 +728,7 @@ function generateScryCode (thisCheck, library, flags) { //makes the function for
 			}
 		}
 	}
-	if(thisCheck.match(/^(adds|produces)/i)) {//adds
+	else if(thisCheck.match(/^(adds|produces)/i)) {//adds
 		matchCheck = matchCheck.toUpperCase();
 		let checkArray = matchCheck.match(/([0-9]+|W+|U+|B+|R+|G+|C+|M+N?O?P?Q?)/g);
 		return function(card) {
@@ -792,7 +791,7 @@ function generateScryCode (thisCheck, library, flags) { //makes the function for
 			return true; //if it gets through all the colors
 		};
 	}
-	if(thisCheck.match("is:")) {//is
+	else if(thisCheck.match("is:")) {//is
 		if(matchCheck.match(/funny/i)) {// is:funny
 			return function(card) {
 				if(card.rarityLine.match(/Playtest/) || library.name == "magic" && library.setData[card.setID].type == "funny")
@@ -800,86 +799,93 @@ function generateScryCode (thisCheck, library, flags) { //makes the function for
 				return false;
 			}
 		}
-		if(matchCheck.match(/spell/i)) {// is:spell
+		else if(matchCheck.match(/spell/i)) {// is:spell
 			return function(card) {
 				if(card.typeLine.match(/Instant|Sorcery/i))
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/permanent/i)) {// is:permanent
+		else if(matchCheck.match(/permanent/i)) {// is:permanent
 			return function(card) {
 				if(card.typeLine.match(/Artifact|Creature|Enchantment|Land|Planeswalker/i))
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/historic/i)) {// is:historic
+		else if(matchCheck.match(/historic/i)) {// is:historic
 			return function(card) {
 				if(card.typeLine.match(/Artifact|Legendary|Saga/i))
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/storied/i)) {// is:storied
+		else if(matchCheck.match(/storied/i)) {// is:storied
 			return function(card) {
 				if(card.typeLine.match(/Enchantment|Legendary/i))
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/split/i)) {// is:split
+		else if(matchCheck.match(/split/i)) {// is:split
 			return function(card) {
 				if(card.shape.match(/split/i))
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/transform/i)) {// is:transform
+		else if(matchCheck.match(/transform/i)) {// is:transform
 			return function(card) {
 				if(card.shape.match(/doubleface/i))
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/leveler/i)) {// is:leveler
+		else if(matchCheck.match(/leveler/i)) {// is:leveler
 			return function(card) {
 				if(card.shape.match(/leveler/i))
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/saga/i)) {// is:saga
+		else if(matchCheck.match(/saga/i)) {// is:saga
 			return function(card) {
 				if(card.typeLine.match(/Saga/i))
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/vanilla/i)) {// is:vanilla
+		else if(matchCheck.match(/vanilla/i)) {// is:vanilla
 			return function(card) {
 				if(card.rulesText == "")
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/hybrid/i)) {// is:hybrid
+		else if(matchCheck.match(/hybrid/i)) {// is:hybrid
 			return function(card) {
-				if(card.color.match("/") && card.manaCost.match("/"))
+				if((card.color.match("/") && card.manaCost.match("/")) || card.manaCost.match(/\d+\//)) //W/U and 2/W
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/useless/i)) { //is:useless island
+		else if(matchCheck.match(/useless/i)) { //is:useless island
 			return function(card) {
 				if(card.cardName.match("Island") && card.setID.match("XLN"))
 					return true;
 				return false;
 			};
 		}
-		if(matchCheck.match(/scuttleback/i)) { //is:scuttleback
+		else if(matchCheck.match(/scuttleback/i)) { //is:scuttleback
 			return function(card) {
 				if(card.typeLine.match(/\b(Crab|Fish|Jellyfish|Kraken|Leviathan|Merfolk|Nautilus|Octopus|Oyster|Pirate|Seal|Serpent|Sponge|Squid|Starfish|Trilobite|Turtle|Whale|Island)\b/))
+					return true;
+				return false;
+			};
+		}
+		else if(matchCheck.match(/tale/i)) { //is:scuttleback
+			return function(card) {
+				if(card.typeLine2.match(/\bTale\b/))
 					return true;
 				return false;
 			};
@@ -889,6 +895,44 @@ function generateScryCode (thisCheck, library, flags) { //makes the function for
 			if(card.hasOwnProperty("notes") && card.notes.includes(matchCheck))
 				return true;
 			return false;
+		}
+	}
+	else if(thisCheck.match("kw:")) {
+		let kwChecker;
+		if(matchCheck.match("target")) { //target is special
+			kwChecker = function(oracle) {
+				let matches = oracle.match(/["“][^”"]*[”"]|(target)/ig);		//gets target, or string of targeting ability
+				if(matches.contains("Target") || matches.contains("target"))	//so if one is just Target, its a match
+					return true;
+				return false;													//otherwise its a fake friend
+			};
+		}
+		else{ //normal keywords
+			let baseReg = new RegExp("^.*\b" + matchCheck + "\b.*$", 'img');
+			let frontReg = new RegExp("(^\b" + matchCheck + "\b|" + matchCheck + "\b(?![^.]*\.)", 'i');
+			let gainReg = new RegExp("((has|have|gets?|gains?|with|without|loses?)[^\.]+\b" + matchCheck + "\b|\b" + matchCheck + "\b (counter|ability))", 'i')
+			let chooseReg = new RegExp("(your choice|choose|same is true) [^\.]+\b" + matchCheck + "\b", 'i')
+			kwChecker = function(oracle) {
+				let baseMatch = oracle.match(baseReg);	//array of all matches
+				for(let m in baseMatch) {
+					if(baseMatch[m].match(frontReg))
+						return true; //matches in a keyword soup
+					if(baseMatch[m].match(gainReg) || baseMatch[m].match(chooseReg))
+						continue; //matches in X counter, X ability, with/gains/loses X or gains your choice of X, skip
+					//if we have any other instance of the word, it should be an action keyword like exert
+					return true;
+				}
+				return false; //no matches
+			};
+		}
+		return function(card) {
+			let oracle = thisCard.rulesText.replace(/\*?\([^)]\)\*?/g, '');
+			oracle = oracle.replace(thisCard.cardName, "");
+			/*if(thisCard.rulesText2) {
+				oracle += thisCard.rulesText2.replace(/\*?\([^)]\)\*?/g, '');
+				oracle = oracle.replace(thisCard.cardName, "");
+			}*/
+			return kwChecker(oracle);
 		}
 	}
 	return function() {return true} //if something else slipped through, call it true (ignore the key, otherwise nothing will match)
@@ -912,6 +956,10 @@ function formatScryfallKeys (string) {
 	string = string.replace(/comp(anion)?: ?keruga/ig, "cmc>=3");
 	string = string.replace(/comp(anion)?: ?lurrus/ig, "(cmc<=2 or -is:permanent)");
 	string = string.replace(/comp(anion)?: ?zirda/ig, '(t:equipment or fo:/^[^"]*:[^"]*$/ or o:/^Cycling/ or t:"Land Creature") is:permanent');
+	string = string.replace(/f(irst)?m(ate)?: ?hugo/ig, 'cmc=0 or cmc=1 or cmc=3');
+	string = string.replace(/f(irst)?m(ate)?: ?mable/ig, 't:Instant or kw:Flash');
+	string = string.replace(/f(irst)?m(ate)?: ?marisa/ig, 'kw:destroy or kw:mill or kw:graveyard or kw:die or kw:dying');
+	string = string.replace(/f(irst)?m(ate)?: ?searle/ig, 'kw:target');
 	return string
 }
 function escapify(string) {return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');}

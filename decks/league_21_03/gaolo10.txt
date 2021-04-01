@@ -1,0 +1,158 @@
+<html>
+<head>
+<style>
+table td { 
+	display: table-cell;
+	vertical-align: top;
+	float: left;
+	width: 140px;
+	font-family: "Garamond";
+	padding: 3px;
+}
+h4 {
+	font-family: "Arial Black";
+	color: #778899;
+}
+</style>
+<script language="JavaScript">
+	function change(elId) {
+	  document.getElementById('pic').src = document.getElementById(elId).getAttribute("url");
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		document.getElementById('card1').addEventListener('mouseover', function() {
+			change('card1');
+		});
+		document.getElementById('card2').addEventListener('mouseover', function() {
+			change('card2');
+		});
+		document.getElementById('card3').addEventListener('mouseover', function() {
+			change('card3');
+		});
+		document.getElementById('card4').addEventListener('mouseover', function() {
+			change('card4');
+		});
+		document.getElementById('card5').addEventListener('mouseover', function() {
+			change('card5');
+		});
+		document.getElementById('card6').addEventListener('mouseover', function() {
+			change('card6');
+		});
+		document.getElementById('card7').addEventListener('mouseover', function() {
+			change('card7');
+		});
+		document.getElementById('card8').addEventListener('mouseover', function() {
+			change('card8');
+		});
+		document.getElementById('card9').addEventListener('mouseover', function() {
+			change('card9');
+		});
+		document.getElementById('card10').addEventListener('mouseover', function() {
+			change('card10');
+		});
+		document.getElementById('card11').addEventListener('mouseover', function() {
+			change('card11');
+		});
+		document.getElementById('card12').addEventListener('mouseover', function() {
+			change('card12');
+		});
+		document.getElementById('card13').addEventListener('mouseover', function() {
+			change('card13');
+		});
+		document.getElementById('card14').addEventListener('mouseover', function() {
+			change('card14');
+		});
+		document.getElementById('card15').addEventListener('mouseover', function() {
+			change('card15');
+		});
+		document.getElementById('card16').addEventListener('mouseover', function() {
+			change('card16');
+		});
+		document.getElementById('card17').addEventListener('mouseover', function() {
+			change('card17');
+		});
+		document.getElementById('card18').addEventListener('mouseover', function() {
+			change('card18');
+		});
+		document.getElementById('card19').addEventListener('mouseover', function() {
+			change('card19');
+		});
+		document.getElementById('card20').addEventListener('mouseover', function() {
+			change('card20');
+		});
+		document.getElementById('card21').addEventListener('mouseover', function() {
+			change('card21');
+		});
+		document.getElementById('card22').addEventListener('mouseover', function() {
+			change('card22');
+		});
+		document.getElementById('card23').addEventListener('mouseover', function() {
+			change('card23');
+		});
+		document.getElementById('card24').addEventListener('mouseover', function() {
+			change('card24');
+		});
+		document.getElementById('card25').addEventListener('mouseover', function() {
+			change('card25');
+		});
+	});
+</script>
+</head>
+<body>
+<hr>
+<h4>gaolo's pipsqueak's levi's Villainy</h4>
+<hr>
+<table>
+<tr>
+	<td>
+		<div><b><i>Creature (5)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/ALR/87.jpg" id="card1">4x Profane Emissary</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/66.jpg" id="card2">1x Irika, Wielder of Secrets</div>
+		<br/>
+		<div><b><i>Planeswalker (7)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/MS1/30s.jpg" id="card3">3x Mpumo, Who Stands Alone</div>
+		<div url="http://mse-modern.com/msem2/images/KOD/176.jpg" id="card4">2x All-Enduring Mafua</div>
+		<div url="http://mse-modern.com/msem2/images/MS2/8s.jpg" id="card5">2x Xanigan, the Darkened Cloud</div>
+		<br/>
+		<div><b><i>Instant (8)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/KOD/80.jpg" id="card6">4x Twilight Ambush</div>
+		<div url="http://mse-modern.com/msem2/images/KOD/217.jpg" id="card7">4x Pith Wilt</div>
+		<br/>
+		<div><b><i>Sorcery (8)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/STN/35a.jpg" id="card8">4x Descend on the Helpless</div>
+		<div url="http://mse-modern.com/msem2/images/STN/35b.jpg" id="card9">(Transformed)</div>
+		<div url="http://mse-modern.com/msem2/images/UNR/90.jpg" id="card10">4x Prying Inquiry</div>
+		<br/>
+		<div><b><i>Enchantment (8)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/ZER/89.jpg" id="card11">4x Dark Bargain</div>
+		<div url="http://mse-modern.com/msem2/images/101/52.jpg" id="card12">4x Villainy</div>
+		<br/>
+
+	</td>
+	<td>
+		<div><b><i>Land (24)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/L/19.jpg" id="card13">4x Barren Desolation</div>
+		<div url="http://mse-modern.com/msem2/images/KZD/242.jpg" id="card14">4x Grim Bastion</div>
+		<div url="http://mse-modern.com/msem2/images/KZD/241.jpg" id="card15">3x Flooded Depths</div>
+		<div url="http://mse-modern.com/msem2/images/PFP/194.jpg" id="card16">4x Arctic Mine</div>
+		<div url="http://mse-modern.com/msem2/images/TOW/247.jpg" id="card17">4x Gloomcover Steppe</div>
+		<div url="http://mse-modern.com/msem2/images/AFM/252.jpg" id="card18">3x Swamp</div>
+		<div url="http://mse-modern.com/msem2/images/DYA/221.jpg" id="card19">2x Snow-Covered Swamp</div>
+		<br/>
+	<br/>
+		<div><b><i>Sideboard (15)</i></b></div>
+		<div url="http://mse-modern.com/msem2/images/DSS/225.jpg" id="card20">1x Tabia of the Lionheart</div>
+		<div url="http://mse-modern.com/msem2/images/TWR/98.jpg" id="card21">3x Seal the Tomb</div>
+		<div url="http://mse-modern.com/msem2/images/DOA/60.jpg" id="card22">4x Duress</div>
+		<div url="http://mse-modern.com/msem2/images/TOJ/86.jpg" id="card23">2x Stolen Secrets</div>
+		<div url="http://mse-modern.com/msem2/images/WAY/81.jpg" id="card24">2x Thievery</div>
+		<div url="http://mse-modern.com/msem2/images/EAU/120.jpg" id="card25">3x Vibrant Rapture</div>
+		<br/>
+
+	</td>
+	<td>
+		<img class="trans" id="pic" src="https://upload.wikimedia.org/wikipedia/en/a/aa/Magic_the_gathering-card_back.jpg" alt="" height="350" width="250" />
+</td>
+</tr>
+</body>
+</html>
