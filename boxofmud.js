@@ -65,3 +65,6 @@ function dropboxDownload(path, downLink, callback, big) {	//downloads from dropb
 exports.dbx = dbx;
 exports.dropboxDownload = dropboxDownload;
 exports.dropboxUpload = dropboxUpload;
+exports.sendDBX = function() {
+	return dbx;
+};

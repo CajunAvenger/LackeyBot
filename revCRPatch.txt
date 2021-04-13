@@ -1,0 +1,192 @@
+“”
+R1. Revolution Game Concepts
+R111. Revolution Tokens
+
+R2. Expanded Parts of a Card
+R205. Expanded Typeline
+
+R6. Spells, Abilities, and Effects
+601. Casting Spells
+R603. Handling Triggered Abilities
+
+R7. Additional Revolution Rules
+R701. Revolution Keyword Actions
+R702. Revolution Keyword Abilities
+
+Glossary
+
+Credits
+
+R111. Revolution Tokens
+
+R111.10f A Glyph token is a colorless Glyph artifact token with “{1}, Sacrifice this artifact: Scry 1.”
+
+R205. Revolution Additional Subypes
+
+R205.3g Artifacts have an expanded set of artifact types. The additional types are Glyph, Idol, and Monument.
+
+R205.3j Planeswalkers have an expanded set of planeswalker types. The additional types are Alonzo, Ameret, Amos, Bessie, Cedric, Foug, Ghariv, Jorah, Jericho, Karina, Keseran, Lhosei, Lucien, Luma, Sanaito, Sigrid, and Solara.
+
+R205.3k Instants and sorceries have an expanded set of spell types. The additional types are Mantra and Revelation.
+
+R205.3l Creatures and tribals have an expanded set of creature types. The additional types are Bard, Farmer, Giraffe, Seal, Tapir, Totem, and Weasel.
+
+R205.4. Revolution Additonal Supertypes
+
+R205.4a Objects have an expanded set of supertypes. The additional supertype is totemic.
+
+R205.4i If an object with the supertype “totemic” would leave the battlefield, it is exiled instead.
+
+601.2b If the spell is modal, the player announces the mode choice (see rule 700.2). If the number of choices has a currently undefined value, such as “Choose X”, the player chooses any number of modes. When the spell's legality is checked (rule 601.2e), if the value is still undefined or the value does not match the choices made, the spell is illegal. If the player wishes to splice any cards onto the spell (see rule 702.46), they reveal those cards in their hand. If the spell has alternative or additional costs that will be paid as it's being cast such as buyback or kicker costs (see rules 118.8 and 118.9), the player announces their intentions to pay any or all of those costs (see rule 601.2f). A player can't apply two alternative methods of casting or two alternative costs to a single spell. If the spell has a variable cost that will be paid as it's being cast (such as an {X} in its mana cost; see rule 107.3), the player announces the value of that variable. If the value of that variable is defined in the text of the spell by a choice that player would make later in the announcement or resolution of the spell, that player makes that choice at this time instead of that later time. If a cost that will be paid as the spell is being cast includes hybrid mana symbols, the player announces the nonhybrid equivalent cost they intend to pay. If a cost that will be paid as the spell is being cast includes Phyrexian mana symbols, the player announces whether they intend to pay 2 life or the corresponding colored mana cost for each of those symbols. Previously made choices (such as choosing to cast a spell with flashback from a graveyard or choosing to cast a creature with morph face down) may restrict the player's options when making these choices.
+
+R603 Handling Triggered Abilities, Revolution Patch
+
+R603.13. Some objects have a triggered ability that has an optional effect that can be done a limited number of times each turn. Once the option has been chosen that limited number of times for that object in a turn, it can't be chosen again that turn and the ability will stop triggering for the turn.
+Example: An ability reads “Once each turn, when you discard a card, you may draw a card.” If you discard two cards simultaneously, the ability will trigger twice. If you choose to draw a card when the first ability resolves, you will be unable to draw a card when the second resolves. If you then discard another card this turn, the ability won't trigger at all.
+
+R700. Additional Revolution Rules
+
+R700.1. The term wastes refers to a permanent named Wastes. A permanent is nonwastes if it's not named Wastes.
+
+R700.2. The term commits a crime means “casts a spell on an opponent's turn or deals combat damage to an opponent with one or more creatures.”
+
+R700.3. The term reverent refers to an object that is an Angel, a Cleric, or a Demon.
+
+R701. Additional Revolution Keyword Actions
+
+R701.1. Journey
+
+R701.1a “Journey” means “Exile the top card of your library. That card becomes journeyed.”
+
+R701.1b There is an inherent triggered ability associated with journeying. The full text of this ability is “Whenever a creature deals combat damage to one of its controller's opponents, if its controller owns any journeyed cards, the creature's controller puts a journeyed card they own into their hand.” This ability has no source and is controlled by the controller of the creature which dealt the damage that caused it to trigger. This is an exception to rule 113.8.
+
+R701.1c Journeyed is a designation that has no rules meaning other than to act as a marker that the inherent triggered ability and other spells and abilities can identify. Only cards in exile can gain or have this designation. Once a card becomes journeyed, it stays journeyed until it leaves exile or becomes a new object (see rule 406.7). Journeyed is neither an ability nor part of the card's copiable values.
+
+R702. Additional Revolution Keyword Abilities
+
+R701.2. Waste
+
+R701.2a To waste a permanent means to create a continuous effect. The permanent's name is changed to Wastes, it becomes a basic land, gains “{T}: Add {C},” and loses all other supertypes, card types, subtypes, and abilities.
+
+R702.1. Accomplice
+
+R702.163a Accomplice is a triggered ability. “Accomplice” means “Whenever another creature you control attacks, you may tap this creature.”
+
+R702.163b A creature “becomes an accomplice to [a creature]” when the former creature is tapped as a result of a resolving accomplice ability that triggered from the latter creature's being declared as an attacker. The latter creature is also called the creature the former creature accompliced.
+
+R702.2. Undercover
+
+R702.2a Undercover is a static ability that functions in any zone from which you could play the card it's on, and the undercover effect works any time the card is face down. “Undercover [cost]” means “You may cast this card as a 2/2 face-down creature with no text, no name, no subtypes, and no mana cost by paying {3} rather than paying its mana cost.” (See rule 707, “Face-Down Spells and Permanents.”)
+
+R702.2b To cast a card using its undercover ability, turn it face down. It becomes a 2/2 face-down creature card with no text, no name, no subtypes, and no mana cost. Any effects or prohibitions that would apply to casting a card with these characteristics (and not the face-up card's characteristics) are applied to casting this card. These values are the copiable values of that object's characteristics. (See rule 613, “Interaction of Continuous Effects,” and rule 706, “Copying Objects.”) Put it onto the stack (as a face-down spell with the same characteristics), and pay {3} rather than pay its mana cost. This follows the rules for paying alternative costs. You can use an undercover ability to cast a card from any zone from which you could normally play it. When the spell resolves, it enters the battlefield with the same characteristics the spell had. The undercover effect applies to the face-down object wherever it is, and it ends when the permanent is exiled or turned face up.
+
+R702.2c If a face-down permanent that was cast for its undercover cost would die, instead its controller exiles it face down. No player looks at or reveals the card as it's exiled. This is an exception to rules 400.6 and 707.9. The player who exiled it may look at the exiled card and may play it for as long as it remains exiled, but can't play it face down this way. If the exiled card leaves exile, becomes a new object (see rule 406.7), its owner leaves the game, or the game ends, the card must be revealed to all players.
+
+R702.2d See rule 707, “Face-Down Spells and Permanents,” for more information about how to cast cards with undercover.
+
+R702.3. Experience
+
+R702.3a Experience is a triggered ability. “Experience” means “Whenever this creature attacks, if it has two or fewer +1/+1 counters on it, put a +1/+1 counter on it.”
+
+R702.3b If a creature with experience has three or more +1/+1 counters on it as the ability tries to resolve, it will have no effect.
+
+R702.4. Harness
+
+R702.4a “Harness” means “As an additional cost to cast this spell, you may tap an untapped creature you control. This spell costs {X} less to cast, where X is that creature's power.”
+
+R702.4b The creature tapped this way “harnesses” that spell.
+
+R702.5. Invoke
+
+R702.5a Invoke appears on some double-faced cards. It represents a static abilities that functions while the card with invoke is in a player's graveyard. “Invoke (cost)” means “If you don't control a Totem creature, create a 0/0 colorless Totem creature token. Then put this card onto the battlefield transformed. Activate only as a sorcery.”
+
+R702.5b If the transformed permanent has no legal targets, it will still enter the battlefield, then be put into its owner's graveyard (or exiled if it's a totemic permanent) the next time state-based effects are checked.
+
+R702.6. Master
+
+R702.6a Master is a triggered ability of some permanents.
+
+R702.6b “Master of [name]” means “When this permanent enters the battlefield, search your library for a card named [name], reveal it, put it into your hand, then shufle.”
+
+R702.6c “Master of any [quality]” means “When this permanent enters the battlefield, search your library for a [quality] card, reveal it, put it into your hand, then shufle.”
+
+R702.7. Unite
+
+R702.7a Unite is a triggered ability of some creatures. “Unite with [amount] creatures” means “Whenever this creatures attacks, if it has no +1/+1 counters on it, you may tap [amount] untapped creatures you control. If you do, put a +1/+1 counter on this creature.”
+
+R702.7b A creature “unites creatures” whenever creatures are tapped as part of its unite ability.
+
+R702.8. Coalesce
+
+R702.8a Coalesce appears on Revelation cards. It represents two static abilities: one that functions while the card is in a player's graveyard and another that functions while the card is on the stack. “Coalesce (cost)” means “You may cast this card from your graveyard by paying (cost) rather than paying its mana cost” and “If the coalesce cost was paid, put this card onto the battlefield as a Horror creature. If it would leave the battlefield, exile it instead of putting it anywhere else.”
+
+R702.9. Propagate
+
+R702.9a Propagate is a triggered ability. “Propagate N” means “When this permanent enters the battlefield, you may put N +1/+1 counters on it. If you don’t, create N 0/1 colorless Eldrazi Spawn creature tokens with 'Sacrifice this creature: Add {C}.'”
+
+R702.9b If a permanent has multiple instances of proagate, each triggers separately.
+
+R702.10. Glory
+
+R702.10a Glory is a triggered ability. “Glory” means “When this creature dies while attacking, return it to the battlefield transformed.”
+
+R702.10b The permanent will return under the control of whoever controlled triggered ability, usually whoever controlled the creature when it died.
+
+Glossary
+
+Accomplice
+A keyword ability that lets a player tap a creature when another creature attacks for some effect. See rule R702.1, “Accomplice.”
+
+Coalesce
+A keyword ability that lets a player cast a card from their graveyard, which then enters as a Horror creature. See rule R702.8, “Coalesce.”
+
+Commit a crime
+A player commits a crime when they cast a spell during another players turn, or one or more creatures they control deal combat damage to a player. See rule R700.2, “Commits a crime.”
+
+Experience
+A keyword ability that puts a +1/+1 counter on a creature when it attacks, up to three times. See rule R702.3, “Experience.”
+
+Glory
+A keyword of creatures that returns them to the battlefield transformed when they die attacking. See rule R702.10, “Glory.”
+
+Glyph
+A predefined token that can be sacrificed to scry. See rule R111.10f.
+
+Harness
+A keyword ability that lets you tap creatures rather than pay mana to cast a spell. See rule R702.4, “Harness.”
+
+Invoke
+A keyword ability that turns spells from your graveyard into powerful Auras for a single Totem creature. See rule R702.5, “Invoke.”
+
+Journey
+A keyword action that exiles the top card of a players library, and returns one of those cards to their hand whenever a creature they control deals combat damage to a player. See rule R701.1, “Journey.”
+
+Master
+A keyword ability that lets you search for a particular card when a permanent enters. See rule R702.6, “Master.”
+
+Nonwastes
+Any land that is not named Wastes is considered nonwastes. See rule R700.1, “Wastes”
+
+Perennial trigger
+A special kind of trigger that resolves only once each turn. See rule R603.13.
+
+Propagate
+A keyword ability that lets you choose whether to create Eldrazi Spawn tokens or put +1/+1 counters on a creature. See rule 702.9, “Propagate.”
+
+Reverent
+An object is reverent if it's an Angel, a Cleric, or a Demon. See rule R700.3, “Reverent.”
+
+Totemic
+A supertype associated with the invoke keyword. A totemic permanent is exiled if it would leave the battlefield. See rule R205.4i.
+
+Undercover
+A keyword ability that lets a player cast a spell face-down, then after it dies cast it face-up. See rule R702.2, “Undercover.”
+
+Unite
+A keyword ability that lets you tap creatures to put a +1/+1 counter on an attacking creature. See rule R702.7, “Unite.”
+
+Waste
+A keyword action that turns a land into Wastes, a colorless basic land named Wastes with “{T}: Add {C}” and no other characteristics. This land may also be referred to as “a wastes.” See rule R701.2, “Waste.”
+
+Credits
+it me

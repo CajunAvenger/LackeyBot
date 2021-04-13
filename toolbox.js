@@ -429,7 +429,8 @@ function convertNumbers (number) { 								//converts numbers +-999,999,999,999 
 		}
 		//output = output.replace(/, $/,"");
 		return output;
-	}else if(typeof number == 'string') {
+	}
+	else if(typeof number == 'string') {
 		let numArray = [ 'zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety','hundred','thousand','million','billion'];
 		let valArray = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30,40,50,60,70,80,90,100,1000,1000000,1000000000];//,1000000000000,1000000000000000,1000000000000000000,1000000000000000000000,1000000000000000000000000,1000000000000000000000000000,1000000000000000000000000000000,1000000000000000000000000000000000];
 		let finalResult = 0;
@@ -610,6 +611,7 @@ exports.dateToNumber = dateToNumber;
 exports.toTitleCase = toTitleCase;
 exports.fillLength = fillLength;
 exports.stripEmoji = stripEmoji;
+exports.windex = windex;
 exports.ordinalize = ordinalize;
 exports.writeIndexes = writeIndexes;
 

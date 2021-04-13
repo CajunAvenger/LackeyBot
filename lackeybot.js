@@ -22,7 +22,6 @@ var Discord = require('discord.js');
 var Client = eris.Client();
 var arcana = require('./arcana.js');				//handles all the card databases
 arcana.buildReference(arcana);							//build reference data
-var cardShark = require('./cardShark.js');			//handles card commands
 const fuzzy = require('./fuzzy.js');				//handles the general search engine
 var dbx = require('./boxofmud.js');					//handles dropbox
 var draftBots = require('./draftBots');				//handles draftBots
@@ -32,6 +31,7 @@ var games = require('./games.js');					//handles games
 var help = require('./help.js');					//handles help messages
 var imgManip = require('./imgManip.js');			//handles image editing
 const mod_magic = require('./magic.js');			//handles Magic-specific coding
+let psScrape = require('./psScrape.js');			//handles PS fetching
 var statDexHandler = require('./statDex.js');		//handles the statDex analysis
 const toolbox = require('./toolbox.js');			//personal toolbox scripts
 var quoteDexScripts = require('./quotedex.js');		//testing scripts for $q command
@@ -91,11 +91,15 @@ setInterval(() => { //this will reset the self-destruct switch and current game 
 setInterval(() => { //this will check the reminderBase every minute
 	if(botname != "TestBot" && !offline) {
 		remindScripts.checkReminders();
-		if(version.logLater['draft']) { //todo put this back in the brackets
+		if(version.logLater['draft']) {
 			version.logDraft(draftDexScripts.sendDex());
 			version.logLater['draft'] = false;
 		}
 	}
+		if(version.logLater['match']) {
+			version.logMatch(matchDexScripts.sendMatch());
+			version.logLater['match'] = false;
+		}
 }, 60000);	
 //Search Engine
 function searchCards(library,searchstring,msg) {			//main search function	
@@ -388,11 +392,11 @@ function buildCardFetchEmbed(outputArray, arcanaData, mainArcanaName, strings, m
 	return [content, searchStrings, textPages.length]
 }
 //Bot Management
-function sigtermOperations(loud) {
+function sigtermOperations(msg) {
 	if(!offline) { //possible to get sigterm'd multiple times, only fire it the first
 		offline = true;	//stop responding to commands
 		queueing = true; //TODO queue up discord commands, we might be able to answer them after reset. need to refactor some to do that.
-		version.logStats();
+		version.logStats(stats.stats());
 		if(version.logLater["reminder"])
 			version.logReminders();
 		if(version.logLater["match"])
@@ -401,11 +405,15 @@ function sigtermOperations(loud) {
 			version.logDraft();
 		setInterval(function(){ //while working on async operations, add them to the writing array. async operations won't fire while queueing.
 			if(!version.writingArray().length) {	//recheck once a second, and close the process once we're done.
-				if(loud)
-					eris.pullPing(admin).send("Files recorded.")
-				process.exit(0)
+				if(msg) {
+					msg.channel.send("Files recorded.")
+						.then(m => process.exit(0))
+						.catch(e => console.log(e))
+				}else{
+					process.exit(0);
+				}
 			}
-		}, 1000)
+		}, 2000)
 	}
 }
 function checkRank(msg) {									//checks the rank of a poster
@@ -480,7 +488,7 @@ Client.on("message", (msg) => {								//this is what runs every time LackeyBot 
 	try{//admin/debugging commands
 		if(admincheck.includes(0)) {							//commands limited to bot admin
 			if(msg.content.match(/!shutdown/i))
-				sigtermOperations(true); //safely shut down lackeybot
+				sigtermOperations(msg); //safely shut down lackeybot
 			if(msg.content.match("hey lackeybot does your library support replies yet?"))
 				msg.reply("What's it look like?")
 			let newGameMatch = msg.content.match(/!game ([^\n]+)/)
@@ -630,7 +638,7 @@ Client.on("message", (msg) => {								//this is what runs every time LackeyBot 
 				stats.upBribes(1);
 			}
 		}
-		cardShark.messageHandler(msg, admincheck);
+		arcana.messageHandler(msg, admincheck);
 		devDexScripts.messageHandler(msg, admincheck);
 		draftDexScripts.messageHandler(msg, admincheck);
 		dysnomia.messageHandler(msg, admincheck);
@@ -670,12 +678,12 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 	}
 	if(user.id == Client.user.id)
 		return;
-	if(user.id == admin || !offline) { //only reacts to admin in offline mode
+	if(!offline || user.id == admin) { //only reacts to admin in offline mode
 		try{ //in a try/catch in case anything goes wrong
 			let msg = message.message;
 			let emittedEmote = message._emoji.name;
 			let removeThisReact = function() {
-				if(msg.channel.type != "dm")
+				if(msg.channel.type != "dm" && message._emoji.reaction)
 					message._emoji.reaction.users.remove(user)
 			}
 			let emitData = { message: message, user: user}
@@ -703,7 +711,7 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 							let pickMatch = embedData.title.match(/^Pack 1, Pick 1: ([^\n]+)/)
 							let psBotTurn = embedData.title.match(/Planesculptors search results for: ([^\n]+)/i);
 							let leagueTurn = embedData.title.match(/^(.*) League Info/);
-							if(embedData.title.match(/self-assignable/i) && msg.guild && roleDex.guilds.hasOwnProperty(msg.guild.id)) { //self-assignable role pages
+							if(embedData.title.match(/self-assignable/i) && roleDexScripts.liveGuild(msg.guild.id)) { //self-assignable role pages
 								let pageCheck = embedData.footer.text.match(/Page ([0-9]+)\/([0-9]+)/);
 								let embedBuild = function(thisPage) {return roleDexScripts.buildRoleEmbed(msg.guild.id, thisPage, textFlag)[0]};
 								eris.turnEmbedPage(emitData, pageCheck, embedBuild, update, textFlag);
@@ -869,7 +877,7 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 								}
 							}
 						}
-						else if(embedData.description) { //embeds that depend on description data
+						if(embedData.description) { //embeds that depend on description data
 							let searchTurn = embedData.description.match(arcana.refSheet.searchRegex)
 							let hangCheck = embedData.description.match(/(Guess the card|Hangman is in plaintext mode.)/);
 							let scodeCheck = embedData.description.match(/(Magic|MSEM|devDex) Set Codes/);
@@ -904,9 +912,9 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 										switchFlag = true;
 										break;
 								}
-								let embedBuild = function(thisPage) {return buildSearchEmbed(searchTurn[2], database, thisPage, imageFlag, textFlag)[0]};
+								let embedBuild = function(thisPage) {return arcana.buildSearchEmbed(searchTurn[2], database, thisPage, imageFlag, textFlag)[0]};
 								if(pageFlag)
-									embedBuild = function() {return buildSearchEmbed(searchTurn[2], database, -1, imageFlag, textFlag)[0]};
+									embedBuild = function() {return arcana.buildSearchEmbed(searchTurn[2], database, -1, imageFlag, textFlag)[0]};
 								eris.turnEmbedPage(emitData, pageCheck, embedBuild, update, textFlag);
 							}
 							else if(hangCheck && !embedData.footer.text.match(/^Game over/)) { //hangman games
@@ -915,9 +923,9 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 							else if(scodeCheck) {  //flip setcode pages
 								let pageCheck = embedData.footer.text.match(/Page ([0-9]+)\/([0-9]+)/);
 								let database = arcana.libFromBig(scodeCheck[1]);
-								let embedBuild = function(thisPage) {return cardShark.buildSetsEmbed(database, thisPage, textFlag)[0]};
+								let embedBuild = function(thisPage) {return arcana.buildSetsEmbed(database, thisPage, textFlag)[0]};
 								//if(pageFlag)
-								//	embedBuild = function() {return cardShark.buildSetsEmbed(database, -1, textFlag)[0]};
+								//	embedBuild = function() {return arcana.buildSetsEmbed(database, -1, textFlag)[0]};
 								eris.turnEmbedPage(emitData, pageCheck, embedBuild, update, textFlag);
 							}
 							else if(embedData.description.match(/^Need more time/)){
@@ -956,22 +964,24 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 								}
 							}
 						}
-						else{//embeds that depend on footer data
+						{//embeds that depend on footer data
 							if(embedData.footer.text.match(/^Previous/)) {	//cr embed
+								let libname = embedData.footer.text.match(/([^\n ]+) Comprehensive Rules/)[1];
+								libname = arcana.libFromBig(libname)
 								if(emittedEmote == leftArrow) {
 									let crCheck = embedData.footer.text.match(/Previous ([^\n]+)/);
 									if(crCheck) {
-										let embedBuild = buildCREmbed(crCheck[1], textFlag)
+										let embedBuild = arcana.buildCREmbed(crCheck[1], libname, textFlag)
 										msg.edit(embedBuild[0], embedBuild[1])
 									}
 								}else if(emittedEmote == rightArrow) {
 									let crCheck = embedData.footer.text.match(/Next ([^\n]+)/);
 									if(crCheck) {
-										let embedBuild = buildCREmbed(crCheck[1], textFlag)
+										let embedBuild = arcana.buildCREmbed(crCheck[1], libname, textFlag)
 										msg.edit(embedBuild[0], embedBuild[1])
 									}
 								}else if(emittedEmote == plainText && embedData.title != "Comprehensive Rules") {
-									let embedBuild = buildCREmbed(embedData.title, textFlag)
+									let embedBuild = arcana.buildCREmbed(embedData.title, libname, textFlag)
 									msg.edit(embedBuild[0], embedBuild[1])
 								}
 								removeThisReact();
@@ -1030,7 +1040,7 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 								eris.turnEmbedPage(emitData, pageCheck, embedBuild, update, true);
 							}
 							else if(embedData.footer.text.match(/Role Reactor/)) {
-								let reactMatch = toolbox.globalCapture("React ?([^ ]+) to join ?<?@?&?([0-9]+)", msg.content);
+								let reactMatch = toolbox.globalCapture("^React ?([^ ]+)[^<]+<?@?&?([0-9]+)", msg.content);
 								if(reactMatch) {
 									for(let c in reactMatch) {
 										let thisReact = reactMatch[c];
@@ -1142,7 +1152,11 @@ Client.on('messageReactionRemove', async (message, user) =>{//functions when pos
 	let emittedEmote = message.emoji.name;
 	let emitData = {message: message, user: user}
 	let arcanaData = arcana.configureArcana(msg);
-	if(msg.author.id == Client.user.id && msg.channel.type == "dm") { //can't delete reacts in DMs, so count removals as ticks instead of double clicking
+	let embedData = msg.embeds[0];
+	let override = false;
+	if(embedData && embedData.footer && embedData.footer.text.match(/Role Reactor/))
+		override = true;
+	if(msg.author.id == Client.user.id && (msg.channel.type == "dm" || override)) { //can't delete reacts in DMs, so count removals as ticks instead of double clicking
 		let textFlag = false, update = true;
 		if((emittedEmote == plainText && message.users.cache.find(val => val.id != Client.user.id) || (emittedEmote != plainText && msg.content != "")))
 			textFlag = true; //someone reacts w/PT, or with something else in PTmode
@@ -1150,7 +1164,6 @@ Client.on('messageReactionRemove', async (message, user) =>{//functions when pos
 			textFlag = false, update = true;
 		}
 		if(update) {
-			let embedData = msg.embeds[0];
 			if((embedData && embedData.footer)) { //all reactable embeds will have a footer or switcheroo data, all unreactable embeds will not
 				if(embedData.title) { //embeds that depend on title data 
 					let inroleTurn = embedData.title.match(/List of users in ([^\n]+) role/i);
@@ -1237,7 +1250,7 @@ Client.on('messageReactionRemove', async (message, user) =>{//functions when pos
 						}
 					}
 				}
-				else if(embedData.description) { //embeds that depend on description data
+				if(embedData.description) { //embeds that depend on description data
 					let searchTurn = embedData.description.match(arcana.refSheet.searchRegex)
 					let hangCheck = embedData.description.match(/(Guess the card|Hangman is in plaintext mode.)/);
 					let scodeCheck = embedData.description.match(/(Magic|MSEM|devDex) Set Codes/);
@@ -1271,9 +1284,9 @@ Client.on('messageReactionRemove', async (message, user) =>{//functions when pos
 								switchFlag = true;
 								break;
 						}
-						let embedBuild = function(thisPage) {return buildSearchEmbed(searchTurn[2], database, thisPage, imageFlag, textFlag)[0]};
+						let embedBuild = function(thisPage) {return arcana.buildSearchEmbed(searchTurn[2], database, thisPage, imageFlag, textFlag)[0]};
 						if(pageFlag)
-							embedBuild = function() {return buildSearchEmbed(searchTurn[2], database, -1, imageFlag, textFlag)[0]};
+							embedBuild = function() {return arcana.buildSearchEmbed(searchTurn[2], database, -1, imageFlag, textFlag)[0]};
 						eris.turnEmbedPage(emitData, pageCheck, embedBuild, update, textFlag);
 					}
 					else if(hangCheck && !embedData.footer.text.match(/^Game over/)) { //hangman games
@@ -1282,26 +1295,28 @@ Client.on('messageReactionRemove', async (message, user) =>{//functions when pos
 					else if(scodeCheck) {  //flip setcode pages
 						let pageCheck = embedData.footer.text.match(/Page ([0-9]+)\/([0-9]+)/);
 						let database = arcana.libFromBig(scodeCheck[1]);
-						let embedBuild = function(thisPage) {return cardShark.buildSetsEmbed(database, thisPage, textFlag)[0]};
+						let embedBuild = function(thisPage) {return arcana.buildSetsEmbed(database, thisPage, textFlag)[0]};
 						eris.turnEmbedPage(emitData, pageCheck, embedBuild, update, textFlag);
 					}
 				}
-				else{//embeds that depend on footer data
+				{//embeds that depend on footer data
 					if(embedData.footer.text.match(/^Previous/)) {	//cr embed
+						let libname = embedData.footer.text.match(/([^ ]+) Comprehensive Rules/)[1];
+						libname = arcana.libFromBig(libname)
 						if(removedEmote == leftArrow) {
 							let crCheck = embedData.footer.text.match(/Previous ([^\n]+)/);
 							if(crCheck) {
-								let embedBuild = buildCREmbed(crCheck[1], textFlag)
+								let embedBuild = arcana.buildCREmbed(crCheck[1], libname, textFlag)
 								msg.edit(embedBuild[0], embedBuild[1])
 							}
 						}else if(removedEmote == rightArrow) {
 							let crCheck = embedData.footer.text.match(/Next ([^\n]+)/);
 							if(crCheck) {
-								let embedBuild = buildCREmbed(crCheck[1], textFlag)
+								let embedBuild = arcana.buildCREmbed(crCheck[1], libname, textFlag)
 								msg.edit(embedBuild[0], embedBuild[1])
 							}
 						}else if(removedEmote == plainText && embedData.title != "Comprehensive Rules") {
-							let embedBuild = buildCREmbed(embedData.title, textFlag)
+							let embedBuild = arcana.buildCREmbed(embedData.title, libname, textFlag)
 							msg.edit(embedBuild[0], embedBuild[1])
 						}
 					}
@@ -1344,6 +1359,22 @@ Client.on('messageReactionRemove', async (message, user) =>{//functions when pos
 						}
 						let embedBuild = function(thisPage) {return matchDexScripts.renderGPLeaderBoard(pageCheck[3], breakers, thisPage)};
 						eris.turnEmbedPage(emitData, pageCheck, embedBuild, update, true);
+					}
+					else if(embedData.footer.text.match(/Role Reactor/)) {
+						let reactMatch = toolbox.globalCapture("^React ?([^ ]+) [^<]+ ?<?@?&?([0-9]+)", msg.content);
+						if(reactMatch) {
+							for(let c in reactMatch) {
+								let thisReact = reactMatch[c];
+								let emote = thisReact[1];
+								if(emote.match(/[0-9]+>/))
+									emote = emote.match(/<:([^ ]+):([0-9]+)>/)[1];
+								if(removedEmote == emote) {
+									let role = thisReact[2];
+									Client.guilds.cache.get(msg.guild.id).members.cache.find(val => val.id == user.id).roles.remove(role).catch(console.error);
+									break;
+								}
+							}
+						}
 					}
 				}
 			}

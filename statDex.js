@@ -187,9 +187,9 @@ function fuseEntries(dex, card1, card2) {								//combines two entries, for fix
 	}
 	delete dex.cards[card2];
 }
-function addMatchesToLists(dex) {										//adds matches to old decklists
+function addMatchesToLists(dex, time) {										//adds matches to old decklists
 	for(let t in dex.tournaments){
-		if(!t.match(/21_01/)) //update here
+		if(!t.match(time)) //update here
 			continue;
 		let thisTourney = require(`./tourneyArchives/${t}_archive.json`);
 		for(let match in thisTourney.matches) {
@@ -232,10 +232,12 @@ function statPatcher() {												//update player usernames without discord
 //build dexes
 function updateStatDex(dex, decksArray) { 								//builds a statDex from an array of decklist folders
 	var archives = {};
+	var names = {}
 	for(let archive in decksArray) {
 		let thisArchive = require('./tourneyArchives/' + decksArray[archive]);
 		let tourneyName = decksArray[archive].match(/(league|gp|tuc)_[0-9][0-9]_[0-9][0-9]/);
 		archives[tourneyName[0]] = (thisArchive);
+		names[tourneyName[0]] = decksArray[archive];
 		dex.tournaments[tourneyName[0]] = [];
 	}
 	//go through the archives, grab each decklist
@@ -322,6 +324,9 @@ function updateStatDex(dex, decksArray) { 								//builds a statDex from an arr
 				}//end of lists in a player
 			}//player isn't bye
 		}//end of players in an archive
+		let tName = names[archive];
+		integrateDecklists(dex, [tName]);
+		addMatchesToLists(dex, tName.match(/[^_\/]+_[0-9][0-9]_[0-9][0-9]/));
 	}//end of archives
 	return dex;
 }
@@ -351,9 +356,11 @@ function addNewStatDexCard(dex, card) { 								//adds a new card to statDex
 	}
 	return statName;
 }
-function integrateDecklists(dex) {										//add decklists to statDex
-	dex.decklists = {};
-	dex.tournaments = {};
+function integrateDecklists(dex, archiveArray) {						//add decklists to statDex
+	if(!dex.decklists)
+		dex.decklists = {};
+	if(!dex.tournaments)
+		dex.tournaments = {};
 	console.log('Loading decklists');
 	for(let ar in archiveArray) {										//for each tourney
 		let tourney = archiveArray[ar].replace(/_archive\.json/, "");
@@ -394,12 +401,13 @@ function integrateDecklists(dex) {										//add decklists to statDex
 	}
 }
 function rebuildDex() {													//build the full dex from scratch
+	let now = new Date().getTime();
 	loadArchives(function(array) {
 		let newDex = updateStatDex({cards:{}, players: {}, decklists:{}, tournaments:{}, global:{}}, array);
-		integrateDecklists(newDex);
-		addMatchesToLists(newDex);
 		fs.writeFile('./statDexUpdate.json', JSON.stringify(newDex), function(){
 			console.log('done');
+			let later = new Date().getTime();
+			console.log(later-now);
 		})
 	});
 }
@@ -495,7 +503,7 @@ function filteredWinRate(dex, card, filters) { 							//returns general card win
 	let refCard = dex.cards[card];
 	let results = {matches:0, wins:0, losses:0};
 	if(!refCard) {
-		console.log(card);
+		//console.log(card); //maybe
 		return results;
 	}
 	for(let tourney in refCard.matches) {
@@ -927,7 +935,7 @@ function runPlayerCounts(dex, filters, minimum){						//returns array of cards t
 	return clearedArray;
 }
 function stapleGrabber() {												//returns array of is:staple cards
-	return processCommands({content:"stapleMaker rep:2 min:25 filter after:2004", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
+	return processCommands({content:"stapleMaker rep:3 min:50 filter after:2011", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
 }
 function stapleMaker(dex, filters, wr, skipThese, minMatch) {			//builds the staples code
 	let playrates = playrateGenerator(dex, filters, skipThese, minMatch);
@@ -2620,14 +2628,15 @@ function krowFinder() {
 	console.log(output);
 }
 //console.log(processCommands({content:"reuben playercardcombo [Ever-Gnawing Rat]", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5]))
-//processCommands({content:"stapleMakerPrint rep:2 min:25 filter after:2007", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
+//processCommands({content:"stapleMakerPrint rep:3 min:50 filter after:2011", author:{id:"190309440069697536", username:"Cajun"}}, "all", [5])
 //console.log(leagueFourOhs('league_20_08'))
 //let testDeck = statDexPreBuilt.decklists["/gp_20_08/cajun.json"].cards
 //testDeck = require('./decks/bluestest.json')
 //console.log(countColors(testDeck));
 //colorRipper(statDexPreBuilt, {}, skipThese)
-/*updateStatDex(statDexPreBuilt, ["gp_21_03_archive.json", "league_21_03_archive.json"])
-addMatchesToLists(statDexPreBuilt);
+/*updateStatDex(statDexPreBuilt, ["gp_21_03_archive.json"])
+addMatchesToLists(statDexPreBuilt, "21_03");
 printFixer(statDexPreBuilt);
 fs.writeFile('./statDexTest.json', JSON.stringify(statDexPreBuilt), function(){console.log("done");})
 */
+//rebuildDex();

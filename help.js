@@ -15,7 +15,7 @@ var { //emote buffet
 } = require('./emoteBuffet.js');
 var eris = require('./eris.js');
 var stats = require('./stats.js');
-var cardShark = require('./cardShark.js');
+var arcana = require('./arcana.js');
 var devDex = require('./devDex.js');
 var dysnomia = require('./dysnomia.js');
 var draftDexScripts = require('./draftDexScripts.js');
@@ -55,7 +55,7 @@ function messageHandler(msg, perms) {
 			topic = helpMatch[1].toLowerCase();
 		let output = "";
 		if(topic.match(/card/i)) {
-			output = cardShark.helpMessage(msg.author.id);
+			output = arcana.helpMessage(msg.author.id);
 		}else if(topic.match(/devDex|proect|uploadable/i)) {
 			output = devDex.helpMessage();
 		}else if(topic.match(/discord|dysnomia/i)) {

@@ -4,8 +4,8 @@
 var fs = require ('fs');
 var writeCardError = "LackeyBot couldn't find anything! Either your filters are too strict or you've found a rare ordering of letters that don't appear in a card name yet.\n";
 function symbolize(card) { //converts symbols to emotes
-	var symArray = ["W","U","B","R","G","0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","20","X","T","Q","S","E","C","2/W","2/U","2/B","2/R","2/G","W/U","U/B","B/R","R/G","G/W","W/B","U/R","B/G","R/W","G/U","W/P","U/P","B/P","R/P","G/P","A","2W","2U","2B","2R","2G","WU","UB","BR","RG","GW","WB","UR","BG","RW","GU","HW","HU","HB","HR","HG","UT"];
-	var emoArray = ["<:W:233094502640910336>","<:U:233094523012644864>","<:B:233094539970084864>","<:R:233094555346403328>","<:G:233094570705944576>","<:0:233087928111333376>","<:1:233087941465997312>","<:2:233087976723185665>","<:3:233087977377628160>","<:4:233087977855778826>","<:5:233087978300243968>","<:6:233087978342187008>","<:7:233087978350706688>","<:8:233087978409426944>","<:9:233087978413621251>","<:10:233087978417815552>","<:11:233095414390194176>","<:12:233095464222851074>","<:13:233095464428240896>","<:14:585567535794225167>","<:15:233095536889036803>","<:mana16:372421580942213120>","<:mana20:372421581101858824>","<:X:233088003591897098>","<:T:233088054674456577>","<:Q:341473311869501440>","<:S:592564384824295426>","<:E:233094452661583872>","<:C_:233094585830735872>","<:2W:624281333824356379>","<:2U:624281333350268929>","<:2B:624281333740339210>","<:2R:624281334948298752>","<:2G:624281333769961514>","<:WU:233082066831409162>","<:UB:233082236444868618>","<:BR:233082275330392064>","<:RG:233082296717017099>","<:GW:233082340417601537>","<:WB:233095081316319244>","<:UR:233095125914484737>","<:BG:233095174572605440>","<:RW:233095204649828352>","<:GU:233095244332138497>","<:PW:233095689058517002>","<:PU:233095720033452033>","<:PB:233095745371111424>","<:PR:233095765919006720>","<:PG:233095788140560385>","<:acorn:702603027621740615>","<:2W:624281333824356379>","<:2U:624281333350268929>","<:2B:624281333740339210>","<:2R:624281334948298752>","<:2G:624281333769961514>","<:WU:233082066831409162>","<:UB:233082236444868618>","<:BR:233082275330392064>","<:RG:233082296717017099>","<:GW:233082340417601537>","<:WB:233095081316319244>","<:UR:233095125914484737>","<:BG:233095174572605440>","<:RW:233095204649828352>","<:GU:233095244332138497>","<:PW:233095689058517002>","<:PU:233095720033452033>","<:PB:233095745371111424>","<:PR:233095765919006720>","<:PG:233095788140560385>","<:Q:341473311869501440>"];
+	var symArray = ["W","U","B","R","G","0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","20","X","T","Q","S","E","C","2/W","2/U","2/B","2/R","2/G","W/U","U/B","B/R","R/G","G/W","W/B","U/R","B/G","R/W","G/U","W/P","U/P","B/P","R/P","G/P","A","2W","2U","2B","2R","2G","WU","UB","BR","RG","GW","WB","UR","BG","RW","GU","HW","HU","HB","HR","HG","UT","P"];
+	var emoArray = ["<:W:233094502640910336>","<:U:233094523012644864>","<:B:233094539970084864>","<:R:233094555346403328>","<:G:233094570705944576>","<:0:233087928111333376>","<:1:233087941465997312>","<:2:233087976723185665>","<:3:233087977377628160>","<:4:233087977855778826>","<:5:233087978300243968>","<:6:233087978342187008>","<:7:233087978350706688>","<:8:233087978409426944>","<:9:233087978413621251>","<:10:233087978417815552>","<:11:233095414390194176>","<:12:233095464222851074>","<:13:233095464428240896>","<:14:585567535794225167>","<:15:233095536889036803>","<:mana16:372421580942213120>","<:mana20:372421581101858824>","<:X:233088003591897098>","<:T:233088054674456577>","<:Q:341473311869501440>","<:S:592564384824295426>","<:E:233094452661583872>","<:C_:233094585830735872>","<:2W:624281333824356379>","<:2U:624281333350268929>","<:2B:624281333740339210>","<:2R:624281334948298752>","<:2G:624281333769961514>","<:WU:233082066831409162>","<:UB:233082236444868618>","<:BR:233082275330392064>","<:RG:233082296717017099>","<:GW:233082340417601537>","<:WB:233095081316319244>","<:UR:233095125914484737>","<:BG:233095174572605440>","<:RW:233095204649828352>","<:GU:233095244332138497>","<:PW:233095689058517002>","<:PU:233095720033452033>","<:PB:233095745371111424>","<:PR:233095765919006720>","<:PG:233095788140560385>","<:acorn:702603027621740615>","<:2W:624281333824356379>","<:2U:624281333350268929>","<:2B:624281333740339210>","<:2R:624281334948298752>","<:2G:624281333769961514>","<:WU:233082066831409162>","<:UB:233082236444868618>","<:BR:233082275330392064>","<:RG:233082296717017099>","<:GW:233082340417601537>","<:WB:233095081316319244>","<:UR:233095125914484737>","<:BG:233095174572605440>","<:RW:233095204649828352>","<:GU:233095244332138497>","<:PW:233095689058517002>","<:PU:233095720033452033>","<:PB:233095745371111424>","<:PR:233095765919006720>","<:PG:233095788140560385>","<:Q:341473311869501440>","ϕ"];
 	for(let sym in symArray) {
 		let symRegex = new RegExp('\\{' + symArray[sym] + '}','g');
 		card = card.replace(symRegex, emoArray[sym]);
@@ -87,9 +87,17 @@ function writeCard(cardName,database,setDatabase,shortFlag, extra, version) { //
 			showCard += findReprints(thisCard, database)
 		return showCard;
 	}
-	showCard += "**" + thisCard.cardName.replace(/'/g, "’") + "**    " + thisCard.manaCost + "\n";
-	if(thisCard.hasOwnProperty('notes') && thisCard.notes.includes("italic"))
-		showCard = showCard.replace(/\*\*/g,"***")
+	showCard += "**";
+	if(thisCard.alias) {
+		showCard += thisCard.cardName.replace(/'/g, "’") + " *(" + thisCard.alias.replace(/'/g, "’") + ")*";
+	}else{
+		if(thisCard.hasOwnProperty('notes') && thisCard.notes.includes("italic"))
+			showCard += "*";
+		showCard += thisCard.cardName.replace(/'/g, "’");
+		if(thisCard.hasOwnProperty('notes') && thisCard.notes.includes("italic"))
+			showCard += "*";
+	}
+	showCard += "**    " + thisCard.manaCost + "\n";
 	let identMatch = thisCard.manaCost.match(/(W|U|B|R|G)/);
 	if(identMatch == null && thisCard.color != "" && thisCard.color != "{} ")
 		showCard += thisCard.color;
@@ -111,7 +119,7 @@ function writeCard(cardName,database,setDatabase,shortFlag, extra, version) { //
 		showCard = symbolize(showCard);
 		return showCard;
 	}
-	if(!thisCard.notes.includes("secretface") && (thisCard.shape == "split" || thisCard.shape == "adventure" || thisCard.shape == "aftermath" || thisCard.shape == "doubleface")) {
+	if((thisCard.notes && !thisCard.notes.includes("secretface")) && (thisCard.shape == "split" || thisCard.shape == "adventure" || thisCard.shape == "aftermath" || thisCard.shape == "doubleface")) {
 		showCard += "---\n";
 		showCard += "**" + thisCard.cardName2 + "**    " + thisCard.manaCost2 + "\n";
 	identMatch = null;
@@ -283,7 +291,7 @@ function mtgjsonBuilder (thisSet, user, library) {			//builds an mtgjson file fo
 		if(database[thisCard].setID != "BOT") {
 			if(library.name == "msem" && library.legal.masterpiece.includes(database[thisCard].fullName)) {
 				//skip illegal masterpieces
-			}else if(database[thisCard].setID == thisSet && checkPromo(thisCard, database[thisCard])){ //if its trice, skip promos
+			}else if(database[thisCard].setID == thisSet){ //if its trice, skip promos
 				cardsArray.push(thisCard);
 				leng++;
 			}
@@ -312,7 +320,7 @@ function mtgjsonCardsBuilder(nameArray, library) {			//creates the cards array f
 	for(let thisName in nameArray){
 		let thisCard = library.cards[nameArray[thisName]];
 		let thisEntry = {};
-		let reprint = library.name == "msem" && thisCard.notes.includes("reprint") && thisCard.setID != "SHRINE" && thisCard.setID != "LAIR";
+		let reprint = thisCard.notes.includes("reprint") && !thisCard.alias && thisCard.setID != "SHRINE" && thisCard.setID != "LAIR";
 		let cardNames = [thisCard.cardName, ""];
 		if(thisCard.hasOwnProperty("cardName2"))
 			cardNames[1] = thisCard.cardName2;
@@ -320,11 +328,14 @@ function mtgjsonCardsBuilder(nameArray, library) {			//creates the cards array f
 			cardNames = thisCard.hidden.split("//")
 			cardNames.push("");
 		}
+		else if(thisCard.alias) {
+			cardNames[0] += " (" + thisCard.alias + ")";
+		}
 
 		//TODO redo this
 		thisEntry.artist = thisCard.artist.replace(/ ?(on |—|-|[(]) ?(DeviantArt|DA|ArtStation|pixiv|pivix)[)]?/i, "");
 		thisEntry.convertedManaCost = thisCard.cmc;
-		thisEntry.cmc = thisCard.cmc;
+		thisEntry.faceConvertedManaCost = thisCard.cmc;
 		thisEntry.colors = arrayifyColors(thisCard.color);
 		for(let color in thisEntry.colors)
 			thisEntry.colors[color] = flipColors(thisEntry.colors[color]);
@@ -362,6 +373,8 @@ function mtgjsonCardsBuilder(nameArray, library) {			//creates the cards array f
 			thisEntry.name = thisCard.fullName.replace(/’/g,"'").replace("//", " // ");
 		(thisCard.shape == "doubleface")
 			thisEntry.name = cardNames[0].replace(/’/g,"'")
+		if(thisCard.rarity == "special" && !thisCard.alias)
+			thisEntry.name += "_PRO"
 		if(reprint) {
 			thisEntry.name += "_" + thisCard.setID;
 		}
@@ -418,6 +431,7 @@ function mtgjsonCardsBuilder(nameArray, library) {			//creates the cards array f
 			}else{
 				thisEntry.convertedManaCost = thisCard.cmc2;
 			}
+			thisEntry.faceConvertedManaCost = thisCard.cmc2;
 			thisEntry.colors = arrayifyColors(thisCard.color2);
 			for(let color in thisEntry.colors)
 				thisEntry.colors[color] = flipColors(thisEntry.colors[color]);
@@ -666,6 +680,10 @@ function wtfjsonCardsBuilder(nameArray, library) {			//creates the cards array f
 			two_names.push(thisEntry.name)
 			thisEntry.names = two_names;
 			thisEntry.number = thisCard.cardID + "b";
+			thisEntry.id = cardNames[1] + "_" + thisCard.setID;
+			thisEntry.uuid = cardNames[1] + "_" + thisCard.setID;
+			thisEntry.otherFaceIds = [cardNames[0] + "_" + thisCard.setID];
+			thisEntry.faceName = cardNames[1] + (reprint ? "_" + thisCard.setID : "");
 			if(thisCard.shape == "split") //instigatorchange
 				thisEntry.number = thisCard.cardID;
 			if(thisCard.rulesText2 != "\n")
@@ -826,7 +844,7 @@ function arrayifyTypes (theseTypes) {						//creates type arrays for mtgjson
 	return subtypeArray;
 }
 function checkPromo(dataName, cardData) {					//checks if a card is a skipped promo
-	if(dataName.match(/_PRO/) && !cardData.typeLine.match(/Basic/))
+	if(dataName.match(/_PRO/) && !cardData.typeLine.match(/Basic/) && !cardData.alias)
 		return false;
 	return true;
 }

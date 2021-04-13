@@ -72,6 +72,16 @@ function convertRarity(rarity) {
 			return "mythic rare";
 		case "S":
 			return "special";
+		case "common":
+			return "C";
+		case "uncommon":
+			return "U";
+		case "rare":
+			return "R";
+		case "mythic rare":
+			return "M";
+		case "special":
+			return "S";
 	}
 }
 function convertShape(shape, pokeFlip) {
@@ -103,6 +113,50 @@ async function pullPS(testurl) { //get scryfall data for a search
 	return theData;
 }
 
+/*
+function htmlToLB (data) {	//convert PS HTML file into LackeyBot readable file
+	data = data.replace(/^\r?\n1.0\r?\n\r?\n/, "")
+	let blocks = data.split(/===========/);
+	let cards = {};
+	for(let card in blocks) {
+		let lines = blocks[card].split(/\n/);
+		let shape = lines[0];
+		let cardID = lines[1];
+		let cmc = lines[2];
+		let rarity = lines[3];
+		let name1 = lines[4];
+		let longColor1 = lines[5];
+		let htmlManaCost1 = lines[6];
+		let type1 = lines[7];
+		let power1 = lines[8];
+		let toughness1 = lines[9];
+		let htmlRules1 = lines[10];
+		let htmlFlavor1 = lines[11];
+		let htmlArtist1 = lines[12];
+		let name2 = lines[13];
+		let longColor2 = lines[14];
+		let htmlManaCost2 = lines[15];
+		let type2 = lines[16];
+		let power2 = lines[17];
+		let toughness2 = lines[18];
+		let htmlRules2 = lines[19];
+		let htmlFlavor2 = lines[20];
+		let htmlArtist2 = lines[21];
+		
+		let card = {};
+		card.fullName = name1;
+		if(name2)
+			card.fullName += " // " + name2;
+		card.cardName = name1;
+		let cleanMC1 = htmlManaCost1.replace(/<img src='magic-mana-small-/g, "{")
+		cleanMC1 = cleanMC1.replace(/\.png' alt='[^']*'>?/g, "}")
+		cleanMC1 = cleanMC1.replace(/{([2WUBRGPH])([WUBRGPH])}/g, "$1/$2");
+		card.manaCost = cleanMC1;
+		card.typeLine = type1;
+		card.rarityLine = "*TEST " + convertRarity(rarity) + "*";
+	}
+}
+*/
 async function translatePS(testurl) {
 	let nameArray = [];
 	let foundCards = await pullPS(testurl);
@@ -181,6 +235,7 @@ async function translatePS(testurl) {
 		psCache[database_name].cardID = thisCard.cardNumber;
 		psCache[database_name].setID = thisCard.setName;
 		psCache[database_name].url = thisCard.artUrl;
+		psCache[database_name].notes = [];
 	}
 	return nameArray;
 }

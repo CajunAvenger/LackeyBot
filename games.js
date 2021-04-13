@@ -147,14 +147,14 @@ function messageHandler(msg, perms) {
 		}
 		msg.channel.send(toolbox.toTitleCase(output));
 	}
-	let cipherCheck = msg.content.match(/\$cipher ([^\$]+)/i);
+	/*let cipherCheck = msg.content.match(/\$cipher ([^\$]+)/i);
 	if(cipherCheck != null) {
 		stats.upBribes(1);
 		let cipherText = rotCrypt(cipherCheck[1],"LB");
 		if(cipherText.length > 45)
 			cipherText = msg.author.username + " ciphered:\n" + cipherText;
 		msg.channel.send(cipherText);
-	}
+	}*/
 	let rollcheck = msg.content.match(/\$roll( ?(\+|-)? ?[0-9]*d[0-9]+(kh[0-9]+|kl[0-9]+|e| ?\+ ?\d+| ?- ?\d+)*)+/i);
 	if(rollcheck !== null) {
 		let diceMsg = rollcheck[0].replace(/ d/ig," 1d")

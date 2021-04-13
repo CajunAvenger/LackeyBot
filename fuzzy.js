@@ -6,7 +6,7 @@ var toolbox = require('./toolbox.js');
 var embedCache = {
 	scries: {msem:{}, magic:{}, devDex:{}, myriad:{}, revolution:{}, temp:{}, cajun_standard:{}},
 	prices: {}
-	};
+};
 var scryRegex = buildScryRegex();
 function clearEmbedCache() { //clears cached data for embeds
 	embedCache = {
@@ -163,6 +163,7 @@ function searchCards(library,searchstring,needleWeight) {  //main search functio
 	searchstring = searchstring.replace(/ \/\/ /g,"//");
 	let bestMatch = ["no",2];
 	let splitString = searchstring.match(/^([^_|]*)_?([A-Z0-9_]+)?\|?([^\n]+)?/i); //check for set codes and scryfall filters
+	splitString[1].replace(/ ?:14dab:554825204602241036 ?/, "14dab")
 	if(splitString[2])
 		splitString[2] = splitString[2].toUpperCase();
 	if(library.nicks.hasOwnProperty(splitString[1].toLowerCase()))
@@ -454,6 +455,8 @@ function stitchScryCode (testString, library, flags) { //combines the scryfall a
 	return fullCode
 }
 function generateScryCode (thisCheck, library, flags) { //makes the function for individual scryfall arguments
+	if(flags === undefined || flags === null)
+		flags = {};
 	thisCheck = String(thisCheck);
 	thisCheck = thisCheck.replace(/^\(+/, ""); //remove leading (
 	thisCheck = thisCheck.replace(/\)+$/, ""); //remove trailing )
@@ -464,7 +467,7 @@ function generateScryCode (thisCheck, library, flags) { //makes the function for
 		matchCheck = escapify(matchCheck);
 	matchCheck = matchCheck.replace(/(^["\/]|["\/]$)/g,"") //remove quotes and regex slashes
 	let operMatch = thisCheck.match(scryRegex[2])[2]; //the operators (:, >, =<, etc)
-	if(operMatch.match(/^ ?= ?$/) && !thisCheck.match(/c(i|olor)?(:| ?[<>=]{1,2})/i)){
+	if(operMatch && thisCheck && operMatch.match(/^ ?= ?$/) && !thisCheck.match(/c(i|olor)?(:| ?[<>=]{1,2})/i)){
 		thisCheck = thisCheck.replace(operMatch, ":")
 		operMatch = ":";
 	}
@@ -561,10 +564,6 @@ function generateScryCode (thisCheck, library, flags) { //makes the function for
 					if(refNum == NaN)
 						refNum = 0;
 					let dif = refNum - checkNum;
-					if(card.cardName == "Trostani's Summoner") {
-						console.log(numKeyArray[i]);
-						console.log(dif);
-					}
 					if(dif == 0 && operMatch.match("=")) //refNum = checkNum
 						return true;
 					if(dif > 0 && operMatch.match(">")) // refNum > checkNum

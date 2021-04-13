@@ -4,6 +4,7 @@ var Discord = require('discord.js');
 var eris = require('./eris.js');
 var Client = eris.Client();
 var dbx = require('./boxofmud.js');
+var fuzzy = require('./fuzzy.js');
 var fs = require('fs');
 var stats = require('./stats.js');
 var toolbox = require('./toolbox.js');
@@ -43,8 +44,12 @@ function buildRoleRegex(server) {												//builds roleRegex on startup to re
 	}
 	for(let serv in servArray) {
 		let regString = "\\$iam(n|not)? (";
-		for(let role in roleDex.guilds[servArray[serv]].roles){
-			regString += role + "|";
+		let roleList = Object.keys(roleDex.guilds[servArray[serv]].roles);
+		roleList.sort(function(a, b) {
+			return b.length - a.length;
+		});
+		for(let r in roleList){
+			regString += roleList[r] + "|";
 		}
 		let guildReg = new RegExp(regString.replace(/\|$/,"")+")",'i')
 		roleRegex[servArray[serv]] = guildReg;
@@ -575,7 +580,6 @@ function messageHandler(msg, perms) {
 			chanNameArray.sort((a, b) => (a.name > b.name) ? 1 : -1);
 			let chanHold = chanNameArray.indexOf(addingChan);
 			let chanPos = chanNameArray[chanHold-1].position;
-			console.log(chanNameArray);
 			Client.guilds.cache.get("190309853296590848").createChannel("real test channel", {type:"text", parent:"637483964508143616", permissionOverwrites:[{id: msg.guild.id, deny:["VIEW_CHANNEL"]},{id:Client.user.id, allow:["VIEW_CHANNEL","MANAGE_CHANNELS"]}], position: chanPos})
 		}
 		if(msg.content.match("!bad")) { //bad and shameful
@@ -672,7 +676,6 @@ function messageHandler(msg, perms) {
 					.catch(e => console.log(e))
 			}
 			if(reGroupMatch) {
-				console.log(reGroupMatch);
 				msg.channel.send(reGroup(msg.guild.id, reGroupMatch[1], reGroupMatch[2]))
 					.then(mess => version.logRole(roleDex))
 					.catch(e => console.log(e))
@@ -875,6 +878,8 @@ function helpMessage() {
 }
 exports.messageHandler = messageHandler;
 exports.helpMessage = helpMessage;
+exports.buildRoleEmbed = buildRoleEmbed;
+exports.buildInRoleEmbed = buildInRoleEmbed;
 exports.buildRoleRegex = buildRoleRegex;
 exports.roleDex = roleDex;
 exports.roleRegex = roleRegex;

@@ -329,7 +329,7 @@
 		"umbreon":"Moon-Rune Fox",
 		"cubone":"Mournful Newborn//Tempered Survivor",
 		"marowak":"Mournful Newborn//Tempered Survivor",
-		"sabeleye":"Nirami, Ema’s Keeper",
+		"sableye":"Nirami, Ema’s Keeper",
 		"gastly": "Night Shade",
 		"noctowl":"Nocturnal Watcher",
 		"hoothoot":"Nocturnal Watcher",
@@ -502,7 +502,7 @@
 		"umbreon":"Moon-Rune Fox",
 		"cubone":"Mournful Newborn//Tempered Survivor",
 		"marowak":"Mournful Newborn//Tempered Survivor",
-		"sabeleye":"Nirami, Ema’s Keeper",
+		"sableye":"Nirami, Ema’s Keeper",
 		"gastly": "Night Shade",
 		"noctowl":"Nocturnal Watcher",
 		"hoothoot":"Nocturnal Watcher",
@@ -606,7 +606,13 @@
 		"mismagius":"Wraith of the Fens",
 		"zangoose":"Zankon, Ema’s Claws",
 		"pichu":"Zipping Zapper",
-		"gardevoir": "Sanaito, Alone"
+		"gardevoir": "Sanaito, Alone",
+		"14dab": "Azumoth, the Fated Ruin",
+		":14dab:554825204602241036": "Azumoth, the Fated Ruin",
+		" :14dab:554825204602241036": "Azumoth, the Fated Ruin",
+		" :14dab:554825204602241036 ": "Azumoth, the Fated Ruin",
+		":14dab:554825204602241036 ": "Azumoth, the Fated Ruin"
+
 	},
 	"cajun": {
 		"aces": "Pocket Aces",
@@ -676,7 +682,7 @@
 		"umbreon":"Moon-Rune Fox",
 		"cubone":"Mournful Newborn//Tempered Survivor",
 		"marowak":"Mournful Newborn//Tempered Survivor",
-		"sabeleye":"Nirami, Ema’s Keeper",
+		"sableye":"Nirami, Ema’s Keeper",
 		"gastly": "Night Shade",
 		"noctowl":"Nocturnal Watcher",
 		"hoothoot":"Nocturnal Watcher",

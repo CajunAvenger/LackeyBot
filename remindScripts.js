@@ -304,7 +304,7 @@ function addCC(remTime, remSlot, user, msg) {				//handle CC embeds
 		let addMess = "";
 		if(!reminderData.reminders[remTime][remSlot].cc.includes(user.id)) {
 			reminderData.reminders[remTime][remSlot].cc.push(user.id);
-			msg.channel.send(user.username + " added to reminer"); //let them know they've been added
+			msg.channel.send(user.username + " added to reminder"); //let them know they've been added
 			version.logLater['reminder'] = true; //set the reminder to log later because there will probably be a few in a row
 		}
 	}else{

@@ -1078,8 +1078,6 @@ function messageHandler(msg, perms) {
 		let botdraftmatch = msg.content.match(/\$addbot ?([^\n]+)?/i)
 		if(botdraftmatch)
 			msg.channel.send(addBotDrafter(editingDraft, botdraftmatch[1]));
-		if(msg.content.match(/\$draftbots/i))
-			msg.channel.send(draftBots.meetTheBots)
 		if(msg.content.match(/\$draftplayers/i))
 			msg.channel.send(writeDrafterIndexes(editingDraft));
 		//removing players
@@ -1122,6 +1120,8 @@ function messageHandler(msg, perms) {
 		}
 	}
 	//player draft commands
+	if(msg.content.match(/\$draftbots/i))
+		msg.channel.send(draftBots.meetTheBots)
 	if(msg.content.match(/\$draft ?info/i)) { //drafting info dump
 		let defaulttext = "LackeyBot can now host an async draft of any size or setup, allowing custom drafts without getting eight people in one game.\n";
 		defaulttext += "During the draft, LackeyBot will automatically handle passing packs and keeping cardpools, and will PM you when your next pack is ready.\n";
@@ -1205,7 +1205,7 @@ function messageHandler(msg, perms) {
 				expacName = setsArray[num];
 				chaosFlag = 1;
 			}
-			let genPack = draftDexScrips.generatePack(expacName, library, " -is:bonus");
+			let genPack = generatePack(expacName, library, " -is:bonus");
 			if(packcheck[2].toLowerCase() == "open") {
 				let embedInfo = buildPackEmbed(library, genPack, expacName, msg.author.id, 0);
 				let packEmbed = embedInfo[0];

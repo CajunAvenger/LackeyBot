@@ -58,7 +58,7 @@ function gpUpdate(msg) {									//updates the gpbase live
 		if(champCheck !== null)
 			gpbase[thisGP].champion = champCheck[1];
 		gpbase.version++;
-		editVersions();
+		version.editVersions();
 		let words = JSON.stringify(gpbase).replace(/","/g, "\",\r\n		\"");
 		words = words.replace(/\},"/g, "},\r\n\"");
 		dbx.dropboxUpload('/lackeybot stuff/gpbase.json',words);

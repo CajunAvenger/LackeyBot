@@ -9,19 +9,40 @@ var config = require('./config/lackeyconfig.js').config;
 var convars = config.variables;
 var download = require('download-file');
 var toolbox = require('./toolbox.js');
-
+var { //emote buffet
+	yeet, boop, leftArrow, rightArrow,
+	old_dollarEmote, old_excEmote, old_quesEmote, old_plainText,
+	old_mag, old_ruler, old_xEmote,
+	dollarEmote, excEmote, quesEmote, plainText,
+	mag, ruler, xEmote, pinEmotes, tieEmote,
+	hourEmote, dayEmote, weekEmote, repeatEmote, pingStar,
+	old_hourEmote, old_dayEmote, old_weekEmote, old_repeatEmote,
+	collectToPlainMsg, plainToCollectMsg,
+} = require('./emoteBuffet.js');
 function speech(msg) {										//handles the LackeyBot AI
 	let channelMatch = msg.content.match(/channel: *<?#?([0-9]+)/i);
-	let reactMatch = toolbox.globalCapture("react: *([^ ]+) *<?@?&?([0-9]+)", msg.content);
+	let reactMatch = msg.content.match(/react: *[^\n]+/ig);
 	let messageMatch = msg.content.match(/message: *([\s\S]+)/i);
-	let message = messageMatch[1];
+	let message = "";
+	if(messageMatch)
+		message = messageMatch[1];
 	let embedded = "";
 	if(reactMatch) {
 		for(let c in reactMatch) {
-			let thisReact = reactMatch[c];
-			let emote = thisReact[1];
-			let role = thisReact[2];
-			message += `\nReact ${emote} to join <@&${role}>.`;
+			let reactString = reactMatch[c];
+			let complexMatch = reactString.match(/react: *React/);
+			let simpleMatch = reactString.match(/react: *([^ ]+) *<?@?&?([0-9]+)/);
+			if(complexMatch) {
+				message += reactString.replace(/^react: */, "").replace(/(^| )(\d+)( |$)/, "$1<@&$2>$3")
+			}
+			else if(simpleMatch) {
+				let emote = simpleMatch[1];
+				let role = simpleMatch[2];
+				message += `\nReact ${emote} to join <@&${role}>.`;
+			}else{
+				msg.channel.send("Error in Role Reactor setup. React lines should be formatted as either `react: emoji @role` or `react: React emoji (message text including @role)`.");
+				return;
+			}
 		}
 		embedded = new Discord.MessageEmbed()
 			.setFooter('Role Reactor')
@@ -336,3 +357,4 @@ function messageHandler(msg, perms) {
 exports.messageHandler = messageHandler;
 exports.helpMessage = helpMessage;
 exports.channelReminders = channelReminders;
+exports.asyncSwapPins = asyncSwapPins;

@@ -282,13 +282,14 @@ function generalCollater (library, set_code, count, user){	//print out pre-gener
 	for(let thisPack in packs) {
 		packs[thisPack] = psPackSorter(packs[thisPack], library);
 		for(let i=0; i<packCount;i++) {
-			if(isFoil(packs[thisPack][9]))
+			if(isFoil(packs[thisPack][i]))
 				output += "FOIL "
 			output += library.cards[unFoil(packs[thisPack][i])].cardName + "\n";
 		}
 		output += "===========\n";
 	}
-	fs.writeFile(`packOutput_${user.id}.txt`, output, function(err){
+	output = output.replace(/\n$/, "")
+	fs.writeFile(`packs_${user.id}.txt`, output, function(err){
 		if(err) throw err;
 		user.send("Collated packs for Planesculptors:", {
 			files: [{attachment:`packOutput_${user.id}.txt`}]

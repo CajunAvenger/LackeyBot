@@ -24,6 +24,8 @@ function tokenName(card) { //generates a token's name
 		return "Treasure " + bob.pullTokenSet(card, setsArray);
 	if(card.cardName == "Gold")
 		return "Gold " + bob.pullTokenSet(card, setsArray);
+	if(card.cardName == "Glyph")
+		return "Glyph SVG";
 	if(card.cardName == "Lotus Petal")
 		return card.fullName;// + " " + bob.pullTokenSet(card, setsArray);
 	if(card.cardName == "Idol")

@@ -37,7 +37,6 @@ function logInst() { //updates instdata.json
 function msecardsStitcher(channel) { //adds newcards.json to msecards.json and sorts it
 	let tempcards = {}; //the combined cards object
 	let changelog = ""; //logs changes so we make sure nothing goes wrong
-	tempSetsArray["BOT"] = {cards:[], promos:[], tokens:[]}; //add BOT to tempSets
 	for(let thisSet in cardsSets) { //add the sets in the preset order (alphabetical by normal then by masterpieces)
 		if(thisSet.match(/^[0-9]+$/)) {
 			tempSetsArray[thisSet + "_numcorr"] = {cards:[], promos:[], tokens:[]};
@@ -51,6 +50,8 @@ function msecardsStitcher(channel) { //adds newcards.json to msecards.json and s
 		nameStitcher(cards, thisCard);
 	for(let thisCard in newcards) {
 		colorFixer(thisCard);
+		if(cards[thisCard] && cards[thisCard].notes.includes("reprint") && !newcards[thisCard].notes.includes("reprint"))
+			newcards[thisCard].notes.push("reprint")
 		nameStitcher(newcards, thisCard);
 	}
 	for(let thisSet in tempSetsArray) { //for each set, write the normal cards in order
@@ -195,6 +196,8 @@ function nameStitcher (database, thisCard) { //creates arrays of card, promo, an
 			tempSet = thisCard.replace(database[thisCard].cardName + "_PRO_", "");
 			tempSet = tempSet.replace(database[thisCard].cardName + "_TKN_", "");
 		}
+		if(!tempSetsArray[tempSet])
+			console.log("Missing set data for " + tempSet);
 		if(database[thisCard].rarity == "special"){
 			tempSetsArray[tempSet].promos.push(thisCard);
 		}else{
