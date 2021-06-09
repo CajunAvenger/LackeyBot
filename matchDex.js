@@ -289,7 +289,7 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 			archiveMatch = killMatch
 		}
 	}
-	let contCheck = msg.content.match(/!continue ?(league|primordial)/);
+	let contCheck = msg.content.match(/!continue ?([^ ]+)/);
 	if(contCheck && gpCell[0] && gpCell[0][contCheck[1]] && matchPermit(msg, contCheck[1]))
 		msg.channel.send(rolloverTourney(contCheck[1],0));
 	if(archiveMatch) {
@@ -306,7 +306,7 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 	if(toolbox.hasValue(nulMatch) && matchPermit(msg, nulMatch[1])) {
 		msg.channel.send(nullMatch(nulMatch[1], parseInt(nulMatch[2])));
 	}
-	let pushRegex = new RegExp('!push ?' + tournamentNames,'i')
+	let pushRegex = new RegExp('!push ?' + tournamentNames + '$','i')
 	let pushMatch = msg.content.match(pushRegex);
 	if(pushMatch && matchPermit(msg, pushMatch[1])) { //move to next round
 		let message = "";
@@ -328,7 +328,7 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 	/*if(msg.content.match(/!ping ?gp/i)) {
 		msg.channel.send("```\n"+pingTourney('gp')+"```");
 	}*/
-	let playerRegex = new RegExp('!players ?' + tournamentNames,'i');
+	let playerRegex = new RegExp('!players ?' + tournamentNames + '$','i');
 	let playerMatch = msg.content.match(playerRegex);
 	if(playerMatch && matchPermit(msg, playerMatch[1])) {
 		msg.channel.send(writePlayerIndexes(playerMatch[1].toLowerCase()));
@@ -343,6 +343,16 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 		let refIndex = Object.keys(matchDex[tourney].players);
 		msg.channel.send(dropTourneyPlayer(tourney, refIndex[dropMatch[3]], playing));
 		version.logLater['match'] = true;
+	}
+	let swapRegex = new RegExp('!swap ?' + tournamentNames + ' *<?@?!?([0-9]+)>? *(dropped)? *<?@?!?([0-9]+)>? *(dropped)?','i')
+	let swapMatch = msg.content.match(swapRegex);
+	if(swapMatch && matchPermit(msg, swapMatch[1])) {
+		let post = 0;
+		if(swapMatch[3])
+			post = 1;
+		if(swapMatch[5])
+			post = 2;
+		msg.channel.send(dropSwap(swapMatch[1], swapMatch[2], swapMatch[4], post));
 	}
 	if(msg.content.match(/\$match ?h?elp/i)){
 		msg.channel.send(adminHelpMessage());
@@ -454,11 +464,12 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 				}
 			}
 			else {
-				let deckContent = giveFancyDeck(msg.content, msg.author, deckName, 0, [format], arcana[libName]);
+				let deckContent = ["", ""];
 				if(tourn.data.pairing == "league") {
 					let joinM = addNewPlayer(tourn, user.id);
 					if(joinM)
 						msg.channel.send(joinM);
+					deckContent = giveFancyDeck(msg.content, user, deckName, 0, [format], arcana[libName]);
 					let the_time = toolbox.arrayTheDate();
 					tourneyname += "_" + the_time[0] + "_" + the_time[1];
 					let lastRun = toolbox.lastElement(tourn.players[user.id].runs)
@@ -474,12 +485,13 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 				else{
 					if(tourn.round > 0) {
 						deckContent[1] = "";
-						msg.author.send("Sorry, but deck submissions for this tournament are closed!");
+						msg.author.send("Sorry, but deck submissions for " + tourneyname + " are closed!");
 					}
 					if(tourn.round == 0) {
 						let addM = addNewPlayer(tourn, user.id).replace("gp", tourneyname);
 						if(addM)
 							msg.channel.send(addM);
+						deckContent = giveFancyDeck(msg.content, user, deckName, 0, [format], arcana[libName]);
 						addNewRun(tourn, user.id, username, deckName, tourneyname)
 						version.logLater['match'] = true;
 						if(botname != "TestBot") { //todo
@@ -719,10 +731,10 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 		}
 	}*/
 	
-	let deckCommands = msg.content.match(/\$(deckcheck|convert|plain)/i);
-	let ignoreCommands = msg.content.match(/\$pack/i)
+	let deckCommands = msg.content.match(/\$(deckcheck|plain)/i);
+	let ignoreCommands = msg.content.match(/\$pack|\?fetch/i)
 	if(!uploadcheck && !deckCommands && !ignoreCommands && (subMatch || (msg.channel.type == 'dm' && listBulk && listBulk.length > 2))){
-		let submitHelp = "To submit a decklist, use the form ";
+		let submitHelp = "Deck submissions are done by DMing LackeyBot. To submit a decklist, use the form ";
 		let currentGP = "GPJ";
 		if(matchDex.gp.data.hasOwnProperty('name') && matchDex.gp.data.name != "")
 			currentGP = matchDex.gp.data.name;
@@ -745,12 +757,12 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 	let countcheck = msg.content.match(/^\$count ?([^\n]+)?/i);
 	if (countcheck != null && listMatch != null)
 		countCardRarities(msg.content, msg.author);
-	let convertcheck = msg.content.match(/^\$convert ?([^\n]+)?/i);
+	/*let convertcheck = msg.content.match(/^\$convert ?([^\n]+)?/i);
 	if(convertcheck !== null && listMatch !== null) {
 		thisSet = convertcheck[1];
 		dekBuilder(triceListTrimmer(msg.content),thisSet,msg.author.id);
 		stats.upBribes(1);
-	}
+	}*/
 	//matchDex commands
 	let leagueName = "league";
 	if(msg.guild && msg.guild == primGuild)
@@ -802,7 +814,6 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 			let deck = thisPlayer.runs[run].deckName;
 			dbx.filesDownload({path:pullLink})
 				.then(function(data) {
-					console.log(data.name);
 					fs.writeFile(deck+'.txt', data.fileBinary, 'binary', function(err) {
 						if(err) throw err;
 						fs.readFile(deck+'.txt', "utf8", function read(err, data) {
@@ -854,14 +865,19 @@ function messageHandler(msg, perms) {													//converts discord messsage in
 	}
 
 	//judge warnings
-	let warnRegEx = new RegExp('\\$(un)?warn ?' + tournamentNames + '? <@!?(\\d+)>([\\s\\S]+)', 'i');
+	let warnRegEx = new RegExp('\\$(un)?warn ?' + tournamentNames + '? <?@?!?(\\d+)>?([\\s\\S]+)', 'i');
 	let warnMatch = msg.content.match(warnRegEx);
 	let judgeID = "770088341865496596";
+	if(msg.guild && msg.guild.id == "205457071380889601")
+		judgeID = "838134247457554483";
 	if(warnMatch && msg.member.roles.cache.find(val => val.id == judgeID)) {
 		let unWarn = warnMatch[1];
 		let tourn = warnMatch[2];
-		if(!tourn || !matchDex[tourn])
+		if(!tourn || !matchDex[tourn]) {
 			tourn = 'gp';
+			if(msg.guild.id == "205457071380889601")
+				tourn = 'gprev';
+		}
 		let playerID = warnMatch[3];
 		let warnStack = warnMatch[4];
 		if(!matchDex[tourn].players[playerID]) {
@@ -1381,20 +1397,13 @@ function resetTourney(tournamentObject) {												//archives tourney data
 	}
 	leagueArchive.matches = [];
 	leagueArchive.players = {};
-	let trolearray = {league: '638181322325491744', gp: '588781514616209417'}
-	let prolearray = {primordial: '763102029504970823'}
 	for(let thisPlayer in tournamentObject.players) {
 		//remove their tourney role
 		try{
-			if(trolearray.hasOwnProperty(tournamentObject.data.key)) {
-				let g = eris.pullGuild('317373924096868353')
+			if(tournamentObject.data.guild && tournamentObject.data.role) {
+				let g = eris.pullGuild(tournamentObject.data.guild)
 				if(g)
-					g.members.cache.get(thisPlayer).roles.remove(trolearray[tournamentObject.data.key]);
-			}
-			if(prolearray.hasOwnProperty(tournamentObject.data.key)) {
-				let g = eris.pullGuild('413055835179057173')
-				if(g)
-					g.members.cache.get(thisPlayer).roles.remove(trolearray[tournamentObject.data.key]);
+					g.members.cache.get(thisPlayer).roles.remove(tournamentObject.data.role);
 			}
 		}catch(e){console.log(e)};
 		leagueArchive.players[thisPlayer] = {};
@@ -1601,14 +1610,14 @@ function addLackeyBot(tournamentObject){												//adds LackeyBot to a tourna
 }
 function tempAddTUCTeams (id) {															//this should get improved a lot but quick fix
 	let teamArrays = [
-		["263126101344256001", "107957368997834752", "326956620535955457"],
-		["180885469037461504", "380148829128884236", "201750307485515776"],
 		["460867085694795797", "186824142299856896", "152881531356971008"],
-		["126785105556537344", "139184614567575553", "177643422268653568"],
-		["161279778672869377", "233946395067940864", "191169027064725504"],
-		["190309440069697536", "154993946525696010", "209090460726067201"],
-		["166685542740787200", "387422509928284160", "524687574992945163"],
-		["411007764685520917", "189949684125663232", "256060750492073984"]
+		["126785105556537344", "139184614567575553", "611336248774230026"],
+		["362071338598531075", "317074755029303296", "692423122980307004"],
+		["256060750492073984", "126562929687527424", "131053643439800320"],
+		["180885469037461504", "255841289554100224", "404399406473805824"],
+		["107957368997834752", "267792453975670784", "228286499953704961"],
+		["524687574992945163", "664562140681863199", "619658528369672213"],
+		["191169027064725504", "387422509928284160", "380148829128884236"]
 	]
 	for(let array in teamArrays) {
 		if(teamArrays[array].includes(id))
@@ -1860,7 +1869,7 @@ function addNewRun (tournamentObject, id, username, deckName, tID) {					//adds 
 	if(tournamentObject.data.pairing == "league")
 		numString += tournamentObject.players[id].currentRun
 	newRun.dropLink = `/${tID}/${username}${numString}.txt`;
-	return "You have started a new league run.";
+	return `You have started a new ${tournamentObject.data.key} run.`;
 }
 function removeEmptyRun (tournamentObject, id) {										//deletes an empty league run and rolls the currentRun back for accidental submissions
 	if(typeof tournamentObject == "string")
@@ -1967,12 +1976,12 @@ function auditMatches(tournamentObject, id) {											//ensures score is corre
 	tournamentObject.players[id].month = temp[4];
 	if(tournamentObject.data.runLength != null && tournamentObject.players[id].runs[tournamentObject.players[id].currentRun-1].matches.length >= tournamentObject.data.runLength) {
 		try{
-		if(tournamentObject.data.deckChan) //TODO League customization
-			fourWinPoster(tournamentObject, id, tournamentObject.players[id].runs[tournamentObject.players[id].currentRun-1]);
+			if(tournamentObject.data.deckChan) //TODO League customization
+				fourWinPoster(tournamentObject, id, tournamentObject.players[id].runs[tournamentObject.players[id].currentRun-1]);
 		}catch(e){console.log(e);}
 		try{
-			if(tournamentObject.guild && tournamentObject.channel)
-				eris.pullGuild(tournamentObject.guild).members.cache.get(id).roles.remove(tournamentObject.channel);
+			if(tournamentObject.data.guild && tournamentObject.data.role)
+				eris.pullGuild(tournamentObject.data.guild).cache.members.cache.get(id).roles.remove(tournamentObject.data.role);
 		}catch(e){
 			console.log(e)
 		};
@@ -2041,9 +2050,9 @@ function invalidMatch (tournamentObject, p1id, p2id) {									//true if match i
 		errors += "Error: Both players are the same."
 	if(errors)
 		return errors;
-	if(!tournamentObject.players[p1id]) //if a player isn't signed up
+	if(!tournamentObject.players[p1id] || tournamentObject.players[p1id].runs[tournamentObject.players[p1id].currentRun-1] == undefined) //if a player isn't signed up
 		errors += "Error: " + eris.pullUsername(p1id) + " is not signed up for " + tournamentObject.data.key + ".\n";
-	if(!tournamentObject.players[p2id])
+	if(!tournamentObject.players[p2id] || tournamentObject.players[p2id].runs[tournamentObject.players[p2id].currentRun-1] == undefined)
 		errors += "Error: " + eris.pullUsername(p2id) + " is not signed up for " + tournamentObject.data.key + ".\n";
 	if(errors)
 		return errors;
@@ -2080,6 +2089,7 @@ function buildLeagueInfoRecord(tournamentObject, id, lookback) {						//the $lea
 	let thisRun = thisPlayer.currentRun;
 	var opps = null;
 	let playRuns = thisPlayer.runs;
+	let recMessage = `Your Run Record${(playRuns.length == 1 ? " is" : "s are")}`;
 	let mScore = thisPlayer.month;
 	let sScore = parseInt(thisPlayer.month+thisPlayer.season);
 	let lScore = parseInt(thisPlayer.month+thisPlayer.season+thisPlayer.lifetime);
@@ -2119,7 +2129,9 @@ function buildLeagueInfoRecord(tournamentObject, id, lookback) {						//the $lea
 		if(playRuns.length == 0) {
 			runRecords += "You have no runs yet.";
 		}else{
-			for(let i=1; i<playRuns.length+1; i++) {
+			let i = Math.max(1, playRuns.length-9);
+			recMessage = recMessage.replace(/Your Run/, "Your Last Ten Runs");
+			for(i; i<=playRuns.length; i++) {
 				runRecords += getRecord(tournamentObject, id, i)[0];
 				runRecords += " (" + thisPlayer.runs[i-1].deckName +")";
 				if(i != playRuns.length) {
@@ -2135,7 +2147,7 @@ function buildLeagueInfoRecord(tournamentObject, id, lookback) {						//the $lea
 		//.addField('Month Score', mScore, true)
 		//.addField('Season Score', sScore, true)
 		//.addField('Lifetime Score', lScore, true)
-		.addField(`Your Run Record${(playRuns.length == 1 ? " is" : "s are")}`, runRecords, true)
+		.addField(recMessage, runRecords, true)
 		.addField('Matches This Run', oppString, true)
 		.setFooter(`${tournamentObject.data.key} run data ${thisRun}/${thisPlayer.currentRun}`)
 	return [embedded, (thisPlayer.currentRun != 1)]
@@ -2215,28 +2227,44 @@ function reportRecord (tournamentObject, id, lookback, textFlag) {						//the $l
 function vsSeeker (tournamentObject, id) {												//finds players the command user can play in the league
 	if(typeof tournamentObject == "string")
 		tournamentObject = matchDex[tournamentObject];
+	let output = "**" + eris.pullUsername(id) + "'s VS Seeker:\n**"
 	let players = tournamentObject.players;
 	let thisPlayer = players[id]
 	let oppArray = getPlayedOpps(tournamentObject, id, thisPlayer.currentRun); //TODO League customization rematches
 	let openArray = getCurrentPlayers(tournamentObject);
-	let clearedArray = [];
+	let clearedArray = [], unclearedArray = [];
 	for(let playerArray in openArray) {
 		let thisOpponent = openArray[playerArray][0];
-		if(!invalidMatch(tournamentObject, id, thisOpponent))
-			clearedArray.push(thisOpponent);
+		if(!invalidMatch(tournamentObject, id, thisOpponent)) {
+			clearedArray.push(eris.pullUsername(thisOpponent));
+		}else if(thisOpponent != id){
+			unclearedArray.push(eris.pullUsername(thisOpponent));
+		}
 	}
-	let output = eris.pullUsername(id) + ", you are able to play the following opponents: ";
-	let i = clearedArray.length;
+	unclearedArray.sort();
+	let i = unclearedArray.length;
+	if(i)
+		output += "You have already played the following players: ";
+	for(let thisOpponent in unclearedArray) {
+		i--;
+		if(i==0 && unclearedArray.length>1)
+			output == "and "
+		output += unclearedArray[thisOpponent];
+		if(i != 0)
+			output += ", ";
+	}
+	clearedArray.sort();
+	i = clearedArray.length;
+	if(i)
+		output += "\nThe following players are able to be played: ";
 	for(let thisOpponent in clearedArray) {
-		i--
-		if(i==0)
+		i--;
+		if(i==0 && clearedArray.length>1)
 			output += "and "
-		output += eris.pullUsername(clearedArray[thisOpponent]);
+		output += clearedArray[thisOpponent];
 		if(i != 0)
 			output += ", "
 	}
-	if(clearedArray.length == 1)
-		output = output.replace(": and", ":");
 	return output;
 }
 function getCurrentPlayers (tournamentObject) {											//finds all players than can play in the tourney
@@ -2274,7 +2302,7 @@ function fourWinPoster(tournamentObject, id, runInfo) {									//posts decks th
 	let runScore = getRecord(tournamentObject, id, runInfo);
 	if(runScore[2] >= 4 && !runInfo.hasOwnProperty('printed')) {
 		let pullLink = runInfo.dropLink;
-		let deck = runInfo.deckName;
+		let deck = toolbox.windex(runInfo.deckName);
 		dbx.sendDBX().filesDownload({path:pullLink})
 			.then(function(data) {
 				fs.writeFile(deck+'.txt', data.fileBinary, 'binary', function(err) {
@@ -2287,7 +2315,7 @@ function fourWinPoster(tournamentObject, id, runInfo) {									//posts decks th
 							if(matchDex.primordial.players[id].set) {
 								deck += " (Set: " + matchDex.primordial.players[id].set + ")";
 							}else{
-								let setNab = data.match(/mse-modern.com\/msem2\/images\/([A-Z0-9_])\//);
+								let setNab = data.match(/(?:mse-modern.com\/msem2\/images|revolution-manifesto.herokuapp.com\/cards)\/([A-Z0-9_])\//);
 								if(setNab)
 									deck += " (Set: " + setNab[1] + ")";
 							}
@@ -2703,6 +2731,24 @@ function swissCount (num) {																//number of swiss rounds for num play
 	if(num < 65)	//5 rounds for 33-64
 		return 5
 	return 6
+	/*
+	if(num < 2)		//can't swiss with fewer than 2
+		return 0
+	if(num == 2)	//two people can have 1 round, as a treat
+		return 1
+	if(num < 5)		//2 rounds for 3-4
+		return 2
+	if(num < 9)		//3 rounds for 4-8
+		return 3
+	if(num < 17)	//4 rounds for 9-16
+		return 4
+	if(num < 33)	//5 rounds for 17-32
+		return 5
+	if(num < 65)	//6 rounds for 33-64
+		return 6
+	return 7
+
+	*/
 }
 function swissCut (tournamentObject) {													//returns array of players who make the swiss cut
 	if(typeof tournamentObject == "string")
@@ -3189,7 +3235,81 @@ function nabListNames() {																//prints league decklists names
 		}
 	}
 }
+function dropSwap(tournamentObject, p1, p2, post) {											//swaps two players in most recent GP matches, mostly for switching a late drop to the bye
+	if(typeof tournamentObject == "string")
+		tournamentObject = matchDex[tournamentObject];
+	let myRunNo = function(p){return tournamentObject.players[p].currentRun-1}
+	let myRun = function(p) {return tournamentObject.players[p].runs[myRunNo(p)]};
+	let myMatchNo = function(p, r){return toolbox.lastElement(myRun(p).matches)}
+	let myMatch = function(p){return tournamentObject.matches[myMatchNo(p, myRunNo(p))-1]}
+	let matchNo1 = 0+myMatchNo(p1)
+	let matchNo2 = 0+myMatchNo(p2)
+	let match1 = myMatch(p1);
+	let match2 = myMatch(p2);
+	//replace player 1 with player 2
+	if(match1.p1 == p1) {
+		match1.p1 = p2;
+		if(post == 1) { //if p1 was already dropped, fix gpWins
+			tournamentObject.players[p1].gpLoss--;
+			tournamentObject.players[match1.p2].gpWin--;
+		}
+	}else{
+		match1.p2 = p2;
+		if(post == 1) { //if p1 was already dropped, fix gpWins
+			tournamentObject.players[p1].gpLoss--;
+			tournamentObject.players[match1.p1].gpWin--;
+		}
+	}
+	//replace player 2 with player 1
+	if(match2.p1 == p2) {
+		match2.p1 = p1;
+		if(post == 2) { //if p2 was already dropped, fix gpWins
+			tournamentObject.players[p2].gpLoss--;
+			tournamentObject.players[match2.p2].gpWin--;
+		}
+	}else{
+		match2.p2 = p1;
+		if(post == 2) { //if p2 was already dropped, fix gpWins
+			tournamentObject.players[p2].gpLoss--;
+			tournamentObject.players[match1.p1].gpWin--;
+		}
+	}
+	//update player match numbers
+	myRun(p1).matches.splice(myRun(p1).matches.length-1, 1, matchNo2);
+	tournamentObject.players[p1].awaitingMatches = [matchNo2];
+	//update player 2 match and awaitingMatches numbers
+	myRun(p2).matches.splice(myRun(p2).matches.length-1, 1, matchNo1);
+	tournamentObject.players[p2].awaitingMatches = [matchNo1];
 
+	let byeplayer = [false];
+	if(match1.p1 == bye) {
+		byeplayer = [true, match1, "p1", match1.p2, (match1.p2 == p1 ? p2 : p1), match2];
+	}
+	else if(match1.p2 == bye) {
+		byeplayer = [true, match1, "p2", match1.p1, (match1.p1 == p1 ? p2 : p1), match2];
+	}
+	else if(match2.p1 == bye) {
+		byeplayer = [true, match2, "p1", match2.p2, (match2.p2 == p1 ? p2 : p1), match2];
+	}
+	else if(match2.p2 == bye) {
+		byeplayer = [true, match2, "p2", match2.p1, (match2.p1 == p1 ? p2 : p1), match2];
+	}
+	//if a player was matched with a bye
+	if(byeplayer[0]) {
+		tournamentObject.players[byeplayer[4]].gpWin--;				 //decrement their wins
+		tournamentObject.players[byeplayer[3]].gpWin++;				 //increment wins of switched player
+		tournamentObject.players[byeplayer[3]].awaitingMatches = []; //clear switched player awaitingMatches
+		byeplayer[5].p1w = 0;										 //reset other game scores
+		byeplayer[5].p2w = 0;										 //reset other game scores
+	}else{
+		match1.p1w = 0;
+		match1.p2w = 0;
+		match2.p1w = 0;
+		match2.p2w = 0;
+	}
+	version.logLater['match'] = true;
+	return `Switched players ${eris.pullUsername(p1)} and ${eris.pullUsername(p2)}.`;
+}
 //decklists
 //Fancy Decklist Engine
 function fancification (deckString, user, deckName) {									//fancy engine handler
@@ -3258,7 +3378,7 @@ function giveFancyDeck (deckString, user, deckName, save, deckChecking, library)
 		let decks = [matchDex.tuc.players[user.id].deckObj];
 		for(let player in matchDex.tuc.players[user.id].team) {
 			let thisID = matchDex.tuc.players[user.id].team[player];
-			if(thisID != user.id) {
+			if(matchDex.tuc.players[thisID] && thisID != user.id) {
 				let thatDeck = matchDex.tuc.players[thisID].deckObj;
 				if(Object.keys(thatDeck).length)
 					decks.push(thatDeck);
@@ -3334,6 +3454,8 @@ function makeFancyDeck (deckString, deckName, toggle, deckChecking, library, use
 	}else if(deckChecking) {
 		legal = checkLegal(deckObject, deckChecking, library);
 	}
+	if(library.name == "revolution")
+		fancyOutput = fancyOutput.replace(/mse-modern.com\/msem2\/images/g, "revolution-manifesto.herokuapp.com/cards")
 	return [fancyOutput, legal];
 }
 function makeCardArray(cardString, library) {											//turns a decklist into an array of cards and their useful information
@@ -3344,7 +3466,7 @@ function makeCardArray(cardString, library) {											//turns a decklist into 
 		var numberThenName = numbersAndNames[i].match(/([0-9]+)x?[ ]+([^\n]+)(\n|$)/i);
 		let thisName = numberThenName[2];
 		thisName = promoCheck(thisName);
-		let thisCard = fuzzy.searchCards(library,thisName);
+		let thisCard = fuzzy.searchCards(library,thisName,null);
 		if(!library.cards[thisCard].setID.match(/^(PLAY|tokens|BOT|MSEMAR)$/)) {
 			cardArray[thisCard] = {};
 			cardArray[thisCard].name = thisCard;
@@ -3645,7 +3767,8 @@ function deckRequirements(deckObj, library) {											//other deck requirement
 		"Marisa of the Gravehowl": marisaCheck,
 		"Searle of the Tempest": searleCheck,
 		"Tabia of the Lionheart": tabiaCheck,
-		"Valencia of the Concordant": valenciaCheck
+		"Valencia of the Concordant": valenciaCheck,
+		"Adam of the Ironside": adamCheck
 	}
 	for(let n in mates) { //for each first mate in this decks sideboard
 		if(cardNames.includes(n) && deckObj[n].decks.side) {
@@ -3809,7 +3932,34 @@ function valenciaCheck(deckObj, library) {												//checks if deck fulfills 
 	}
 	return "";
 }
-
+function adamCheck(deckObj, library) {													//checks if deck fulfills Adam of the Ironside's condition
+	let types = {}, count = 0;
+	for(let card in deckObj) {
+		let thisCard = library.cards[deckObj[card].refName];
+		if(deckObj[card].decks.main && thisCard.typeLine.match(/Creature/)) {
+			let subsplit = thisCard.typeLine.split(" — ");
+			count += deckObj[card].decks.main;
+			if(!subsplit[1])
+				return false;
+			let typesSplits = subsplit[1].split(" ");
+			for(let t in typesSplits) {
+				let type = typesSplits[t];
+				if(type) {
+					if(!types.hasOwnProperty(type))
+						types[type] = 0;
+					types[type] += deckObj[card].decks.main;
+				}
+			}
+		}
+	}
+	if(count < 12) //less than 12 creatures
+		return false;
+	for(let t in types) {
+		if(types[t] == count) //all share a type
+			return true;
+	}
+	return false;
+}
 function tucChecker(decks, library, format) {											//deckchecks for Team Unified Constructed
 	let cardNames = [];
 	let legalMess = checkLegal(decks[0], format, library) //make sure the individual deck is legal
@@ -3822,7 +3972,9 @@ function tucChecker(decks, library, format) {											//deckchecks for Team Un
 				if(cardNames.includes(thisCard.cardName))
 					legalMess[0].push(`${thisCard.cardName} is already in a teammate's deck.`)
 			}
-			cardNames.push(thisCard.cardName);
+			else{
+				cardNames.push(thisCard.cardName);
+			}
 		}
 	}
 	return legalMess;
@@ -3852,7 +4004,7 @@ function writeLegal(legalArray, deckChecking) {											//writes the deckcheck
 function checkBasic (thisCard, library) {												//checks if a card is basic or has a Relentless Rats clause
 	let basic = 0, dwarfNo = 0;
 	if(!thisCard.hasOwnProperty("fullName"))
-		thisCard = library.cards[thisCard]
+		thisCard = library.cards[thisCard];
 	let basicmatch = thisCard.typeLine.match("Basic");
 	let ratsmatch = thisCard.rulesText.match(/A deck can have any number of cards named/i);
 	let dwarfmatch = thisCard.rulesText.match(/A deck can have up to ([^ ]+) cards named/i);

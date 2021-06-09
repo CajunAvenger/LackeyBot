@@ -55,6 +55,20 @@ function indicatorBuilder(colors) {
 	easel = easel.replace(/\/$/, "} ");
 	return easel;
 }
+function colorLetters(colorstring) {
+	let out = "";
+	if(colorstring.match("white"))
+		out += "W";
+	if(colorstring.match("blue"))
+		out += "U";
+	if(colorstring.match("black"))
+		out += "B";
+	if(colorstring.match("red"))
+		out += "R";
+	if(colorstring.match("green"))
+		out += "G";
+	return out;
+}
 function trimTypes(typeLine) {
 	typeLine = typeLine.replace(/(Basic |Legendary |Snow |World )/g, "")
 	typeLine = typeLine.replace(/ —[^\n]+/, "")
@@ -113,50 +127,97 @@ async function pullPS(testurl) { //get scryfall data for a search
 	return theData;
 }
 
-/*
 function htmlToLB (data) {	//convert PS HTML file into LackeyBot readable file
-	data = data.replace(/^\r?\n1.0\r?\n\r?\n/, "")
-	let blocks = data.split(/===========/);
+	data = data.replace(/^[^\r\n]*\r?\n1.0\r?\n\r?\n/, "")
+	let blocks = data.split(/===========\r\n/);
 	let cards = {};
-	for(let card in blocks) {
-		let lines = blocks[card].split(/\n/);
-		let shape = lines[0];
-		let cardID = lines[1];
-		let cmc = lines[2];
-		let rarity = lines[3];
-		let name1 = lines[4];
-		let longColor1 = lines[5];
-		let htmlManaCost1 = lines[6];
-		let type1 = lines[7];
-		let power1 = lines[8];
-		let toughness1 = lines[9];
-		let htmlRules1 = lines[10];
-		let htmlFlavor1 = lines[11];
-		let htmlArtist1 = lines[12];
-		let name2 = lines[13];
-		let longColor2 = lines[14];
-		let htmlManaCost2 = lines[15];
-		let type2 = lines[16];
-		let power2 = lines[17];
-		let toughness2 = lines[18];
-		let htmlRules2 = lines[19];
-		let htmlFlavor2 = lines[20];
-		let htmlArtist2 = lines[21];
-		
+	for(let c in blocks) {
+		let lines = blocks[c].split(/\r?\n/);
+		let shape = (lines[0] || "");
+		let cardID = (lines[1] || "");
+		let cmc = (lines[2] || "");
+		let rarity = (lines[3] || "");
+		let name1 = (lines[4] || "");
+		let longColor1 = (lines[5] || "");
+		let htmlManaCost1 = (lines[6] || "");
+		let type1 = (lines[7] || "");
+		let power1 = (lines[8] || "");
+		let toughness1 = (lines[9] || "");
+		let htmlRules1 = (lines[10] || "");
+		let htmlFlavor1 = (lines[11] || "");
+		let htmlArtist1 = (lines[12] || "");
+		let name2 = (lines[13] || "");
+		let longColor2 = (lines[14] || "");
+		let htmlManaCost2 = (lines[15] || "");
+		let type2 = (lines[16] || "");
+		let power2 = (lines[17] || "");
+		let toughness2 = (lines[18] || "");
+		let htmlRules2 = (lines[19] || "");
+		let htmlFlavor2 = (lines[20] || "");
+		let htmlArtist2 = (lines[21] || "");
+		let loyHold = "";
 		let card = {};
 		card.fullName = name1;
 		if(name2)
 			card.fullName += " // " + name2;
 		card.cardName = name1;
 		let cleanMC1 = htmlManaCost1.replace(/<img src='magic-mana-small-/g, "{")
-		cleanMC1 = cleanMC1.replace(/\.png' alt='[^']*'>?/g, "}")
+		cleanMC1 = cleanMC1.replace(/\.png' alt='[^>]*>/g, "}")
 		cleanMC1 = cleanMC1.replace(/{([2WUBRGPH])([WUBRGPH])}/g, "$1/$2");
 		card.manaCost = cleanMC1;
 		card.typeLine = type1;
 		card.rarityLine = "*TEST " + convertRarity(rarity) + "*";
+		if(htmlRules1.match("<br>///br///<br>///br///Starting loyalty: ")) {
+			let split = htmlRules1.split("<br>///br///<br>///br///Starting loyalty: ");
+			htmlRules1 = split[0];
+			loyHold = split[1];
+		}
+		card.rulesText = discordMarkup(htmlEle.decode(htmlRules1)).replace(/\/\/\/br\/\/\//g, "\\n");
+		card.flavorText = discordMarkup(htmlEle.decode(htmlFlavor1)).replace(/\/\/\/br\/\/\//g, "\\n");
+		card.power = (parseInt(power1) | "");
+		card.toughness = (parseInt(toughness1) | "");
+		card.loyalty = loyHold;
+		card.color = indicatorBuilder(colorLetters(longColor1));
+		card.cmc = cmc
+		card.cardType = type1.replace(/(Legendary |Token |Basic |World |Snow | — .*)/g, "")
+		if(name2) {
+			loyHold = "";
+			card.cardName2 = name2;
+			let cleanMC2 = htmlManaCost2.replace(/<img src='magic-mana-small-/g, "{")
+			cleanMC2 = cleanMC2.replace(/\.png' alt='[^']*'>?/g, "}")
+			cleanMC2 = cleanMC2.replace(/{([2WUBRGPH])([WUBRGPH])}/g, "$1/$2");
+			card.manaCost2 = cleanMC2;
+			card.typeLine2 = type2;
+			if(htmlRules2.match("<br>///br///<br>///br///Starting loyalty: ")) {
+				let split = htmlRules2.split("<br>///br///<br>///br///Starting loyalty: ");
+				htmlRules2 = split[0];
+				loyHold = split[1];
+			}
+			card.rarityLine2 = "*TEST " + convertRarity(rarity) + "*";
+			card.rulesText2 = discordMarkup(htmlEle.decode(htmlRules2)).replace(/\/\/\/br\/\/\//g, "\\n");
+			card.flavorText2 = discordMarkup(htmlEle.decode(htmlFlavor2)).replace(/\/\/\/br\/\/\//g, "\\n");
+			card.power2 = (parseInt(power2) | "");
+			card.toughness2 = (parseInt(toughness2) | "");
+			card.loyalty2 = "";
+			card.color2 = indicatorBuilder(colorLetters(longColor2));
+			card.cmc2 = cmc;
+			card.cardType2 = type2.replace(/(Legendary |Token |Basic |World |Snow | — .*)/g, "")
+		}
+		card.rarity = rarity
+		card.shape = shape.replace('double', "doubleface");
+		card.setID = "NEW";
+		if(card.typeLine.match(/Token|Emblem|Reminder|Overlay/i))
+			card.setID = "tokens";
+		card.cardID = cardID.replace(/\/\d+/, "");
+		card.designer = "";
+		card.artist = htmlArtist1;
+		card.notes = [];
+		card.prints = ["NEW"];
+		cards[card.fullName + "_NEW"] = card;
 	}
+	return cards;
 }
-*/
+
 async function translatePS(testurl) {
 	let nameArray = [];
 	let foundCards = await pullPS(testurl);
@@ -245,4 +306,5 @@ async function test() {
 }
  
  exports.psCache = psCache;
- exports.translatePS = translatePS
+ exports.translatePS = translatePS;
+ exports.htmlToLB = htmlToLB;

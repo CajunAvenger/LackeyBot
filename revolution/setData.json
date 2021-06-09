@@ -1,0 +1,80 @@
+{
+	"GQC":{
+		"longname":"Ghariv: the Quaking City",
+		"Design":"CanterburyEgg",
+		"Link":"",
+		"releaseNo":"5",
+		"releaseDate":"2021-04-10",
+		"Draft":1,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"KUT":{
+		"longname":"Kuutalya",
+		"Design":"Matt",
+		"Link":"",
+		"releaseNo":"4",
+		"releaseDate":"2021-04-10",
+		"Draft":1,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"MON":{
+		"longname":"Monsters of Chikyu",
+		"Design":"Cajun",
+		"Link":"",
+		"releaseNo":"3",
+		"releaseDate":"2021-01-01",
+		"Draft":1,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r"],"chances":[1]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=r","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"SRC":{
+		"longname":"Secrets of the River City",
+		"Design":"Zangy",
+		"Link":"",
+		"releaseNo":"2",
+		"releaseDate":"2021-04-10",
+		"Draft":1,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"SVG":{
+		"longname":"Svergard",
+		"Design":"Occo",
+		"Link":"",
+		"releaseNo":"6",
+		"releaseDate":"2021-04-10",
+		"Draft":1,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"VST":{
+		"longname":"Vastuum",
+		"Design":"Reuben",
+		"Link":"",
+		"releaseNo":"1",
+		"releaseDate":"2021-04-10",
+		"Draft":1,
+		"basics":1,
+		"masterpiece":false,
+		"packSlots":[{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=c"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=u"],"chances":[1]},{"filters":["r=r","r=m"],"chances":[0.865,0.135]},{"filters":["r=l","r=c"],"chances":[1,1]},{"filters":["r=c","r=u","r=r","r=m","(r=b or r=l)"],"chances":[0.6875,0.1875,0.0547,0.0078,0.0625],"chanceFunction":"else","replace":0,"replaceChance":0.3334,"foil":true}]
+	},
+	"REV": {
+		"longname": "Revolution Renegades",
+		"Design": "Cajun",
+		"Link":"",
+		"releaseNo":"0",
+		"releaseDate":"2021-04-10",
+		"Draft":0,
+		"basics":0,
+		"masterpiece":false,
+		"reprint": true,
+		"packSlots":[]
+	}
+}

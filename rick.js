@@ -26,8 +26,6 @@ function tokenName(card) { //generates a token's name
 		return "Gold " + bob.pullTokenSet(card, setsArray);
 	if(card.cardName == "Glyph")
 		return "Glyph SVG";
-	if(card.cardName == "Lotus Petal")
-		return card.fullName;// + " " + bob.pullTokenSet(card, setsArray);
 	if(card.cardName == "Idol")
 		return "Idol " + bob.pullTokenSet(card, setsArray);
 	if(bob.pullTokenSet(card, setsArray) == "MSEMAR")
@@ -85,7 +83,11 @@ function tokenName(card) { //generates a token's name
 		}
 	}
 	let tokenType = card.typeLine.replace(/(Basic |Snow |Token |Artifact |Creature |Enchantment |Land |Emblem )/g,"");
-	let tokenName = tokenColor + tokenType.replace("— ","") + " " + tokenPT;
+	let paren = card.fullName.match(/\(([^)]+)\)/);
+	let parenText = "";
+	if(paren)
+		parenText = ` (${paren[1]})`
+	let tokenName = tokenColor + tokenType.replace("— ","") + parenText + " " + tokenPT;
 
 	if(card.typeLine.match("Legendary") || !card.typeLine.match("—"))
 		tokenName = card.cardName + " ";
@@ -348,6 +350,8 @@ function reverseLineWriter (cardName, amount) {
 	return output;
 }
 
+//console.log(tokenName(cards["Lotus Petal_TKN_KOD"]))
+
 let tokenXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<cockatrice_carddatabase version=\"3\">\r\n<cards>\r\n";
 for(let set in setsArray) {
 	cardsFile += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<cockatrice_carddatabase version=\"3\">\r\n<sets>\r\n";
@@ -369,11 +373,6 @@ for(let set in setsArray) {
 			triceTokenBlocker(card);
 		}
 	}
-	/*let fullFile = cardsFile + tokensFile + "</cards>\r\</cockatrice_carddatabase>";
-	fullFile = fullFile.replace(/’/g, "'");
-	fs.writeFile('./triceFiles/sets/'+set+'.xml',fullFile, (err) => {
-		if(err) throw err
-	});*/
 	tokenXML += tokensFile;
 	
 	cardsFile = "";

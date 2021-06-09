@@ -10,7 +10,7 @@ const azArray = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p"
 const azEmoteArray = ["🇦","🇧","🇨","🇩","🇪","🇫","🇬","🇭","🇮","🇯","🇰","🇱","🇲","🇳","🇴","🇵","🇶","🇷","🇸","🇹","🇺","🇻","🇼","🇽","🇾","🇿"]
 const pinEmotes = ["📌","📍"]
 const blank = "⬚", resetList = "📄"; //blank square emote
-const leftArrow = "⬅️", rightArrow = "➡️", upArrow = "⬆️", downArrow = "⬇️", old_dollarEmote = "💲", old_excEmote = "❗", old_quesEmote = "❓", old_plainText = "💬", old_mag = "🔍", old_ruler = "📏", old_xEmote = "❌"
+const leftArrow = "⬅️", rightArrow = "➡️", upArrow = "⬆️", downArrow = "⬇️", old_dollarEmote = "💲", old_excEmote = "❗", old_quesEmote = "❓", old_plainText = "💬", old_mag = "🔍", old_ruler = "📏", old_xEmote = "❌", xString = "711732430549286912";
 const forwardArrow = "↗️", backwardArrow = "↙️";
 const old_hourEmote = "🕐", old_dayEmote = "🌞", old_weekEmote = "📆", old_repeatEmote = "🔄";
 const plainText = "711733693542039562", mag = "711732431472033852", ruler = "711732431614378004", xEmote = "711732430549286912", dollarEmote = "711733693336518738", excEmote = "711732431278833665", quesEmote = "711732431408988230", tieEmote = "753837098771021877";
@@ -39,6 +39,7 @@ exports.old_mag = old_mag;
 exports.old_ruler = old_ruler;
 exports.old_quesEmote = old_quesEmote;
 exports.old_xEmote = old_xEmote;
+exports.xString = xString;
 //custom/normal emote IDs
 exports.dollarEmote = dollarEmote;
 exports.excEmote = excEmote;

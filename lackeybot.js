@@ -50,7 +50,6 @@ var roleDexScripts = require('./roleDexScripts.js');//handles roles
 var roleDex = {};										//roles object
 var roleRegex = roleDexScripts.roleRegex;				//regex for $role commands //todo think this needs to move
 var scratchScripts = require('./scratchPad.js')		//handles scratchpad
-var scratchPad = {};									//scratchpad object
 var stats = require('./stats.js');				//handles the LackeyBot stats
 var switcherooCache = {}, imgCache = {lastString: []};
 for(let l in arcana.libraries) {
@@ -59,9 +58,9 @@ for(let l in arcana.libraries) {
 var admin = config.dev;
 var convars = config.variables;
 var { //emote buffet
-	yeet, boop, leftArrow, rightArrow,
+	yeet, boop, leftArrow, rightArrow, azArray, azEmoteArray,
 	old_dollarEmote, old_excEmote, old_quesEmote, old_plainText,
-	old_mag, old_ruler, old_xEmote,
+	old_mag, old_ruler, old_xEmote, xString,
 	dollarEmote, excEmote, quesEmote, plainText,
 	mag, ruler, xEmote, pinEmotes, tieEmote,
 	hourEmote, dayEmote, weekEmote, repeatEmote, pingStar,
@@ -100,7 +99,19 @@ setInterval(() => { //this will check the reminderBase every minute
 			version.logMatch(matchDexScripts.sendMatch());
 			version.logLater['match'] = false;
 		}
-}, 60000);	
+}, 60000);
+/*setInterval(() => { //cull empty temp channels every ten minutes
+	let sp = scratchScripts.sendPad();
+	console.log(sp.tempVoice);
+	for(let c in sp.tempVoice) {
+		let thisChan = Client.channels.cache.get(sp.tempVoice[c]);
+		console.log(thisChan);
+		if(thisChan.members == 0) {
+			thisChan.delete();
+			sp.tempVoice.splice(c, 1)
+		}
+	}
+}, 600000);*/
 //Search Engine
 function searchCards(library,searchstring,msg) {			//main search function	
 	if(msg && library == arcana.devDex) {
@@ -476,7 +487,7 @@ console.log(`${date.getDate()}/${(date.getMonth()<10)? "0"+date.getMonth() : dat
 
 Client.on("message", (msg) => {								//this is what runs every time LackeyBot reads a Discord message
 	let realContent = "" + msg.content;						//split to not be a reference, remove codeblocks when checking commands
-	msg.content = msg.content.replace(/```[\s\S]+```/g, "").replace(/`[\s\S]+`/g, "");
+	msg.content = msg.content.replace(/```[\s\S]+```/g, "").replace(/`[\s\S]+`/g, "").replace(/@everyone/, "");
 	let arcanaData = arcana.configureArcana(msg);
 	let admincheck = checkRank(msg);
 	if(msg.author.bot || admincheck.includes(9))
@@ -608,7 +619,7 @@ Client.on("message", (msg) => {								//this is what runs every time LackeyBot 
 		console.log("Card Fetching:\n");
 		console.log(e);
 	}
-	try{//LackeyBots other commands
+	try{//LackeyBots other 
 		let scryRand = msg.content.match(/(\$|\?|!)rando?m? ?([^\n]+)?/i);
 		if(scryRand){ //random card of a scryfall filter
 			let randBase = arcanaData.square.data;
@@ -691,6 +702,8 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 			if(message._emoji.id != null)
 				emittedEmote = message._emoji.id;
 			if(msg.author.id == Client.user.id) { //reaction to a LackeyBot post
+				//if(emittedEmote == "📣")
+				//	yeet(msg.content);
 				let textFlag = false, update = true;
 				if((emittedEmote == plainText && message.users.cache.find(val => val.id != Client.user.id) || (emittedEmote != plainText && msg.content != "")))
 					textFlag = true; //someone reacts w/PT, or with something else in PTmode
@@ -698,7 +711,7 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 					textFlag = false, update = true;
 				}
 				if(update) {
-					if(emittedEmote == xEmote) {
+					if(emittedEmote == xEmote || emittedEmote == old_xEmote) {
 						msg.delete();
 						return;
 					}
@@ -739,7 +752,7 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 							else if(draftedmatch) { //draft pages
 								if(draftDexScripts.packCache().hasOwnProperty(user.id) && msg.id == draftDexScripts.packCache()[user.id].msg) {
 									let pageCheck = embedData.footer.text.match(/([0-9]+)\/([0-9]+), ([0-9]+):/);
-									draftDexScripts.moveDraftPlayerFocus(draftDex.drafts[pageCheck[3]], user.id)
+									draftDexScripts.moveDraftPlayerFocus(draftDexScripts.sendDex().drafts[pageCheck[3]], user.id)
 									let thisDraft = draftDexScripts.focusedDraft(user.id);
 									if(azEmoteArray.includes(emittedEmote)) {
 										let ind = azEmoteArray.indexOf(emittedEmote);
@@ -790,11 +803,11 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 									}
 									if(newPack == 19) {
 										let pool = "**Supreme Pool**\n";
-										for(let c in scratchPad.supreme[user.id].pool) {
-											pool += scratchPad.supreme[user.id].pool[c] + " " + c.replace(/_.*/, "") + "\n";
+										for(let c in scratchScripts.sendPad().supreme[user.id].pool) {
+											pool += scratchScripts.sendPad().supreme[user.id].pool[c] + " " + c.replace(/_.*/, "") + "\n";
 										}
 										msg.channel.send(pool)
-										delete scratchPad.supreme[user.id];
+										delete scratchScripts.sendPad().supreme[user.id];
 										delete draftDexScripts.packCache()[user.id];
 									}else{
 										let database = arcana[draftDexScripts.packCache()[user.id].database];
@@ -929,11 +942,13 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 								eris.turnEmbedPage(emitData, pageCheck, embedBuild, update, textFlag);
 							}
 							else if(embedData.description.match(/^Need more time/)){
-								let messSplit = msg.content.match(/(\d+) ([^ ]+) ago <@!?([0-9]+)> set a reminder: ([\s\S]+)/);
+								let messSplit = msg.content.match(/(\d+) ([^ ]+) ago <@!?([0-9]+)> set a reminder: ?([\s\S]*)/);
 								let number = parseInt(messSplit[1]);
 								let distance = messSplit[2];
 								let thisID = messSplit[3];
-								let thisMessage = messSplit[4];
+								let thisMessage = "";
+								if(messSplit[4])
+									thisMessage = messSplit[4];
 								thisMessage = thisMessage.replace(/\nPing me too: (<@!?[0-9]+> ?)*$/, "");
 								if(thisID == user.id) {
 									switch(emittedEmote) {
@@ -1130,6 +1145,20 @@ Client.on("messageReactionAdd", async (message, user) => {	//functions when post
 						msg.unpin();
 					}else{
 						dysnomia.asyncSwapPins(msg, {author:msg.author.id}, 1)
+					}
+				}
+				else{
+					if(emittedEmote == "wormhole" || emittedEmote == "835911106027061318") { //ultra wormhole
+						if(msg.channel.id == "511306494592024583") {
+							Client.guilds.cache.get("317373924096868353").members.cache.get(user.id).roles.add("835909801057714177");
+						}
+						else if(msg.channel.id == "835910152845918259") { //into the ultra wormhole
+							Client.guilds.cache.get("317373924096868353").members.cache.get(user.id).roles.add("835909974969548880");
+						}
+						else if(msg.channel.id == "835910252187746365"){ //leave ultra space
+							Client.guilds.cache.get("317373924096868353").members.cache.get(user.id).roles.remove("835909801057714177");
+							Client.guilds.cache.get("317373924096868353").members.cache.get(user.id).roles.remove("835909974969548880");
+						}
 					}
 				}
 			}

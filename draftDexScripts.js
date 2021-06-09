@@ -69,11 +69,11 @@ function buildPackEmbed(library, packCards, expansion, user, page, textFlag) { 	
 	}
 	var exampleEmbed = new Discord.MessageEmbed()
 		.setColor('#00ff00')
-		.setThumbnail(printImages([unFoil(packCards[(page+1)%pages])], library, true))
+		.setThumbnail(arcana.printImages([unFoil(packCards[(page+1)%pages])], library, true))
 		.setTitle(eris.pullUsername(user) + " opened a pack of " + expansion)
 		.setFooter("Card " + parseInt(page+1) + "/" + pages)
 		.addField("**" + foil_name + "**", cardText)
-		.setImage(printImages([unFoil(card_name)], library, true))
+		.setImage(arcana.printImages([unFoil(card_name)], library, true))
 	return [exampleEmbed, packObj];
 }
 function buildDraftEmbed(library, packCards, expansion, user, page, textFlag, firstFlag) {	//build draft embed
@@ -121,9 +121,9 @@ function buildDraftEmbed(library, packCards, expansion, user, page, textFlag, fi
 			cardText += "\n" + database[card_name].power + "/" + database[card_name].toughness;
 		cardTitle = "**" + foil_name + "**";
 		cardTitle = azEmoteArray[ind] + ": " + cardTitle;
-		exampleEmbed.setThumbnail(printImages([unFoil(packCards[(ind+1)%packCards.length])], library, true))
+		exampleEmbed.setThumbnail(arcana.printImages([unFoil(packCards[(ind+1)%packCards.length])], library, true))
 		exampleEmbed.addField(cardTitle, cardText)
-		exampleEmbed.setImage(printImages([unFoil(card_name)], library, true));
+		exampleEmbed.setImage(arcana.printImages([unFoil(card_name)], library, true));
 	}
 	embedText += `\nReact with 🇦 🇧 ... 🇿 to pick a card.\nReact with ${leftArrow}${rightArrow} to see card images or ${resetList} to return to the list.\nSend $viewpool to see your current pool.\nIf LackeyBot isn't responding, send $viewpack to refresh your pack.`;
 	if(textFlag) {
@@ -218,9 +218,9 @@ function buildSupremeEmbed(library, packCards, expansion, pickData, page, textFl
 		if(pickData.picks.includes(azEmoteArray[ind]))
 			cardTitle = "~~" + cardTitle + "~~";
 		cardTitle = azEmoteArray[ind] + ": " + cardTitle;
-		exampleEmbed.setThumbnail(printImages([unFoil(packCards[(ind+1)%packCards.length])], library, true))
+		exampleEmbed.setThumbnail(arcana.printImages([unFoil(packCards[(ind+1)%packCards.length])], library, true))
 		exampleEmbed.addField(cardTitle, cardText)
-		exampleEmbed.setImage(printImages([unFoil(card_name)], library, true));
+		exampleEmbed.setImage(arcana.printImages([unFoil(card_name)], library, true));
 	}
 	embedText += `\nReact with 🇦 🇧 ... 🇿 to pick a card.\nReact with ${leftArrow}${rightArrow} to see card images or ${resetList} to return to the list.\nSend $poolsupreme to see your current pool.`;
 	if(textFlag) {
@@ -255,10 +255,8 @@ function supremePicker (user, picked) {														//checks supreme picks are 
 
 //Packs
 function generatePack(set, library, extraFilter) {											//generates a pack given a set code
-	let database = library.cards;
-	let setDatabase = library.setData;
 	var newPack = [];
-	let packSlots = setDatabase[set].packSlots;
+	let packSlots = library.setData[set].packSlots;
 	let filterArrays = {}; //save these so we don't have to keep rolling them
 	let i = 0;
 	for(let slot in packSlots) {
@@ -268,17 +266,21 @@ function generatePack(set, library, extraFilter) {											//generates a pack 
 		let skip = false;
 		let replaceFail = true;
 		let hasntRemoved = true;
-		for(let filter in packSlots[slot].filters) {
+		let filtersToRun = packSlots[slot]
+		if(packSlots[slot].hasOwnProperty("conditionalScript") && packSlots[slot].conditionalScript.condition(newPack, library)) {
+			filtersToRun = packSlots[slot].conditionalScript;
+		}
+		for(let filter in filtersToRun.filters) {
 			if(!skip) {
-				let thisFilter = packSlots[slot].filters[filter];
-				if(packSlots[slot].hasOwnProperty("replace")) { //replace check
+				let thisFilter = filtersToRun.filters[filter];
+				if(filtersToRun.hasOwnProperty("replace")) { //replace check
 					let rand2 = Math.random();
-					if(replaceFail && rand2 > packSlots[slot].replaceChance) {
+					if(replaceFail && rand2 > filtersToRun.replaceChance) {
 						skip = true;
 						continue; //failed the replaceChance
 					}else{
 						replaceFail = false;
-						if(packSlots[slot].hasOwnProperty("foil") && packSlots[slot].foil)
+						if(filtersToRun.hasOwnProperty("foil") && filtersToRun.foil)
 							foilFlag = true;
 					}
 				}
@@ -288,31 +290,38 @@ function generatePack(set, library, extraFilter) {											//generates a pack 
 					thisFilter += extraFilter; //apply any additional filters called
 				if(!filterArrays.hasOwnProperty(thisFilter)) //add new filters to the object
 					filterArrays[thisFilter] = toolbox.shuffleArray(fuzzy.scryDatabase(library, thisFilter)[0]);
-				if(packSlots.hasOwnProperty('chanceFunction') && packSlots.chanceFunction != "else") {
+				if(packSlots[slot].hasOwnProperty('chanceFunction') && packSlots[slot].chanceFunction != "else") {
 					rando = Math.random() //roll each time for and and independent
-					prob = packSlots[slot].chances[filter];
+					prob = filtersToRun.chances[filter];
 				}else{ //add up each chance
-					prob += packSlots[slot].chances[filter];
+					prob += filtersToRun.chances[filter];
 				}
 				if(rando <= prob) { //successful roll
 					if(filterArrays[thisFilter].length == 0) 
 						continue; //if nothing matches, skip, may be a secondary filter
 					//remove the replaced cards
-					if(packSlots[slot].hasOwnProperty("replace") && hasntRemoved) {
-						if(typeof packSlots[slot].replace == "number") {
-							newPack.splice(packSlots[slot].replace, 1) //replace the other card
-						}else if(packSlots[slot].replace == "all"){ //replace all the cards
+					if(filtersToRun.hasOwnProperty("replace") && hasntRemoved) {
+						if(typeof filtersToRun.replace == "number") {
+							newPack.splice(filtersToRun.replace, 1) //replace the other card
+						}else if(filtersToRun.replace == "all"){ //replace all the cards
 							newPack = [];
 						}
 						hasntRemoved = false;
 					}
 					//add the card
-					let foil_name = filterArrays[thisFilter][i%filterArrays[thisFilter].length];
-					if(foilFlag)
-						foil_name = makeFoil(foil_name);
+					let noRepeat = true, loops = 0, foil_name;
+					while(noRepeat) {
+						foil_name = filterArrays[thisFilter][i%filterArrays[thisFilter].length];
+						if(foilFlag)
+							foil_name = makeFoil(foil_name);
+						noRepeat = newPack.includes(foil_name);
+						i++;
+						loops++;
+						if(loops > 20)
+							noRepeat = false;
+					}
 					newPack.push(foil_name);
-					i++;
-					if(!packSlots[slot].hasOwnProperty('chanceFunction') || packSlots[slot].chanceFunction != "and")
+					if(!filtersToRun.hasOwnProperty('chanceFunction') || filtersToRun.chanceFunction != "and")
 						skip = true; //move to next slot
 				}
 			}
@@ -320,6 +329,7 @@ function generatePack(set, library, extraFilter) {											//generates a pack 
 	}
 	return newPack;
 }
+
 function makeFoil(string){																	//adds ★ to a card name
 	return "★ " + string;
 }
@@ -1296,7 +1306,9 @@ exports.buildPickEmbed = buildPickEmbed;
 exports.buildSupremeEmbed = buildSupremeEmbed;
 exports.supremePicker = supremePicker;
 exports.addBotDrafter = addBotDrafter
-exports.generatePack = generatePack
+exports.generatePack = generatePack;
+exports.moveDraftPlayerFocus = moveDraftPlayerFocus;
+exports.draftPick = draftPick;
 exports.sendDex = function() {
 	return draftDex;
 }

@@ -159,11 +159,10 @@ function tokenName(card) { //generates a token's name
 }
 function pullTokenSet(card, setbase) { //determines what set a token belongs to
 	for(let set in setbase) {
-		if(card.cardID.match(set))
+		if(card.cardID.match(new RegExp(set + "\\d+s?$", "")))
 			return set;
-		if(card.setID.match(set))
+		if(card.setID == set)
 			return set;
-		
 	}
 	return "MSEMAR";
 }

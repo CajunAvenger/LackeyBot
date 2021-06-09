@@ -74,7 +74,7 @@ function messageHandler(msg, perms) {
 	}
 	//Grand Prix links
 	let gpBoardMatch = msg.content.match(/\$gp(leader|board|score)/i);
-	gpcheck = msg.content.match(/\$(gp[a-z][0-9]*|pt[0-9]|skirmish)/i);
+	gpcheck = msg.content.match(/\$(gp[a-z][0-9]*|pt[0-9]|skirmish)\b/i);
 	if(gpcheck && !gpBoardMatch){
 		stats.upBribes(1);
 		let thisGP = gpcheck[1].toLowerCase();

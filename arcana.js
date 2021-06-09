@@ -29,6 +29,8 @@ var mechanics = require("./msem/mechs.json");
 var Discord = require('discord.js');
 var eris = require('./eris.js');
 var Client = eris.Client();
+var config = require('./config/lackeyconfig.js').config;
+var login = config.live;
 var { //emote buffet
 	yeet, boop, leftArrow, rightArrow,
 	old_dollarEmote, old_excEmote, old_quesEmote, old_plainText,
@@ -116,7 +118,7 @@ function buildReference(arcana){							//builds refSheet
 			refSheet.swapCommands[thisLib.swaps[i]] = thisLib.name
 	}
 	titleString = "\\[(" + titleString.replace(/\|$/, "") + ") search\\]\\([^\n]+ '([^\n]+)'\\)";
-	anySwapString = "(?:\\$|\\?|!)(" + anySwapString.replace(/\|$/, "") + ")";
+	anySwapString = "(?:\\$|\\?|!)(" + anySwapString.replace(/\|$/, "") + ")\\b";
 	refSheet.searchRegex = new RegExp(titleString, 'i');
 	refSheet.anySwapRegex = new RegExp(anySwapString, 'i');
 }
@@ -256,7 +258,8 @@ function sendRuleData (testRul, crBase, inline) {						//generates data for a gi
 	if(rulMatch && rulMatch[3] && crBase.rules.hasOwnProperty(testRul)) { //if a precise rule, send just that
 		ruleData.title = testRul;
 		ruleData.ruleNames.push(testRul);
-		ruleData.lines = crBase.rules[testRul];
+		for(let r in crBase.rules[testRul])
+			ruleData.lines.push(""+crBase.rules[testRul][r])
 		let index = rulesList.indexOf(testRul);
 		ruleData.nextRule = rulesList[(index+1)%rulesList.length];
 		ruleData.prevRule = rulesList[Math.max(0,index-1)];
@@ -265,7 +268,8 @@ function sendRuleData (testRul, crBase, inline) {						//generates data for a gi
 	else if(rulMatch && rulMatch[2] && crBase.rules.hasOwnProperty(testRul)) { //if an XXX.YY, send that and as many subrules as you can
 		ruleData.title = testRul;
 		ruleData.ruleNames.push(testRul);
-		ruleData.lines = crBase.rules[testRul];
+		for(let t in crBase.rules[testRul])
+			ruleData.lines.push(""+crBase.rules[testRul][t])
 		for(let rul in ruleData.lines) {
 			if(crBase.rules.hasOwnProperty(ruleData.lines[rul])) {
 				ruleData.ruleNames.push(ruleData.lines[rul]);
@@ -280,7 +284,8 @@ function sendRuleData (testRul, crBase, inline) {						//generates data for a gi
 	else if(rulMatch && rulMatch[1] && crBase.rules.hasOwnProperty(rulMatch[1])) { //if an XXX, send that and as many subrules as you can
 		ruleData.title = rulMatch[1];
 		ruleData.ruleNames.push(rulMatch[1]);
-		ruleData.lines = crBase.rules[rulMatch[1]];
+		for(let r in crBase.rules[rulMatch[1]])
+			ruleData.lines.push(""+crBase.rules[rulMatch[1]][r])
 		for(let rul in ruleData.lines) {
 			if(crBase.rules.hasOwnProperty(ruleData.lines[rul])) {
 				ruleData.ruleNames.push(ruleData.lines[rul]);
@@ -301,7 +306,8 @@ function sendRuleData (testRul, crBase, inline) {						//generates data for a gi
 		}
 		if(glos) {
 			ruleData.title = glos;
-			ruleData.lines = crBase.glossary[glos]
+			for(let r in crBase.glossary[glos])
+				ruleData.lines.push(""+crBase.glossary[glos][r])
 			let seeCheck = crBase.glossary[glos][0].match(/see (rules? )?([^,]+)/i);
 			if(seeCheck) {
 				if(seeCheck[1]) {
@@ -371,7 +377,7 @@ function buildCREmbed(testrul, library, textFlag) {					//build !cr embeds
 }
 //Scryfall
 function scryCard(cardName) { 								//get scryfall data for a card
-	let cardStuff = arcana.magic.cards[cardName];
+	let cardStuff = magicDatabase.cards[cardName];
 	let testurl = "https://api.scryfall.com/cards/" + cardStuff.scryID;
 	let requestPromise;
 	requestPromise = new Promise((resolve, reject) => {
@@ -485,10 +491,17 @@ function bribeLackeyBot(cardName,msg){ 						//card-specific bribes for the cust
 		fullCard += "\n*" + thisCard.fullName + " is Masterpiece only and not legal in MSEModern.*\n";
 	if(this.legal.cuts.live) { //cards being removed from msem
 		let cutCard = false;
-		if(this.legal.cuts.sets.includes(thisCard.setID) && !this.legal.cuts.exempts.includes(thisCard.cardName)) {
-			cutCard = true;	//from a cut set and not reprinted elsewhere
-		}else if(thisCard.setID.match(/MS\d|LAIR|MPS_MSE|CHAMPIONS/) && this.legal.cuts.designer.includes(thisCard.designer)) {
+		if(this.legal.cuts.sets.includes(thisCard.setID)) {
+			cutCard = true;	//from a cut set
+		}else if(thisCard.setID.match(/MS\d|LAIR|MPS_|CHAMPIONS|L$|L2|L3/) && this.legal.cuts.designer.includes(thisCard.designer)) {
 			cutCard = true;	//reprints/bonus cards from cut designer
+		}
+		if(cutCard) {
+			for(let p in thisCard.prints) {
+				let setName = thisCard.prints[p];
+				if(!this.legal.cuts.sets.includes(setName) && !thisCard.setID.match(/MS\d|LAIR|MPS_|CHAMPIONS|L$|L2|L3/))
+					cutCard = false; //reprinted by someone else
+			}
 		}
 		if(cutCard)
 			fullCard = fullCard.replace(/\n$/, "") + "\n*" + thisCard.fullName + " will be removed from MSEM in " + this.legal.cuts.out + " by designer request.*\n";
@@ -855,7 +868,7 @@ function msemMH(msg, perms) {								//message handler for MSEM
 		}else if(landCycleMatch) {
 			searchQuery += "is:" + landCycleMatch[1];
 		}
-		let embedInfo = buildSearchEmbed(searchQuery, arcana.msem, -1)
+		let embedInfo = buildSearchEmbed(searchQuery, this, -1)
 		let messyCallback = function (mess) {
 			if(embedInfo[1] != 0) {
 				mess.react(leftArrow)
@@ -981,7 +994,7 @@ function messageHandler(msg, perms) {
 	//General Commands
 	//These are commands that work with any/most sets in Arcana
 	let statFirst = msg.content.match(/(\$|!|\?)stats? [^\n]+/i);
-	let scodeMatch = msg.content.match(/(\$|\?|!)(set|code)/i);
+	let scodeMatch = msg.content.match(/\B(\$|\?|!)(set|code)/i);
 	let searchCheck = msg.content.match(/(\$|!|\?)(s?earch|li?mitfy|scryf?a?l?l?) ([^\n]+)/i);
 	var fuzzyMatch = msg.content.match(/([^\$\n]*) (\$|!|\?)fuzzytest ([^\$\n]*)/i);
 	if(statFirst) { 
@@ -1424,7 +1437,7 @@ function wildcardVoter(user, content) {						//post and anonymize wildcard voter
 	}
 }
 function deckCheckCheck(msg) {
-	let formats = '(Constructed|EDH|Primordial|MSEM|Revolution|Pauper)'
+	let formats = '(Team Unified Constructed|Constructed|EDH|Primordial|MSEM|Revolution|Pauper)'
 	let rString = 'deckCheck: ?(' + libs.join("|") + ')[, :-—(]*' + formats;
 	return msg.content.match(new RegExp(rString, 'i'));
 }
@@ -1552,6 +1565,7 @@ exports.myriad = myriadDatabase;
 exports.cajun_standard = cajun_standardDatabase;
 exports.revolution = revolutionDatabase;
 
+exports.printImages = printImages;
 exports.generatePrints = generatePrints;
 exports.buildReference = buildReference;
 exports.decodeColor = decodeColor;

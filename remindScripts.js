@@ -304,7 +304,7 @@ function addCC(remTime, remSlot, user, msg) {				//handle CC embeds
 		let addMess = "";
 		if(!reminderData.reminders[remTime][remSlot].cc.includes(user.id)) {
 			reminderData.reminders[remTime][remSlot].cc.push(user.id);
-			msg.channel.send(user.username + " added to reminder"); //let them know they've been added
+			//msg.channel.send(user.username + " added to reminder"); //let them know they've been added
 			version.logLater['reminder'] = true; //set the reminder to log later because there will probably be a few in a row
 		}
 	}else{
@@ -352,7 +352,7 @@ function messageHandler(msg, perms) {
 			sendChannel = remindMatch[1];
 		//remove pings
 		let pingCheck = thisMessage.match(/<@!([0-9]+)>/g);
-		if(pingCheck && admincheck.includes(7)) {
+		if(pingCheck && perms.includes(7)) {
 			for(i=0;i<pingCheck.length;i++) {
 				pingMatch = pingCheck[i].match(/<@!([0-9]+)>/);
 				thisMessage = thisMessage.replace(pingCheck[i],eris.pullUsername(pingMatch[1]));
@@ -384,14 +384,14 @@ function messageHandler(msg, perms) {
 				match: ["MSEM"],
 				message: "`MSEM`, for the MSEM release announcement on October 15"
 			},*/
-			Strixhaven: {
-				time: new Date('Fri, 23 April 2021 10:00:00 EST'),
-				match: ["Strixhaven"],
-				message: "`Strixhaven`, for the release of Strixhaven in April 2021"
+			MH2: {
+				time: new Date('Fri, 11 June 2021 10:00:00 EST'),
+				match: ["MH2", "Modern Horizons", "MH", "Horizons"],
+				message: "`MH2`, for the release of Modern Horizons 2 on June 11, 2021"
 			},
 			Realms: {
 				time: new Date('Fri, 9 July 2021 10:00:00 EST'),
-				match: ["DND", "D&D", "Forgotten Realms", "Forgotten", "Realms", "Realm"],
+				match: ["DND", "D&D", "Forgotten Realms", "Forgotten", "Realms", "Realm","AFR"],
 				message: "`DND`, `Forgotten Realms`, or `Realms`, for the release of Adventures in the Forgotten Realms in July 2021"
 			},
 			Innistrad: {

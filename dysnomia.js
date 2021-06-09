@@ -8,6 +8,7 @@ var Discord = require('discord.js');
 var config = require('./config/lackeyconfig.js').config;
 var convars = config.variables;
 var download = require('download-file');
+var scratchScripts = require('./scratchPad.js');
 var toolbox = require('./toolbox.js');
 var { //emote buffet
 	yeet, boop, leftArrow, rightArrow,
@@ -269,7 +270,7 @@ async function channelHelpPoster(id, helpMsg, now) {		//posts help messages to c
 	if(post)
 		channel.send(helpMsg);
 }
-
+//making channels
 function helpMessage() {
 	let helpout = "**Dysnomia Help**\n";
 	helpout += "`$userinfo` for info about yourself.\n";
@@ -294,7 +295,7 @@ function messageHandler(msg, perms) {
 		if(deletecheck) //deletes a LackeyBot post
 			deleteMsg(deletecheck[1],deletecheck[2]);
 		if(msg.content.match("!react")) //reacts to a post
-			eris.reactMsg(msg);
+			reactMsg(msg);
 	}
 	let emotematch = msg.content.match(/\$(big|huge?)? ?emo(?:ji|te) ([^\n]+)/i);
 	if(emotematch){ //$emote
@@ -337,6 +338,31 @@ function messageHandler(msg, perms) {
 			let servEmbed = buildServerEmbed(guildID, simatch[1])
 			msg.channel.send(servEmbed[0], servEmbed[1])
 		}
+	}
+	if(msg.content.match(/\$tempvoice/)) {
+		let nameMatch = msg.content.match(/name: ?([^\n]+)/i);
+		let catMatch = msg.content.match(/category: ?([^\n]+)/i);
+		let limMatch = msg.content.match(/limit: ?(\d+)/i);
+		let options = {type:"voice"};
+		let name = "voice";
+		if(nameMatch)
+			name = nameMatch[1];
+		if(catMatch) {
+			let cat = msg.guild.channels.cache.filter(chan => chan.name == "logs")
+			if(cat) {
+				options.parent = cat.array()[0].id
+			}
+		}
+		if(limMatch)
+			options.userLimit = limMatch[1];
+		msg.guild.channels.create("temp-"+name, options)
+			.then(function(chan){
+				let sp = scratchScripts.sendPad();
+				if(!sp.hasOwnProperty('tempVoice'))
+					sp.tempVoice = [];
+				sp.tempVoice.push(chan.id);
+			})
+			.catch(e => console.log(e))
 	}
 	//Channel specific commands
 	if(msg.guild && msg.guild.id == "205457071380889601"){ //purple server specific

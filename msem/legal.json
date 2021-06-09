@@ -1,25 +1,13 @@
 {
-	"modernBan": ["Aether Leak","Angeltouched Cavern","Angeltouched Crag","Angeltouched Garden","Angeltouched Marsh","Angeltouched Saltflat","Armored Flunkie","Blessings of Armor","Chigau, the Red Market","Creeping Crypts","Dawnlit Battlefield","Deadly Manipulation","Deadwood Grove","Ebb and Flow","Eleventh Hour Breakthrough","Elvish Opportunist","Embrace Madness","Frozen Hinterlands","Hazy Coppice","Leyline Alignment Field","Life-Giving Waters","Lush Outskirts","Malice Crafter","Mercantile Accords","Mystic Meddling","Ontarachie Dryad","Planar Conflagration","Planar Traversal","Poisoned Well","Pyre Ritual","Revert to Moonlight","Scrapyard Sovereign","Sentinel of Latter Days","Shrouded Rooftops","Spires of Caulte","Sunlit Fissure","Tezmodo, the Golden City","Towering Boughs","Unmasker of Fate's Design","Vidal, Rune Thief","Weathered Fortress","Winter's Exhaustion","Zetla, the Dragon's Voice"],
-	"edhBan": ["Whiterun Gates","Citadel of Denial","Sway of the Stars","Planar Conflagration","Poisoned Well","End of the World"],
+	"modernBan": ["Aether Leak","Ammbradu Goliath","Angeltouched Cavern","Angeltouched Crag","Angeltouched Garden","Angeltouched Marsh","Angeltouched Saltflat","Chigau, the Red Market","Dawnlit Battlefield","Deadly Manipulation","Deadwood Grove","Ebb and Flow","Eleventh Hour Breakthrough","Embrace Madness","Entelan Erasure","Frozen Hinterlands","Hazy Coppice","Imperial Mox","Kevthra's Will","Leyline Alignment Field","Life-Giving Waters","Lush Outskirts","Mercantile Accords","Ontarachie Dryad","Planar Conflagration","Planar Traversal","Poisoned Well","Revert to Moonlight","Scrapyard Sovereign","Sentinel of Latter Days","Shrouded Rooftops","Spires of Caulte","Sunlit Fissure","Towering Boughs","Unmasker of Fate's Design","Vidal, Rune Thief","Weathered Fortress"],
+	"edhBan": ["Whiterun Gates","Citadel of Denial","Isles Uncharted","Siesa Tremund","Talent Pool","Planar Conflagration","Poisoned Well","End of the World"],
 	"preview": [],
 	"cuts": {
-		"live": true,
-		"sets": ["TGE", "XPM", "DYA", "LNG", "WAW"],
-		"designer": ["HonchkrowDavid"],
-		"exempts": [
-			"Flameblade",
-			"Spell Stutter",
-			"Heat Ray",
-			"Prophetic Prism",
-			"Threaten",
-			"Essence Scatter",
-			"Plains",
-			"Island",
-			"Swamp",
-			"Mountain",
-			"Forest"
-		],
-		"out": "May"
+		"live": false,
+		"sets": [],
+		"designer": [],
+		"exempts": [],
+		"out": ""
 	},
 	"masterpiece" :
 	[

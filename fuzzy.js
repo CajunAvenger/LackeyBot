@@ -3,6 +3,7 @@
 */
 
 var toolbox = require('./toolbox.js');
+var staples = require('./staples.json');
 var embedCache = {
 	scries: {msem:{}, magic:{}, devDex:{}, myriad:{}, revolution:{}, temp:{}, cajun_standard:{}},
 	prices: {}
@@ -127,7 +128,7 @@ function scryDatabase(library, searchstring, flags) { //collects an array of all
 	if(searchstring.match(/!["A-Za-z]/i))
 		exact = true;
 	let dataRef = library.name;
-	if(embedCache.scries[dataRef].hasOwnProperty(searchstring)) {
+	if(embedCache.scries[dataRef].hasOwnProperty(searchstring) && !flags.refresh) {
 		return [embedCache.scries[dataRef][searchstring], exact]
 	} //if array is stashed, send that
 	let scryFilter = stitchScryCode(searchstring, library, flags);
@@ -157,7 +158,7 @@ function scryDatabase(library, searchstring, flags) { //collects an array of all
 	embedCache.scries[dataRef][searchstring] = valids;
 	return [valids, exact, false];
 }
-function searchCards(library,searchstring,needleWeight) {  //main search function
+function searchCards(library,searchstring,needleWeight,mins) {  //main search function
 	let database = library.cards;
 	searchstring = searchstring.replace(/[[\]<>]/g,"");
 	searchstring = searchstring.replace(/ \/\/ /g,"//");
@@ -246,9 +247,18 @@ function searchCards(library,searchstring,needleWeight) {  //main search functio
 		if(database[entry].hasOwnProperty('alias'))
 			names.push(database[entry].alias);
 		for(let aName in names) {
+			let max = 1.2*names[aName].length;
 			if(!(splitString[3] && !splitString[1])) //if not only a filter, fuzzy search
 				i = fuzzySearch(splitString[1],names[aName],needlescore);
 			if(i>bestMatch[1]) {
+				let go = true;
+				if(mins) {
+					if(mins.p) {
+						let check = max*mins.p;
+						if(check < i)
+							go = false;
+					}
+				}
 				bestMatch=[entry,i]; //whenever a better score is found, score and card name are recorded
 			}
 		}
@@ -888,6 +898,23 @@ function generateScryCode (thisCheck, library, flags) { //makes the function for
 					return true;
 				return false;
 			};
+		}
+		else if(matchCheck.match(/commander/i)) {
+			return function(card) {
+				if(card.typeLine.match(/Legendary/) && card.typeLine.match(/Creature/))
+					return true;
+				if(card.rulesText.match(/can be your commander/))
+					return true;
+				return false;
+			}
+		}
+		else if(matchCheck.match(/staple/i)) {
+			return function(card) {
+				let smol = card.cardName.toLowerCase();
+				if(staples.includes(smol))
+					return true;
+				return false;
+			}
 		}
 		// is:banned
 		return function(card) { //is:notes

@@ -137,6 +137,9 @@ function helpMessage() {
 
 exports.dl = dl;
 exports.scratchPad = scratchPad;
+exports.sendPad = function () {
+	return scratchPad;
+};
 exports.newDisaster = newDisaster;
 exports.deleteDisaster = deleteDisaster;
 exports.checkDisaster = checkDisaster;

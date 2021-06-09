@@ -6,8 +6,8 @@ var toolbox = require('./toolbox.js');
 const bye = "343475440083664896";
 var cards = require('./msem/cards.json');
 var archives = [
-	'gp_20_11_archive.json'
-	//'league_21_03_archive.json'
+	'gp_21_05',
+	'league_21_05'
 ];
 
 function extractPlain (cardString) { //converts HTML deck back to plain text
@@ -165,15 +165,18 @@ function processJsons(archiveArray) {
 	}
 }
 function justDecks(){
-	let tourn = "league_21_03"
-	fs.readdir(`decks/${tourn}`, function(err, array) {
-		for(let a in array) {
-			console.log(`trying ${array[a]}`);
-			convertDeck(`/${tourn}/${array[a].replace('.txt', '')}`)
-		}
-	})
+	for(let t in archives) {
+		let tourn = archives[t];
+		fs.readdir(`decks/${tourn}`, function(err, array) {
+			for(let a in array) {
+				console.log(`trying ${array[a]}`);
+				convertDeck(`/${tourn}/${array[a].replace('.txt', '')}`)
+			}
+		})
+	}
 }
 justDecks()
+//convertDeck("/league_21_04/Homarid_Tribal4")
 //processJsons(archives)
 /*
 fs.readdir("tourneyArchives",function(err, array) {

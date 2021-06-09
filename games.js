@@ -3,6 +3,7 @@
 */
 var config = require('./config/lackeyconfig.js').config;
 var convars = config.variables;
+var freedomUnits = require('./freedomUnits.js');
 var fuzzy = require('./fuzzy.js');
 var stats = require('./stats.js');
 var prompts = require("./prompts.json");
@@ -74,7 +75,7 @@ function messageHandler(msg, perms) {
 	}else if(msg.content.match(/\$wiki/i)) {
 		msg.channel.send("https://mseverse.fandom.com/wiki/MSEverse_Wiki");
 	}
-	var timeCheck = msg.content.match(/\$time (-?[.0-9]+) ?(AR|VY|EY|PM|CE|NKY|WE|DAT|OKY|AC)( ?> ?(AR|VY|EY|PM|CE|NKY|WE|DAT|OKY|AC))?/i);
+	var timeCheck = msg.content.match(/\$time (-?[.0-9]+) ?(AR|VY|EY|PM|CE|NKY|WE|DAT|OKY|AC|GC)( ?> ?(AR|VY|EY|PM|CE|NKY|WE|DAT|OKY|AC|GC))?/i);
 	if(timeCheck !== null) {
 		let year = parseFloat(timeCheck[1]);
 		let starting = timeCheck[2].toUpperCase();
@@ -193,6 +194,11 @@ function messageHandler(msg, perms) {
 		mes = mes.replace(/, $/, ".")
 		msg.channel.send(mes);
 		stats.upBribes(1);
+	}
+	let convertMatch = msg.content.match(/\$convert ([^\n]+)/i);
+	if(convertMatch) {
+		msg.channel.send(freedomUnits.convertUnits(convertMatch[1]));
+		stats.bribes++;
 	}
 	if(msg.content.match(/\$(sms|shit-?mse-?says?|s?hit)/i)){ //random sms quote
 		stats.stats.bribes++;
@@ -635,7 +641,7 @@ function buildTime (year, starting, ending) {				//the timeline handler
 	let holding = ""
 	let floatNo = 0;
 	if(ending == "")
-		ending = ["AR", "PM", "NKY", "VY", "WE", "DAT", "AC", "CE"];
+		ending = ["AR", "PM", "NKY", "VY", "WE", "DAT", "AC", "CE", "GC"];
 	if(starting == "DAT")
 		floatNo = 2;
 	for(var i = 0; i < ending.length; i++) {
@@ -648,7 +654,7 @@ function buildTime (year, starting, ending) {				//the timeline handler
 			output += " = " + holding[0] + holding[1];
 		}
 	}
-	output += "\n(AR: Argivian Reckoning, PM: Post-Mending, NKY: New Khalizor Year, VY: Volarian Year, EY: Eternity Years, WE: War's End, DAT: Dilated Adiran Time, AC: After Custom)";
+	output += "\n(AR: Argivian Reckoning, PM: Post-Mending, NKY: New Khalizor Year, VY: Volarian Year, EY: Eternity Years, WE: War's End, DAT: Dilated Adiran Time, AC: After Custom, GC: Great Calamity)";
 	let nky = output.match(/-([0-9]+)NKY/);
 	if(nky) {
 		let year2 = parseInt(nky[1])
@@ -668,6 +674,9 @@ function buildTime (year, starting, ending) {				//the timeline handler
 function convertAR (year, starting) {						//first convert to AR
 	//convert to AR
 	switch(starting) {
+		case "GC":
+			year += 4330;
+			break;
 		case "VY":
 			year += 4201;
 			break;
@@ -730,6 +739,9 @@ function convertCalendar (year, ending, floatNo) {			//then convert to other cal
 				year = Number.parseFloat(year).toFixed(3);
 				year = year.replace(/000?$/,"0");
 			}
+			break;
+		case "GC":
+			year -= 4330;
 			break;
 		case "VY":
 			year -= 4201;

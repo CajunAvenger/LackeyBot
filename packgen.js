@@ -63,7 +63,7 @@ let docs = writeDocs();
 		releaseDate: "2005-10-27",
 		setType: "expansion", //box set, promo, funny, supplemental
 	}
-	
+
 	if(packSlots[j].hasOwnProperty("replace"))
 		if Math.random() <= replaceChance
 			remove packs[packSlots[j]]
@@ -163,7 +163,7 @@ function buildPackSlotsFrom(string){ //encodes packSlots code
 	packSlots: Custom
 	1x filters: "filter1","filter2" chances:chance1,chance2 replaceChance:chance replace:index foil:true/false chanceFunction:else/and/independent
 	*/
-	
+	string = string.replace(/style[^\n]+\n?/i, "");
 	//first check for a built in pack
 	let builtPackCheck = string.match(/^([^\n]+)/);
 	if(builtPackCheck){
@@ -171,7 +171,7 @@ function buildPackSlotsFrom(string){ //encodes packSlots code
 		if(packCheck != "custom"){
 			let packTest = builtInPacks(packCheck);
 			if(packTest.length > 0) {
-				return packTest; //send a built in pack
+				return JSON.parse(JSON.stringify(packTest)); //send a built in pack
 			}else{
 				return ["Invalid packSlot structure: Unrecognized built-in pack type: " + builtPackCheck[1] + ". If you were trying to make a custom pack, use pack type 'Custom'."] //invalid pack structure
 			}
@@ -197,6 +197,8 @@ function buildPackSlotsFrom(string){ //encodes packSlots code
 			let countMatch = builtLines[line].match(/\n([0-9]+)x/);
 			let filterMatch = builtLines[line].match(/filters?: ?"([^\n]+)"/i);
 			let chanceMatch = builtLines[line].match(/chances?: ?"?([0-9\.,]+)"?/i);
+			if(!chanceMatch || !chanceMatch[1])
+				chanceMatch = ["", "1.0"];
 			if(!filterMatch || !chanceMatch || !filterMatch[1] || !chanceMatch[1])
 				return ['Invalid packSlot structure: Programmed packSlots must have filters and chances fields ending in commas, ex: `1x filters:"r=r","r=m", chances:0.875,0.125,`.'] //invalid pack structure
 			let quant = countMatch[1];
@@ -244,11 +246,11 @@ function buildPackSlotsFrom(string){ //encodes packSlots code
 					progSlot.chanceFunction = functionMatch[1].toLowerCase();
 				}
 			}
-			let max = Math.min(2,parseInt(countMatch[1]));
-			for(let i=0; i<max; i++)
+			for(let i=0; i<quant; i++)
 				customizedPack.push(progSlot)
 		}
 	}
+	customizedPack = JSON.parse(JSON.stringify(customizedPack));
 	return customizedPack;
 }
 function testPackFilters(packSlots, library, setID) {										//tests pack filters are valid for devDex
@@ -387,7 +389,7 @@ function genFRFPack() { //FRF
 	packArray = genSlots(builtInSlots("foil"), 1, packArray);
 	return packArray;
 }
-function genGRNPack() {//GRN/RNA
+function genGRNPack() { //GRN/RNA
 	let packArray = genSlots(builtInSlots("common"), 10, []);
 	packArray = genSlots(builtInSlots("uncommon"), 3, packArray);
 	packArray = genSlots(builtInSlots("old rare/mythic"), 1, packArray);
@@ -607,10 +609,23 @@ function writeDocs() { //writes packSlots documentation
 	pages.push({header:"chanceFunction Details", page:line, header2:"Independent", page2:line2, header3:"And", page3:line3});
 	return [pages, ptPages];
 }
-
+function stringifyPackSlot(slot) {
+	let out = "";
+	for(let f in slot.filters)
+		out += `${slot.chances[f]}: ${slot.filters[f]}|`
+	out = out.replace(/\|$/, "");
+	if(slot.chanceFunction)
+		out += ` cf:${slot.chanceFunction}`;
+	if(slot.hasOwnProperty("replace"))
+		out += ` ${slot.replaceChance} chance to replace slot ${slot.replace}`
+	if(slot.foii)
+		out += " and is foil"
+	return out;
+}
 exports.testPackFilters = testPackFilters;
 exports.assignCanonPack = assignCanonPack;
 exports.buildPackSlotsFrom = buildPackSlotsFrom;
+exports.stringifyPackSlot = stringifyPackSlot;
 exports.docs = docs;
 
 var customSets = require('./msem/setData.json');
