@@ -1,7 +1,7 @@
 ﻿/* LackeyBot
  Card Fetching
 */
-//Live and Test Bot login
+//Live and Test Bot login 
 var config = require('./config/lackeyconfig.js').config;
 var login = config.live;
 var botname = "LackeyBot";
